@@ -20,7 +20,7 @@ namespace Assets.Scripts.Editor.PathFinding {
                 var from = nodes.Find(x => x.transform.position == controller.From);
                 var to = nodes.Find(x => x.transform.position == controller.To);
 
-                DebugInformationAStar debugInformation;
+                DebugInformationAlgorithm debugInformation;
                 controller.AStar(from, to, controller.Radius, true, out debugInformation);
                 controller.InitializeDebugInfo();
                 controller.DebugManagerAStar.AddPath(debugInformation);
@@ -64,7 +64,7 @@ namespace Assets.Scripts.Editor.PathFinding {
             //Debug.Log("From " + nodes[index1].transform.position);
             //Debug.Log("To " + nodes[index2].transform.position);
 
-            DebugInformationAStar debugInformation;
+            DebugInformationAlgorithm debugInformation;
             controller.AStar(nodes[index1], nodes[index2], controller.Radius, true, out debugInformation);
             controller.InitializeDebugInfo();
             controller.DebugManagerAStar.AddPath(debugInformation);

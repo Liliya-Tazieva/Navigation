@@ -10,7 +10,8 @@ namespace Assets.Scripts.PathFinding {
         Observed = 0,
         Path = 1,
         From = 2,
-        To = 3
+        To = 3,
+		JumpPoint = 4
     }
 
     public class PathRenderer: MonoBehaviour {
@@ -22,7 +23,7 @@ namespace Assets.Scripts.PathFinding {
         private static Dictionary<Renderer, RendererUseInformer> _defaultColors = new Dictionary<Renderer, RendererUseInformer>();
         private readonly HashSet<Renderer> _usedRenderers = new HashSet<Renderer>();
 
-        public DebugInformationAStar DebugInformation;
+        public DebugInformationAlgorithm DebugInformation;
 
         public static void MapRebuild() {
             _defaultColors = new Dictionary<Renderer, RendererUseInformer>();

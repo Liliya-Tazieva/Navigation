@@ -5,29 +5,37 @@
         Processed = 1
     }
 
-	public enum Destination {
-		Default = 0,
-		Up_right = 1,
-		Down_right = 2,
-		Up_left = 3,
-		Down_left = 4,
-		Right = 5,
-		Left = 6,
-		Up = 7,
-		Down = 8
-	}
-
     public class Node {
+		public bool JumpPoint;
+        public int[,] NormMatrix = new int[3,3];
+
         public readonly Informer InformerNode;
         public NodeState Visited;
         public float Distance;
-		public Destination DestinationToStart;
+        public Destinations DestinationToFinish;
 
         public Node(Informer i, NodeState v) {
             InformerNode = i;
             Visited = v;
             Distance = 0;
-			DestinationToStart = 0;
+            DestinationToFinish = Destinations.Default; 
+            for (var k = 0; k < 3; ++k)
+            {
+                for (var j = 0; j<3; ++j)
+                {
+                    NormMatrix[k, j] = 0;
+                }
+            }
+			JumpPoint = false;
+        }
+
+        public int X()
+        {
+            return (int)InformerNode.transform.position.x/3;
+        }
+        public int Y()
+        {
+            return (int)InformerNode.transform.position.z/3;
         }
     }
 }

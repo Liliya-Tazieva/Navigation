@@ -20,10 +20,13 @@ namespace Assets.Scripts.PathFinding {
         public float Radius;
 
         public KDTree<Informer> NodesTree = new KDTree<Informer>(3);
+		public Node [,] NodesArray = new Node [34,35];
+		public bool IsPrecomputed;
 
         public void RegisterInformer(Informer informer) {
             var position = informer.transform.position;
             NodesTree.Add(position.ToArray(), informer);
+			NodesArray [(int)position.x / 3, (int)position.z / 3] = new Node (informer,NodeState.Undiscovered);
         }
 
         //Avoid at all costs!
@@ -45,13 +48,14 @@ namespace Assets.Scripts.PathFinding {
 
         [UsedImplicitly]
         public List<Informer> AStar(Informer from, Informer to, float radius) {
-            DebugInformationAStar debugInformation;
+            DebugInformationAlgorithm debugInformation;
             var finalPath = AStar(from, to, radius, false, out debugInformation);
             return finalPath;
         }
 
         public List<Informer> AStar(Informer from, Informer to, float radius, bool debugFlag,
-            out DebugInformationAStar debugInformation) {
+            out DebugInformationAlgorithm debugInformation)
+        {
             if (from == null || to == null) {
                 Debug.LogError("Can't run A*. Enter proper from and to parameters!");
                 debugInformation = null;
@@ -60,7 +64,8 @@ namespace Assets.Scripts.PathFinding {
             //Debug.Log("From: " + from.transform.position);
             //Debug.Log("To: " + to.transform.position);
             if (debugFlag) {
-                debugInformation = new DebugInformationAStar {
+                debugInformation = new DebugInformationAlgorithm
+                {
                     From = from,
                     To = to,
                     Observed = new List<Node>(),
@@ -201,433 +206,201 @@ namespace Assets.Scripts.PathFinding {
             return finalPath;
         }
     
-        public List<Node> JPS(Informer from, Informer to, float radius) {
-            if (from == null || to == null)
-            {
-                Debug.LogError("Can't run JPS. Enter proper from and to parameters!");
-                return null;
-            }
-
-			List<Node> open_list = new List<Node>();
-			var current = new Node(from, NodeState.Processed);
-			open_list.AddRange (NodesTree.Nearest (current.Position().ToArray(), radius).
-				ToList().Where (arg => arg.Position() != current.Position()
-					&& arg.InformerNode.IsObstacle != true).ToList());
-			foreach(var arg in open_list){
-				arg.Distance = arg.InformerNode.Metrics(to);
-				if (arg.InformerNode.transform.position.x == from.transform.position.x) {
-					if (arg.InformerNode.transform.position.z > from.transform.position.z) {
-						arg.DestinationToStart = Destination.Up;
-					} else {
-						arg.DestinationToStart = Destination.Down;
-					}
-				}
-				if (arg.InformerNode.transform.position.z == from.transform.position.z) {
-					arg.DestinationToStart = (arg.InformerNode.transform.position.x > from.transform.position.x) 
-							? Destination.Right :  Destination.Left;
-					
-				}
-				if (arg.InformerNode.transform.position.x > from.transform.position.x) {
-					if (arg.InformerNode.transform.position.z > from.transform.position.z) {
-						arg.DestinationToStart = Destination.Up_right;
-					} else {
-						arg.DestinationToStart = Destination.Down_right;
-					}
-				}
-				if (arg.InformerNode.transform.position.x < from.transform.position.x) {
-					if (arg.InformerNode.transform.position.z > from.transform.position.z) {
-						arg.DestinationToStart = Destination.Up_left;
-					} else {
-						arg.DestinationToStart = Destination.Down_left;
+		public void PrecomputeMap(){
+			//finding jump points
+			for (var i = 0; i < 34; ++i) {
+				for (var j = 0; j < 35; ++j) {
+					if (!NodesArray [i, j].InformerNode.IsObstacle) {
+						//right obstacle
+						if (i < 33) {
+							if (NodesArray [i + 1, j].InformerNode.IsObstacle) {
+								if (j > 0) {
+									if(!NodesArray [i + 1, j-1].InformerNode.IsObstacle)
+										NodesArray [i, j].JumpPoint = true;
+								}
+								if (j < 34) {
+									if(!NodesArray [i + 1, j+1].InformerNode.IsObstacle)
+										NodesArray [i, j].JumpPoint = true;
+								}
+							}
+						}
+						//left obstacle
+						if (i > 0) {
+							if (NodesArray [i - 1, j].InformerNode.IsObstacle) {
+								if (j > 0) {
+									if(!NodesArray [i - 1, j-1].InformerNode.IsObstacle)
+										NodesArray [i, j].JumpPoint = true;
+								}
+								if (j < 34) {
+									if(!NodesArray [i - 1, j+1].InformerNode.IsObstacle)
+										NodesArray [i, j].JumpPoint = true;
+								}
+							}
+						}
+						//up obstacle
+						if (j < 34) {
+							if (NodesArray [i, j + 1].InformerNode.IsObstacle) {
+								if (i > 0) {
+									if(!NodesArray [i - 1, j + 1].InformerNode.IsObstacle)
+										NodesArray [i, j].JumpPoint = true;
+								}
+								if (i < 33) {
+									if(!NodesArray [i + 1, j + 1].InformerNode.IsObstacle)
+										NodesArray [i, j].JumpPoint = true;
+								}
+							}
+						}
+						//down obstacle
+						if (j > 0) {
+							if (NodesArray [i, j -1].InformerNode.IsObstacle) {
+								if (i > 0) {
+									if(!NodesArray [i - 1, j - 1].InformerNode.IsObstacle)
+										NodesArray [i, j].JumpPoint = true;
+								}
+								if (i < 33) {
+									if(!NodesArray [i + 1, j - 1].InformerNode.IsObstacle)
+										NodesArray [i, j].JumpPoint = true;
+								}
+							}
+						}
 					}
 				}
 			}
-			open_list = open_list.OrderBy(arg => arg.Distance).ToList();
-			current = open_list [0];
-			Debug.Log ("current "+current.InformerNode.transform.position);
-			var check_list = new List<Node>{current};
-			while (current.InformerNode != to) {
-				if (open_list.Count == 1) {
-					Debug.Log("No path was found");
-					return null;
-				}
 
-				var forced_flag = false;
-				while (!forced_flag && current != null) {
-					var obstacles = NodesTree.Nearest (current.InformerNode.transform.position.ToArray (), radius).
-						ToList ().Where (arg => arg.InformerNode.transform.position != current.InformerNode.transform.position
-					                && arg.InformerNode.IsObstacle == true).ToList ();
-					var neighbours = NodesTree.Nearest (current.InformerNode.transform.position.ToArray (), radius).
-						ToList ().Where (arg => arg.InformerNode.transform.position != current.InformerNode.transform.position
-							&& arg.InformerNode.IsObstacle != true).ToList ();
-					var neighbour = current;
-					
-					if (current.DestinationToStart == Destination.Up || current.DestinationToStart == Destination.Down) {
-						if (obstacles.Exists (arg => arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z)) {
-							forced_flag = true;
-							open_list.Add (current);
-							if (obstacles.Exists (arg => arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x)) {
-								if(current.DestinationToStart == Destination.Up){
-									neighbour = neighbours.Find (arg => arg.InformerNode.transform.position.x <
-									                current.InformerNode.transform.position.x && arg.InformerNode.transform.position.z >
-									                current.InformerNode.transform.position.z);
-									if (neighbour != null) {
-										neighbour.DestinationToStart = Destination.Up_left;
-										neighbour.InformerNode.Metrics (to);
-										check_list.Add (neighbour);
-									}
-								} else {
-									neighbour = neighbours.Find (arg => arg.InformerNode.transform.position.x <
-									                current.InformerNode.transform.position.x && arg.InformerNode.transform.position.z <
-									                current.InformerNode.transform.position.z);
-									if (neighbour != null) {
-										neighbour.DestinationToStart = Destination.Down_left;
-										neighbour.InformerNode.Metrics (to);
-										check_list.Add (neighbour);
-									}
-								}						
+			//computing distances to jump points and obstacles
+			for (var i = 0; i < 34; ++i) {
+				for (var j = 0; j < 35; ++j) {
+					//Checking up
+					var k = 1;
+					while (k < 35-j) {
+						if(NodesArray [i, j+k].JumpPoint || NodesArray [i, j+k].InformerNode.IsObstacle){
+							if(NodesArray [i, j+k].JumpPoint) {
+								NodesArray [i, j].NormMatrix[0,1] = k-1;
 							}
-							if (obstacles.Exists (arg => arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x)) {
-								if(current.DestinationToStart == Destination.Up){
-									neighbour = neighbours.Find (arg => arg.InformerNode.transform.position.x >
-									                current.InformerNode.transform.position.x && arg.InformerNode.transform.position.z >
-									                current.InformerNode.transform.position.z);
-									if (neighbour != null) {
-										neighbour.DestinationToStart = Destination.Up_right;
-										neighbour.InformerNode.Metrics (to);
-										check_list.Add (neighbour);
-									}
-								} else {
-									neighbour = neighbours.Find (arg => arg.InformerNode.transform.position.x >
-									                current.InformerNode.transform.position.x && arg.InformerNode.transform.position.z <
-									                current.InformerNode.transform.position.z);
-									if (neighbour != null) {
-										neighbour.DestinationToStart = Destination.Down_right;
-										neighbour.InformerNode.Metrics (to);
-										check_list.Add (neighbour);
-									}
-								}						
+							else {
+                                NodesArray[i, j].NormMatrix[0, 1] = -k + 1;
 							}
+							break;
 						}
-						if (current.DestinationToStart == Destination.Up) {
-							neighbour = neighbours.Find (arg => 
-								arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x &&
-							                arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Up;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
-							}
-						} else {
-							neighbour = neighbours.Find (arg => 
-								arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x &&
-							                arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Down;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
-							}
-						}
+						k++;
 					}
-					if (current.DestinationToStart == Destination.Left || current.DestinationToStart == Destination.Right) {
-						if(obstacles.Exists(arg => arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x)) {
-							forced_flag = true;
-							open_list.Add (current);
-							if (obstacles.Exists (arg => arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z)) {
-								if(current.DestinationToStart == Destination.Right){
-									neighbour = neighbours.Find (arg => arg.InformerNode.transform.position.x >
-									                current.InformerNode.transform.position.x && arg.InformerNode.transform.position.z <
-									                current.InformerNode.transform.position.z);
-									if (neighbour != null) {
-										neighbour.DestinationToStart = Destination.Down_right;
-										neighbour.InformerNode.Metrics (to);
-										check_list.Add (neighbour);
-									}
-								} else {
-									neighbour = neighbours.Find (arg => arg.InformerNode.transform.position.x <
-									                current.InformerNode.transform.position.x && arg.InformerNode.transform.position.z <
-									                current.InformerNode.transform.position.z);
-									if (neighbour != null) {
-										neighbour.DestinationToStart = Destination.Down_left;
-										neighbour.InformerNode.Metrics (to);
-										check_list.Add (neighbour);
-									}
-								}						
+					//Checking down
+					k = 1;
+					while (j-k >= 0) {
+						if(NodesArray [i, k].JumpPoint || NodesArray [i, k].InformerNode.IsObstacle){
+							if(NodesArray [i, j-k].JumpPoint) {
+                                NodesArray[i, j].NormMatrix[2, 1] = k - 1;
 							}
-							if (obstacles.Exists (arg => arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z)) {
-								if(current.DestinationToStart == Destination.Right){
-									neighbour = neighbours.Find (arg => arg.InformerNode.transform.position.x >
-									                current.InformerNode.transform.position.x && arg.InformerNode.transform.position.z >
-									                current.InformerNode.transform.position.z);
-									if (neighbour != null) {
-										neighbour.DestinationToStart = Destination.Up_right;
-										neighbour.InformerNode.Metrics (to);
-										check_list.Add (neighbour);
-									}
-								} else {
-									neighbour = neighbours.Find (arg => arg.InformerNode.transform.position.x <
-									                current.InformerNode.transform.position.x && arg.InformerNode.transform.position.z >
-									                current.InformerNode.transform.position.z);
-									if (neighbour != null) {
-										neighbour.DestinationToStart = Destination.Up_left;
-										neighbour.InformerNode.Metrics (to);
-										check_list.Add (neighbour);
-									}
-									
-								}						
+							else {
+                                NodesArray[i, j].NormMatrix[2, 1] = -k + 1;
 							}
-						} 
-						if (current.DestinationToStart == Destination.Right) {
-							neighbour = neighbours.Find (arg => 
-								arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z &&
-							                arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Right;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
-							}
-						} else {
-							neighbour = neighbours.Find (arg => 
-								arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z &&
-							                arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Left;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
-							}
+							break;
 						}
+						k++;
 					}
-					if (current.DestinationToStart == Destination.Up_right) {
-						if(obstacles.Exists(arg => arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x
-								&& arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z)) {
-							forced_flag = true;
-							open_list.Add (current);
-							neighbour = neighbours.Find (arg => 
-								arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z &&
-							                arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Down_right;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
+					//Checking right
+					k = 1;
+					while (k < 34-i) {
+						if(NodesArray [i+k, j].JumpPoint || NodesArray [i+k, j].InformerNode.IsObstacle){
+							if(NodesArray [i+k, j].JumpPoint) {
+                                NodesArray[i, j].NormMatrix[1, 2] = k - 1;
 							}
-						}
-						if(obstacles.Exists(arg =>arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z
-							&& arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x)) {
-							forced_flag = true;
-							open_list.Add (current);
-							neighbour = neighbours.Find (arg => 
-								arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z &&
-							                arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Up_left;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
+							else {
+                                NodesArray[i, j].NormMatrix[1, 2] = -k + 1;
 							}
+							break;
 						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Up;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Right;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Up_right;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
+						k++;
 					}
-					if (current.DestinationToStart == Destination.Up_left) {
-						if(obstacles.Exists(arg => arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x
-								&& arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z)) {
-							forced_flag = true;
-							open_list.Add (current);
-							neighbour = neighbours.Find(arg =>  
-								arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z &&
-								arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Down_left;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
+					//Checking left
+					k = 1;
+					while (i-k >= 0) {
+						if(NodesArray [i-k, j].JumpPoint || NodesArray [i-k, j].InformerNode.IsObstacle){
+							if(NodesArray [i-k, j].JumpPoint) {
+                                NodesArray[i, j].NormMatrix[1, 0] = k - 1;
 							}
-						} 
-						if (obstacles.Exists(arg =>arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z
-							&& arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x)) {
-							forced_flag = true;
-							open_list.Add (current);
-							neighbour = neighbours.Find(arg =>  
-								arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z &&
-								arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Up_right;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
+							else {
+                                NodesArray[i, j].NormMatrix[1, 0] = -k + 1;
 							}
+							break;
 						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Up;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Left;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Up_left;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
+						k++;
 					}
-					if (current.DestinationToStart == Destination.Down_right) {
-						if(obstacles.Exists(arg => arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x
-								&& arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z)) {
-							forced_flag = true;
-							open_list.Add (current);
-							neighbour = neighbours.Find(arg =>  
-								arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z &&
-								arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Up_right;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
+					//Checking up-right
+					k = 1;
+					while (i+k<34 && j+k<35) {
+						if(NodesArray [i+k, j+k].JumpPoint || NodesArray [i+k, j+k].InformerNode.IsObstacle){
+							if(NodesArray [i+k, j+k].JumpPoint) {
+                                NodesArray[i, j].NormMatrix[0, 2] = k - 1;
 							}
-						} 
-						if(obstacles.Exists(arg =>arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z
-							&& arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x)) {
-							forced_flag = true;
-							open_list.Add (current);
-							neighbour = neighbours.Find(arg =>  
-								arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z &&
-								arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Down_left;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
+							else {
+                                NodesArray[i, j].NormMatrix[0, 2] = -k + 1;
 							}
+							break;
 						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Down;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Right;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Down_right;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
+						k++;
 					}
-					if (current.DestinationToStart == Destination.Down_left) {
-						if(obstacles.Exists(arg => arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x
-								&& arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z)) {
-							forced_flag = true;
-							open_list.Add (current);
-							neighbour = neighbours.Find(arg =>  
-								arg.InformerNode.transform.position.z > current.InformerNode.transform.position.z &&
-								arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Up_left;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
+					//Checking down-right
+					k = 1;
+					while (i+k<34 && j-k>=0) {
+						if(NodesArray [i+k, j-k].JumpPoint || NodesArray [i+k, j-k].InformerNode.IsObstacle){
+							if(NodesArray [i+k, j-k].JumpPoint) {
+                                NodesArray[i, j].NormMatrix[2, 0] = k - 1;
 							}
-						} 
-						if(obstacles.Exists(arg =>arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z
-							&& arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x)) {
-							forced_flag = true;
-							open_list.Add (current);
-							neighbour = neighbours.Find(arg =>  
-								arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z &&
-								arg.InformerNode.transform.position.x > current.InformerNode.transform.position.x);
-							if (neighbour != null) {
-								neighbour.DestinationToStart = Destination.Down_right;
-								neighbour.InformerNode.Metrics (to);
-								check_list.Add (neighbour);
+							else {
+                                NodesArray[i, j].NormMatrix[2, 0] = -k + 1;
 							}
+							break;
 						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x == current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Down;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z == current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Left;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
-						neighbour = neighbours.Find(arg =>  
-							arg.InformerNode.transform.position.z < current.InformerNode.transform.position.z &&
-							arg.InformerNode.transform.position.x < current.InformerNode.transform.position.x);
-						if (neighbour != null) {
-							neighbour.DestinationToStart = Destination.Down_left;
-							neighbour.InformerNode.Metrics (to);
-							check_list.Add (neighbour);
-						}
+						k++;
 					}
-					if (current.InformerNode == to) {
-						forced_flag = true;
-						open_list.Add (current);
+					//Checking up-left
+					k = 1;
+					while (i-k>=0 && j+k<35) {
+						if(NodesArray [i-k, j+k].JumpPoint || NodesArray [i-k, j+k].InformerNode.IsObstacle){
+							if(NodesArray [i-k, j+k].JumpPoint) {
+                                NodesArray[i, j].NormMatrix[0, 0] = k - 1;
+							}
+							else {
+                                NodesArray[i, j].NormMatrix[0, 0] = -k + 1;
+							}
+							break;
+						}
+						k++;
 					}
-					check_list.Remove (current);
-					check_list = check_list.OrderBy (arg => arg.Distance).ToList();
-					current = (check_list.Count==0)
-					? null : check_list[0];
+					//Checking down-left
+					k = 1;
+					while (i-k>=0 && j-k>=0) {
+						if(NodesArray [i-k, j-k].JumpPoint || NodesArray [i-k, j-k].InformerNode.IsObstacle){
+							if(NodesArray [i-k, j-k].JumpPoint) {
+                                NodesArray[i, j].NormMatrix[2, 0] = k - 1;
+							}
+							else {
+                                NodesArray[i, j].NormMatrix[2, 0] = -k + 1;
+							}
+							break;
+						}
+						k++;
+					}
 				}
-				if (current == null) {
-					open_list.Remove (current);
-					open_list [0].Visited = NodeState.Processed;
-					current = open_list	[0];
-				}
-				check_list.Clear();
 			}
-			open_list = open_list.Where (arg => arg.Visited == NodeState.Processed).ToList ();
-			open_list = Extensions.Inverse_Destination (open_list);
-			List<Node> final_path = new List<Node>();
-			//////////////////////
-			//way back, better to write function in extensions, code is very complicated already
-			/////////////////////
-			return final_path;
-        }
+			IsPrecomputed = true;
+		}
+
+		public void JPS(Informer from, Informer to){
+			if (!IsPrecomputed) {
+				Debug.Log ("Precomputing...");
+				PrecomputeMap ();
+                Debug.Log("Done!");
+			}
+		    var finish = NodesArray[(int)to.transform.position.x/3, (int)to.transform.position.z/3];
+            var start = NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3];
+		    var current = start;
+		    var observed = Extensions.DestinationsList(start,finish,NodesArray);
+
+			
+            var lines_from_finish = new StraightLinesFromNode(finish.X(), finish.Y());
+
+		}
     }
 }

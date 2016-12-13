@@ -51,10 +51,14 @@
      <Compile Include="Assets\Scripts\PathFinding\Controller.cs" />
      <Compile Include="Assets\Scripts\PathFinding\DebugInformationAStar.cs" />
      <Compile Include="Assets\Scripts\PathFinding\DebugManager.cs" />
+     <Compile Include="Assets\Scripts\PathFinding\Destinations.cs" />
      <Compile Include="Assets\Scripts\PathFinding\Informer.cs" />
      <Compile Include="Assets\Scripts\PathFinding\Node.cs" />
      <Compile Include="Assets\Scripts\PathFinding\OnA_StarGUI.cs" />
      <Compile Include="Assets\Scripts\PathFinding\PathRenderer.cs" />
+     <Compile Include="Assets\Scripts\PathFinding\Point.cs" />
+     <Compile Include="Assets\Scripts\PathFinding\StraightLine.cs" />
+     <Compile Include="Assets\Scripts\PathFinding\StraightLinesFromNode.cs" />
      <None Include="Assets\Plugins\Accord.xml" />
      <None Include="Assets\Plugins\Accord.MachineLearning.xml" />
      <None Include="Assets\Plugins\Accord.Math.xml" />

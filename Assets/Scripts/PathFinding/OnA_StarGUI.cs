@@ -31,7 +31,7 @@ public class OnA_StarGUI : MonoBehaviour {
             //Debug.Log("From " + nodes[index1].transform.position);
             //Debug.Log("To " + nodes[index2].transform.position);
 
-            DebugInformationAStar debugInformation;
+            DebugInformationAlgorithm debugInformation;
             controller.AStar(nodes[index1], nodes[index2], controller.Radius, true, out debugInformation);
             controller.InitializeDebugInfo();
             controller.DebugManagerAStar.AddPath(debugInformation);
@@ -54,10 +54,8 @@ public class OnA_StarGUI : MonoBehaviour {
 				index2 = rnd.Next(0, nodes.Count - 1);
 			}
 
-			Debug.Log("From " + nodes[index1].transform.position);
-			Debug.Log("To " + nodes[index2].transform.position);
 
-			controller.JPS(nodes[index1], nodes[index2], controller.Radius);
+			controller.JPS(nodes[index1], nodes[index2]);
 		}
 
         if (GUI.Button(new Rect(30, 160, 100, 50), "Next Map")) {
@@ -86,6 +84,7 @@ public class OnA_StarGUI : MonoBehaviour {
                     }
                 }
             }
+			controller.IsPrecomputed = false;
         }
     }
 

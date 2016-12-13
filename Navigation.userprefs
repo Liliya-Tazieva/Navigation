@@ -1,20 +1,20 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\PathFinding\Controller.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\PathFinding\Node.cs">
     <Files>
-      <File FileName="Assets\Scripts\PathFinding\Controller.cs" Line="381" Column="1" />
-      <File FileName="Assets\Scripts\Core\Extensions.cs" Line="27" Column="1" />
-      <File FileName="Assets\Scripts\PathFinding\Node.cs" Line="8" Column="27" />
-      <File FileName="Assets\Scripts\PathFinding\OnA_StarGUI.cs" Line="63" Column="1" />
+      <File FileName="Assets\Scripts\PathFinding\Controller.cs" Line="393" Column="21" />
+      <File FileName="Assets\Scripts\PathFinding\OnA_StarGUI.cs" Line="1" Column="1" />
       <File FileName="Assets\Scripts\Map\MapManager.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Core\Extensions.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\PathFinding\Node.cs" Line="3" Column="15" />
+      <File FileName="Assets\Scripts\PathFinding\Informer.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\PathFinding\PathRenderer.cs" Line="1" Column="1" />
       <File FileName="Assets\Scripts\Map\TilesManager.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\PathFinding\PathRenderer.cs" Line="53" Column="44" />
+      <File FileName="Assets\Scripts\PathFinding\DebugInformationAStar.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="C:\Users\Лилия\Documents\GitHub\Navigation\Assets\Scripts\PathFinding\Controller.cs" line="263" column="1" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>

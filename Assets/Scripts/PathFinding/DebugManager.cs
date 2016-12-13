@@ -5,9 +5,10 @@ using UnityEngine;
 
 namespace Assets.Scripts.PathFinding {
     public class DebugManager : MonoBehaviour {
-        private readonly List<DebugInformationAStar> _paths = new List<DebugInformationAStar>();
+        private readonly List<DebugInformationAlgorithm> _paths = new List<DebugInformationAlgorithm>();
 
-        public void AddPath(DebugInformationAStar dbi) {
+        public void AddPath(DebugInformationAlgorithm dbi)
+        {
             _paths.Add(dbi);
         }
 

@@ -55,35 +55,27 @@ namespace Assets.Scripts.Core {
             return path;
         }
 
-		public static List<Node> Inverse_Destination (List<Node> path){ 
-			foreach (var node in path) {
-				if (node.DestinationToStart == Destination.Up_right) {
-					node.DestinationToStart = Destination.Down_left;
-				}
-				if (node.DestinationToStart == Destination.Down_left) {
-					node.DestinationToStart = Destination.Up_right;
-				}
-				if (node.DestinationToStart == Destination.Down_right) {
-					node.DestinationToStart = Destination.Up_left;
-				}
-				if (node.DestinationToStart == Destination.Up_left) {
-					node.DestinationToStart = Destination.Down_right;
-				}
-				if (node.DestinationToStart == Destination.Up) {
-					node.DestinationToStart = Destination.Down;
-				}
-				if (node.DestinationToStart == Destination.Left) {
-					node.DestinationToStart = Destination.Right;
-				}
-				if (node.DestinationToStart == Destination.Down) {
-					node.DestinationToStart = Destination.Up;
-				}
-				if (node.DestinationToStart == Destination.Right) {
-					node.DestinationToStart = Destination.Left;
-				}
-			}
-			path.Reverse();
-			return path;
-		}
+        public static List<Node> DestinationsList(Node start, Node finish, Node [,] array)
+        {
+            var nodes = new List<Node>();
+            if (start.X() < finish.X() && start.Y() < finish.Y())
+            {
+                
+            }
+            else if (start.X() < finish.X() && start.Y() > finish.Y())
+            {
+
+            }
+            else if (start.X() > finish.X() && start.Y() < finish.Y())
+            {
+
+            }
+            else if (start.X() > finish.X() && start.Y() > finish.Y())
+            {
+
+            }
+
+            return nodes;
+        }
     }
 }
