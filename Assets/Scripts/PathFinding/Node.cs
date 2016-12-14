@@ -6,19 +6,22 @@
     }
 
     public class Node {
-		public bool JumpPoint;
-        public int[,] NormMatrix = new int[3,3];
+
+        public int[,] NormMatrix = new int[3, 3];
+        public bool JumpPoint;
+        public bool TargetJP;
 
         public readonly Informer InformerNode;
         public NodeState Visited;
         public float Distance;
         public Destinations DestinationFromPrevious;
+        public Destinations DestinationToFinish;
 
         public Node(Informer i, NodeState v) {
             InformerNode = i;
             Visited = v;
             Distance = 0;
-            DestinationFromPrevious = Destinations.Default; 
+            
             for (var k = 0; k < 3; ++k)
             {
                 for (var j = 0; j<3; ++j)
@@ -27,6 +30,7 @@
                 }
             }
 			JumpPoint = false;
+            TargetJP = false;
         }
 
         public int X()

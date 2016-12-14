@@ -59,6 +59,7 @@
      <Compile Include="Assets\Scripts\PathFinding\Point.cs" />
      <Compile Include="Assets\Scripts\PathFinding\StraightLine.cs" />
      <Compile Include="Assets\Scripts\PathFinding\StraightLinesFromNode.cs" />
+     <Compile Include="Assets\Scripts\PathFinding\Tree_Node.cs" />
      <None Include="Assets\Plugins\Accord.xml" />
      <None Include="Assets\Plugins\Accord.MachineLearning.xml" />
      <None Include="Assets\Plugins\Accord.Math.xml" />

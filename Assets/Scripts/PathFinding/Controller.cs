@@ -272,16 +272,20 @@ namespace Assets.Scripts.PathFinding {
 				for (var j = 0; j < 35; ++j) {
 					//Checking up
 					var k = 1;
-					while (k < 35-j) {
+					while (j + k < 35) {
 						if(NodesArray [i, j+k].JumpPoint || NodesArray [i, j+k].InformerNode.IsObstacle){
 							if(NodesArray [i, j+k].JumpPoint) {
-								NodesArray [i, j].NormMatrix[0,1] = k-1;
+								NodesArray [i, j].NormMatrix[0,1] = k;
 							}
 							else {
-                                NodesArray[i, j].NormMatrix[0, 1] = -k + 1;
+                                NodesArray[i, j].NormMatrix[0, 1] = k-1;
 							}
 							break;
 						}
+                        if (j + k == 34)
+                        {
+                            NodesArray[i, j].NormMatrix[0, 1] = k;
+                        }
 						k++;
 					}
 					//Checking down
@@ -289,27 +293,35 @@ namespace Assets.Scripts.PathFinding {
 					while (j-k >= 0) {
 						if(NodesArray [i, k].JumpPoint || NodesArray [i, k].InformerNode.IsObstacle){
 							if(NodesArray [i, j-k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[2, 1] = k - 1;
+                                NodesArray[i, j].NormMatrix[2, 1] = k;
 							}
 							else {
-                                NodesArray[i, j].NormMatrix[2, 1] = -k + 1;
+                                NodesArray[i, j].NormMatrix[2, 1] = k-1;
 							}
 							break;
 						}
+                        if (j - k == 0)
+                        {
+                            NodesArray[i, j].NormMatrix[2, 1] = k;
+                        }
 						k++;
 					}
 					//Checking right
 					k = 1;
-					while (k < 34-i) {
+					while (i + k < 34) {
 						if(NodesArray [i+k, j].JumpPoint || NodesArray [i+k, j].InformerNode.IsObstacle){
 							if(NodesArray [i+k, j].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[1, 2] = k - 1;
+                                NodesArray[i, j].NormMatrix[1, 2] = k;
 							}
 							else {
-                                NodesArray[i, j].NormMatrix[1, 2] = -k + 1;
+                                NodesArray[i, j].NormMatrix[1, 2] = k-1;
 							}
 							break;
 						}
+                        if (i - k == 33)
+                        {
+                            NodesArray[i, j].NormMatrix[1, 2] = k;
+                        }
 						k++;
 					}
 					//Checking left
@@ -317,13 +329,17 @@ namespace Assets.Scripts.PathFinding {
 					while (i-k >= 0) {
 						if(NodesArray [i-k, j].JumpPoint || NodesArray [i-k, j].InformerNode.IsObstacle){
 							if(NodesArray [i-k, j].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[1, 0] = k - 1;
+                                NodesArray[i, j].NormMatrix[1, 0] = k;
 							}
 							else {
-                                NodesArray[i, j].NormMatrix[1, 0] = -k + 1;
+                                NodesArray[i, j].NormMatrix[1, 0] = k - 1;
 							}
 							break;
 						}
+                        if (i - k == 0)
+                        {
+                            NodesArray[i, j].NormMatrix[1, 0] = k;
+                        }
 						k++;
 					}
 					//Checking up-right
@@ -331,13 +347,17 @@ namespace Assets.Scripts.PathFinding {
 					while (i+k<34 && j+k<35) {
 						if(NodesArray [i+k, j+k].JumpPoint || NodesArray [i+k, j+k].InformerNode.IsObstacle){
 							if(NodesArray [i+k, j+k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[0, 2] = k - 1;
+                                NodesArray[i, j].NormMatrix[0, 2] = k;
 							}
 							else {
-                                NodesArray[i, j].NormMatrix[0, 2] = -k + 1;
+                                NodesArray[i, j].NormMatrix[0, 2] = k - 1;
 							}
 							break;
 						}
+                        if (i + k == 33 || j + k == 34)
+                        {
+                            NodesArray[i, j].NormMatrix[0, 2] = k;
+                        }
 						k++;
 					}
 					//Checking down-right
@@ -345,13 +365,17 @@ namespace Assets.Scripts.PathFinding {
 					while (i+k<34 && j-k>=0) {
 						if(NodesArray [i+k, j-k].JumpPoint || NodesArray [i+k, j-k].InformerNode.IsObstacle){
 							if(NodesArray [i+k, j-k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[2, 0] = k - 1;
+                                NodesArray[i, j].NormMatrix[2, 2] = k;
 							}
 							else {
-                                NodesArray[i, j].NormMatrix[2, 0] = -k + 1;
+                                NodesArray[i, j].NormMatrix[2, 2] = k - 1;
 							}
 							break;
 						}
+                        if (i + k == 33 || j - k == 0)
+                        {
+                            NodesArray[i, j].NormMatrix[2, 2] = k;
+                        }
 						k++;
 					}
 					//Checking up-left
@@ -359,13 +383,17 @@ namespace Assets.Scripts.PathFinding {
 					while (i-k>=0 && j+k<35) {
 						if(NodesArray [i-k, j+k].JumpPoint || NodesArray [i-k, j+k].InformerNode.IsObstacle){
 							if(NodesArray [i-k, j+k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[0, 0] = k - 1;
+                                NodesArray[i, j].NormMatrix[0, 0] = k;
 							}
 							else {
-                                NodesArray[i, j].NormMatrix[0, 0] = -k + 1;
+                                NodesArray[i, j].NormMatrix[0, 0] = k - 1;
 							}
 							break;
 						}
+                        if (i - k == 0 || j + k == 34)
+                        {
+                            NodesArray[i, j].NormMatrix[0, 0] = k;
+                        }
 						k++;
 					}
 					//Checking down-left
@@ -373,13 +401,17 @@ namespace Assets.Scripts.PathFinding {
 					while (i-k>=0 && j-k>=0) {
 						if(NodesArray [i-k, j-k].JumpPoint || NodesArray [i-k, j-k].InformerNode.IsObstacle){
 							if(NodesArray [i-k, j-k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[2, 0] = k - 1;
+                                NodesArray[i, j].NormMatrix[2, 0] = k;
 							}
 							else {
-                                NodesArray[i, j].NormMatrix[2, 0] = -k + 1;
+                                NodesArray[i, j].NormMatrix[2, 0] = k - 1;
 							}
 							break;
 						}
+					    if (i - k == 0 || j - k == 0)
+					    {
+                            NodesArray[i, j].NormMatrix[2, 0] = k;
+					    }
 						k++;
 					}
 				}
@@ -387,21 +419,93 @@ namespace Assets.Scripts.PathFinding {
 			IsPrecomputed = true;
 		}
 
-		public void JPS(Informer from, Informer to){
+		public List<Node> JPS(Informer from, Informer to){
 			if (!IsPrecomputed) {
 				Debug.Log ("Precomputing...");
 				PrecomputeMap ();
                 Debug.Log("Done!");
 			}
 		    var finish = NodesArray[(int)to.transform.position.x/3, (int)to.transform.position.z/3];
-            var start = NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3];
-            start.Visited = NodeState.Processed;
-		    var current = start;
-		    var path = new List<Node>();
+            var start = new Tree_Node(null,NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3]);
+            start.Currentnode.Visited = NodeState.Processed;
+		    var path = new List<Tree_Node>();
 		    path.Add(start);
-		    var observed = Extensions.Neighbours(start.X(),start.Y(),NodesArray);
-            var lines_from_finish = new StraightLinesFromNode(finish.X(), finish.Y());
+            var linesFromFinish = new StraightLinesFromNode(finish.X(), finish.Y());
+		    var observed = Extensions.Neighbours(start.Currentnode.X(),start.Currentnode.Y(),NodesArray, finish, linesFromFinish);
+            var current = start;
+		    while (current.Currentnode != finish)
+		    {
+                if (observed.Exists(arg => arg.Currentnode.Visited!=NodeState.Processed))
+		        {
+                    Debug.Log("No path was found");
+		            return null;
+		        }
+                observed[0].Currentnode.Visited = NodeState.Processed;
+		        current = observed[0];
+		        observed = observed.OrderBy(arg => arg.Currentnode.Visited).ToList();
+		        while (current.Parent != path[path.Count - 1].Currentnode)
+		        {
+		            path.RemoveAt(path.Count-1);
+		        }
 
+		        if (current.Currentnode.TargetJP)
+		        {
+		            if (Extensions.GoToFinish(current.Currentnode, finish))
+		            {
+		                path.Add(current);
+                        path.Add(new Tree_Node(current.Currentnode,finish));
+		                break;
+		            }
+                    else continue;
+		        }
+
+                if (current.Currentnode.JumpPoint)
+		        {
+		            var neighbours = Extensions.Neighbours(current.Currentnode.X(), current.Currentnode.Y(), NodesArray,
+		                current.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
+		            if (neighbours.Count != 0)
+		            {
+		                observed.InsertRange(0, neighbours);
+		                path.Add(current);
+		                continue;
+		            }
+		        }
+                var line = new StraightLine(current.Parent,current.Currentnode);
+		        var tempList = new List<Node>();
+		        foreach (var lineFromFinish in linesFromFinish.Lines)
+		        {
+		            var coordinates = StraightLine.Crossing(line, lineFromFinish);
+		            if (coordinates != null)
+		            {
+		                var tempNode = NodesArray[coordinates.X, coordinates.Y];
+		                tempNode.Distance = tempNode.InformerNode.Metrics(finish.InformerNode);
+		                tempNode.Visited = NodeState.Discovered;
+		                tempList.Add(tempNode);
+		            }
+		        }
+		        if (tempList.Count != 0)
+		        {
+		            tempList = tempList.OrderBy(arg => arg.Distance).ToList();
+		            var tempTreeList = Tree_Node.NodesToList(tempList, current.Currentnode);
+		            foreach (var treeNode in tempTreeList)
+		            {
+		                treeNode.FindDestination();
+		            }
+		            observed.InsertRange(0, tempTreeList);
+		        }
+		        else
+		        {
+                    var neighbours = Extensions.Neighbours(current.Currentnode.X(), current.Currentnode.Y(), NodesArray,
+                        current.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
+                    if (neighbours.Count != 0)
+                    {
+                        observed.InsertRange(0, neighbours);
+                        path.Add(current);
+                    }
+		        }
+		    }
+            if(path.Count!=0) Debug.Log("Path was found");
+		    return Tree_Node.ToNodeList(path);
 		}
     }
 }

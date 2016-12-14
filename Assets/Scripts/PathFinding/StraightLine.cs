@@ -8,6 +8,15 @@ namespace Assets.Scripts.PathFinding
         public Point Start;
         public Point Finish;
 
+        public StraightLine(Node node1, Node node2)
+        {
+            var start = new Point(node1.X(),node1.Y());
+            var finish = new Point(node2.X(), node2.Y());
+            Start = start;
+            Finish = finish;
+            Destination = Destinations.Default;
+        }
+
         public StraightLine(int x, int y, Destinations destination)
         {
             Destination = destination;
@@ -65,6 +74,11 @@ namespace Assets.Scripts.PathFinding
         {
             bool belongs = line != null && Start.Belongs(line) && Finish.Belongs(line);
             return belongs;
+        }
+
+        public static Point Crossing(StraightLine line1, StraightLine line2)
+        {
+            return Crossing(line1.Start, line1.Finish, line2.Start, line2.Finish);
         }
 
         public static Point Crossing(Point s1, Point f1, Point s2, Point f2)

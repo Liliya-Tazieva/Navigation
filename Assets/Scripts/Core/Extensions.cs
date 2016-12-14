@@ -55,15 +55,30 @@ namespace Assets.Scripts.Core {
             return path;
         }
 
-        public static List<Node> Neighbours(int x, int y, Node[,] array)
+        public static Destinations DestinationInverse(Destinations destination)
         {
-            var neighbours = Neighbours(x,y,array,Destinations.Default);
+            if (destination == Destinations.Default) return Destinations.Default;
+            else if (destination == Destinations.Right) return Destinations.Left;
+            else if (destination == Destinations.Left) return Destinations.Right;
+            else if (destination == Destinations.Up) return Destinations.Down;
+            else if (destination == Destinations.Down) return Destinations.Up;
+            else if (destination == Destinations.UpRight) return Destinations.DownLeft;
+            else if (destination == Destinations.DownLeft) return Destinations.UpRight;
+            else if (destination == Destinations.UpLeft) return Destinations.DownRight;
+            else return Destinations.UpLeft;
+        }
+
+        public static List<Tree_Node> Neighbours(int x, int y, Node[,] array, Node finish, StraightLinesFromNode linesFromFinish)
+        {
+            var neighbours = Neighbours(x,y,array,Destinations.Default, finish, linesFromFinish);
             return neighbours;
         }
 
-        public static List<Node> Neighbours(int x, int y, Node[,] array, Destinations destination)
+        public static List<Tree_Node> Neighbours(int x, int y, Node[,] array, Destinations destination, Node finish,
+            StraightLinesFromNode linesFromFinish)
         {
-            var neighbours = new List<Node>();
+            var neighbours = new List<Tree_Node>();
+            var parent = array[x, y];
 
             //Left
             if (!array[x - 1, y].InformerNode.IsObstacle)
@@ -72,8 +87,10 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.Up || destination == Destinations.Down ||
                     destination == Destinations.UpLeft || destination == Destinations.DownLeft)
                 {
-                    var delta = Math.Abs(array[x, y].NormMatrix[1, 0]) ;
-                    neighbours.Add(array[x - delta, y]);
+                    var delta = array[x, y].NormMatrix[1, 0] ;
+                    var node = array[x - delta, y];
+                    node.DestinationFromPrevious = Destinations.Left;
+                    if (delta != 0) neighbours.Add(new Tree_Node(parent,node));
                 }
             }
             //Up-left
@@ -82,8 +99,10 @@ namespace Assets.Scripts.Core {
                 if (destination == Destinations.Default || destination == Destinations.Left ||
                     destination == Destinations.Up || destination == Destinations.UpLeft)
                 {
-                    var delta = Math.Abs(array[x, y].NormMatrix[0, 0]);
-                    neighbours.Add(array[x - delta, y + delta]);
+                    var delta = array[x, y].NormMatrix[0, 0];
+                    var node = array[x - delta, y + delta];
+                    node.DestinationFromPrevious = Destinations.UpLeft;
+                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
                 }
             }
             //Up
@@ -93,8 +112,10 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.Up || destination == Destinations.Right ||
                     destination == Destinations.UpLeft || destination == Destinations.UpRight)
                 {
-                    var delta = Math.Abs(array[x, y].NormMatrix[0, 1]);
-                    neighbours.Add(array[x, y + delta]);
+                    var delta = array[x, y].NormMatrix[0, 1];
+                    var node = array[x, y + delta];
+                    node.DestinationFromPrevious = Destinations.Up;
+                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
                 }
             }
             //Up-right
@@ -103,8 +124,10 @@ namespace Assets.Scripts.Core {
                 if (destination == Destinations.Default || destination == Destinations.Right ||
                     destination == Destinations.Up || destination == Destinations.UpRight)
                 {
-                    var delta = Math.Abs(array[x, y].NormMatrix[0, 2]);
-                    neighbours.Add(array[x + delta, y + delta]);
+                    var delta = array[x, y].NormMatrix[0, 2];
+                    var node = array[x + delta, y + delta];
+                    node.DestinationFromPrevious = Destinations.UpRight;
+                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
                 }
             }
             //Right
@@ -114,8 +137,10 @@ namespace Assets.Scripts.Core {
                    destination == Destinations.Up || destination == Destinations.Down ||
                    destination == Destinations.UpRight || destination == Destinations.DownRight)
                 {
-                    var delta = Math.Abs(array[x, y].NormMatrix[1, 2]);
-                    neighbours.Add(array[x + delta, y]);
+                    var delta = array[x, y].NormMatrix[1, 2];
+                    var node = array[x + delta, y];
+                    node.DestinationFromPrevious = Destinations.Right;
+                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
                 }
             }
             //Down-right
@@ -124,8 +149,10 @@ namespace Assets.Scripts.Core {
                 if (destination == Destinations.Default || destination == Destinations.Right ||
                     destination == Destinations.Down || destination == Destinations.DownRight)
                 {
-                    var delta = Math.Abs(array[x, y].NormMatrix[2, 2]);
-                    neighbours.Add(array[x + delta, y - delta]);    
+                    var delta = array[x, y].NormMatrix[2, 2];
+                    var node = array[x + delta, y - delta];
+                    node.DestinationFromPrevious = Destinations.DownRight;
+                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));    
                 }
             }
             //Down
@@ -135,8 +162,10 @@ namespace Assets.Scripts.Core {
                    destination == Destinations.Right || destination == Destinations.Down ||
                    destination == Destinations.DownLeft || destination == Destinations.DownRight)
                 {
-                    var delta = Math.Abs(array[x, y].NormMatrix[2, 1]);
-                    neighbours.Add(array[x, y - delta]);
+                    var delta = array[x, y].NormMatrix[2, 1];
+                    var node = array[x, y - delta];
+                    node.DestinationFromPrevious = Destinations.Down;
+                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
                 }
             }
             //Down-left
@@ -145,39 +174,87 @@ namespace Assets.Scripts.Core {
                 if (destination == Destinations.Default || destination == Destinations.Left ||
                     destination == Destinations.Down || destination == Destinations.DownLeft)
                 {
-                    var delta = Math.Abs(array[x, y].NormMatrix[2, 0]);
-                    neighbours.Add(array[x - delta, y - delta]);
+                    var delta = array[x, y].NormMatrix[2, 0];
+                    var node = array[x - delta, y - delta];
+                    node.DestinationFromPrevious = Destinations.DownLeft;
+                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
                 }
             }
             foreach (var node in neighbours)
             {
-                node.Visited = NodeState.Discovered;
+                node.Currentnode.Distance = Metrics(node.Currentnode.InformerNode, finish.InformerNode);
+                node.Currentnode.Visited = NodeState.Discovered;
+                var tempNode = IsTargetJP(node.Currentnode, linesFromFinish);
+                node.Currentnode.TargetJP = tempNode.TargetJP;
+                node.Currentnode.DestinationToFinish = tempNode.DestinationToFinish;
             }
+            neighbours = neighbours.OrderBy(arg => arg.Currentnode.Distance).ToList();
+            neighbours = neighbours.OrderByDescending(arg => arg.Currentnode.TargetJP).
+                ThenByDescending(arg => arg.Currentnode.JumpPoint).ToList();
 
             return neighbours;
         }
 
-        public static List<Node> DestinationsList(Node start, Node finish, Node [,] array)
+        public static bool GoToFinish(Node node, Node finish)
         {
-            var nodes = new List<Node>();
-            if (start.X() < finish.X() && start.Y() < finish.Y())
+            if (node.DestinationToFinish == Destinations.Right)
             {
-                
+                var delta = node.NormMatrix[1, 2];
+                if(finish.X() == node.X()+delta && finish.Y() == node.Y()) return true;
             }
-            else if (start.X() < finish.X() && start.Y() > finish.Y())
+            else if (node.DestinationToFinish == Destinations.Left)
             {
-
+                var delta = node.NormMatrix[1, 0];
+                if (finish.X() == node.X() - delta && finish.Y() == node.Y()) return true;
             }
-            else if (start.X() > finish.X() && start.Y() < finish.Y())
+            else if (node.DestinationToFinish == Destinations.Up)
             {
-
+                var delta = node.NormMatrix[0, 1];
+                if (finish.X() == node.X() && finish.Y() == node.Y()+delta) return true;
             }
-            else if (start.X() > finish.X() && start.Y() > finish.Y())
+            else if (node.DestinationToFinish == Destinations.Down)
             {
-
+                var delta = node.NormMatrix[2, 1];
+                if (finish.X() == node.X() && finish.Y() == node.Y()-delta) return true;
             }
-
-            return nodes;
+            else if (node.DestinationToFinish == Destinations.UpRight)
+            {
+                var delta = node.NormMatrix[0, 2];
+                if (finish.X() == node.X() + delta && finish.Y() == node.Y()+delta) return true;
+            }
+            else if (node.DestinationToFinish == Destinations.DownLeft)
+            {
+                var delta = node.NormMatrix[2, 0];
+                if (finish.X() == node.X() - delta && finish.Y() == node.Y() - delta) return true;
+            }
+            else if (node.DestinationToFinish == Destinations.UpLeft)
+            {
+                var delta = node.NormMatrix[0, 0];
+                if (finish.X() == node.X() - delta && finish.Y() == node.Y() + delta) return true;
+            }
+            else if (node.DestinationToFinish == Destinations.DownRight)
+            {
+                var delta = node.NormMatrix[2, 2];
+                if (finish.X() == node.X() + delta && finish.Y() == node.Y() - delta) return true;
+            }
+            return false;
         }
+
+        public static Node IsTargetJP(Node node, StraightLinesFromNode lines)
+        {
+            var isTargetJP = node;
+            foreach (var line in lines.Lines)
+            {
+                var point = new Point(node.X(), node.Y());
+                if (point.Belongs(line))
+                {
+                    isTargetJP.TargetJP = true;
+                    isTargetJP.DestinationToFinish = DestinationInverse(line.Destination);
+                    break;
+                }
+            }
+            return isTargetJP;
+        }
+
     }
 }
