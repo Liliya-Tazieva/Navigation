@@ -16,5 +16,11 @@
             X = x;
             Y = y;
         }
+
+        public bool Belongs(StraightLine line)
+        {
+            bool belongs = X > line.Start.X && X < line.Finish.X && Y > line.Start.Y && Y < line.Finish.Y;
+            return belongs;
+        }
     }
 }

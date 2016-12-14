@@ -12,13 +12,13 @@
         public readonly Informer InformerNode;
         public NodeState Visited;
         public float Distance;
-        public Destinations DestinationToFinish;
+        public Destinations DestinationFromPrevious;
 
         public Node(Informer i, NodeState v) {
             InformerNode = i;
             Visited = v;
             Distance = 0;
-            DestinationToFinish = Destinations.Default; 
+            DestinationFromPrevious = Destinations.Default; 
             for (var k = 0; k < 3; ++k)
             {
                 for (var j = 0; j<3; ++j)

@@ -395,10 +395,11 @@ namespace Assets.Scripts.PathFinding {
 			}
 		    var finish = NodesArray[(int)to.transform.position.x/3, (int)to.transform.position.z/3];
             var start = NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3];
+            start.Visited = NodeState.Processed;
 		    var current = start;
-		    var observed = Extensions.DestinationsList(start,finish,NodesArray);
-
-			
+		    var path = new List<Node>();
+		    path.Add(start);
+		    var observed = Extensions.Neighbours(start.X(),start.Y(),NodesArray);
             var lines_from_finish = new StraightLinesFromNode(finish.X(), finish.Y());
 
 		}

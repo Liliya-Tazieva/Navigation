@@ -55,6 +55,108 @@ namespace Assets.Scripts.Core {
             return path;
         }
 
+        public static List<Node> Neighbours(int x, int y, Node[,] array)
+        {
+            var neighbours = Neighbours(x,y,array,Destinations.Default);
+            return neighbours;
+        }
+
+        public static List<Node> Neighbours(int x, int y, Node[,] array, Destinations destination)
+        {
+            var neighbours = new List<Node>();
+
+            //Left
+            if (!array[x - 1, y].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                    destination == Destinations.Up || destination == Destinations.Down ||
+                    destination == Destinations.UpLeft || destination == Destinations.DownLeft)
+                {
+                    var delta = Math.Abs(array[x, y].NormMatrix[1, 0]) ;
+                    neighbours.Add(array[x - delta, y]);
+                }
+            }
+            //Up-left
+            if (!array[x - 1, y + 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                    destination == Destinations.Up || destination == Destinations.UpLeft)
+                {
+                    var delta = Math.Abs(array[x, y].NormMatrix[0, 0]);
+                    neighbours.Add(array[x - delta, y + delta]);
+                }
+            }
+            //Up
+            if (!array[x, y + 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                    destination == Destinations.Up || destination == Destinations.Right ||
+                    destination == Destinations.UpLeft || destination == Destinations.UpRight)
+                {
+                    var delta = Math.Abs(array[x, y].NormMatrix[0, 1]);
+                    neighbours.Add(array[x, y + delta]);
+                }
+            }
+            //Up-right
+            if (!array[x + 1, y + 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Right ||
+                    destination == Destinations.Up || destination == Destinations.UpRight)
+                {
+                    var delta = Math.Abs(array[x, y].NormMatrix[0, 2]);
+                    neighbours.Add(array[x + delta, y + delta]);
+                }
+            }
+            //Right
+            if (!array[x + 1, y].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Right ||
+                   destination == Destinations.Up || destination == Destinations.Down ||
+                   destination == Destinations.UpRight || destination == Destinations.DownRight)
+                {
+                    var delta = Math.Abs(array[x, y].NormMatrix[1, 2]);
+                    neighbours.Add(array[x + delta, y]);
+                }
+            }
+            //Down-right
+            if (!array[x + 1, y - 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Right ||
+                    destination == Destinations.Down || destination == Destinations.DownRight)
+                {
+                    var delta = Math.Abs(array[x, y].NormMatrix[2, 2]);
+                    neighbours.Add(array[x + delta, y - delta]);    
+                }
+            }
+            //Down
+            if (!array[x, y - 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                   destination == Destinations.Right || destination == Destinations.Down ||
+                   destination == Destinations.DownLeft || destination == Destinations.DownRight)
+                {
+                    var delta = Math.Abs(array[x, y].NormMatrix[2, 1]);
+                    neighbours.Add(array[x, y - delta]);
+                }
+            }
+            //Down-left
+            if (!array[x - 1, y - 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                    destination == Destinations.Down || destination == Destinations.DownLeft)
+                {
+                    var delta = Math.Abs(array[x, y].NormMatrix[2, 0]);
+                    neighbours.Add(array[x - delta, y - delta]);
+                }
+            }
+            foreach (var node in neighbours)
+            {
+                node.Visited = NodeState.Discovered;
+            }
+
+            return neighbours;
+        }
+
         public static List<Node> DestinationsList(Node start, Node finish, Node [,] array)
         {
             var nodes = new List<Node>();
