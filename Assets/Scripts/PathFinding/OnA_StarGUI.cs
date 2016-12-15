@@ -9,6 +9,14 @@ using Random = System.Random;
 public class OnA_StarGUI : MonoBehaviour {
     public List<Texture2D> Maps;
     private int _currentMap ;
+    public Informer StartInformer;
+    public Informer FinishInformer;
+    public GameObject Map;
+    private Renderer _startRenderer;
+    private Color _startColor;
+    private Renderer _finishRenderer;
+    private Color _finishColor;
+    private bool _jps=false;
 
     void OnGUI() {
         if (GUI.Button(new Rect(30, 40, 100, 50), "A*")) {
@@ -58,6 +66,31 @@ public class OnA_StarGUI : MonoBehaviour {
 			controller.JPS(nodes[index1], nodes[index2]);
 		}
 
+        _jps = GUI.Toggle(new Rect(30, 220, 100, 20), _jps, "Use JPS+");
+        if (GUI.Button(new Rect(30, 240, 100, 50), "Run"))
+        {
+            //Navigation
+            var controller = GetComponentInChildren<Controller>();
+            //If JPS
+            if (_jps)
+            {
+                controller.JPS(StartInformer, FinishInformer);
+            }
+            //Default algorithm is A_Star
+            else
+            {
+                DebugInformationAlgorithm debugInformation;
+                controller.AStar(StartInformer, FinishInformer, controller.Radius, true, out debugInformation);
+                controller.InitializeDebugInfo();
+                controller.DebugManagerAStar.AddPath(debugInformation);
+            }
+            //Coloring back
+            _startRenderer.material.SetColor("_Color", _startColor);
+            _finishRenderer.material.SetColor("_Color", _finishColor);
+            StartInformer = null;
+            FinishInformer = null;
+        }
+
         if (GUI.Button(new Rect(30, 160, 100, 50), "Next Map")) {
             var mapManager = GetComponentInChildren<MapManager>();
             var controller = mapManager.GetComponent<Controller>();
@@ -92,4 +125,36 @@ public class OnA_StarGUI : MonoBehaviour {
 	void Start () {
 	    _currentMap = 0;
 	}
+
+    void Update()
+    {
+        if (Input.GetButtonDown("Fire1"))
+        {
+            RaycastHit hit;
+            var cam = FindObjectOfType<Camera>();
+            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit))
+            {
+                var tile = hit.collider.gameObject;
+                if (StartInformer == null)
+                {
+                    StartInformer = tile.GetComponent<Informer>();
+                    _startRenderer = StartInformer.GetComponent<Renderer>();
+                    _startColor = _startRenderer.material.GetColor("_Color");
+                    _startRenderer.material.SetColor("_Color", Color.cyan);
+
+                    Debug.Log("Start" + StartInformer.transform.position);
+                }
+                else if (FinishInformer == null)
+                {
+                    FinishInformer = tile.GetComponent<Informer>();
+                    _finishRenderer = FinishInformer.GetComponent<Renderer>();
+                    _finishColor = _finishRenderer.material.GetColor("_Color");
+                    _finishRenderer.material.SetColor("_Color", Color.magenta);
+
+                    Debug.Log("Finish" + FinishInformer.transform.position);
+                }
+            }
+        }
+    }
 }

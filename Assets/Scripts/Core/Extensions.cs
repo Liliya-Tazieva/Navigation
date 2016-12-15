@@ -200,42 +200,42 @@ namespace Assets.Scripts.Core {
             if (node.DestinationToFinish == Destinations.Right)
             {
                 var delta = node.NormMatrix[1, 2];
-                if(finish.X() == node.X()+delta && finish.Y() == node.Y()) return true;
+                if(finish.X() <= node.X()+delta && finish.Y() == node.Y()) return true;
             }
             else if (node.DestinationToFinish == Destinations.Left)
             {
                 var delta = node.NormMatrix[1, 0];
-                if (finish.X() == node.X() - delta && finish.Y() == node.Y()) return true;
+                if (finish.X() >= node.X() - delta && finish.Y() == node.Y()) return true;
             }
             else if (node.DestinationToFinish == Destinations.Up)
             {
                 var delta = node.NormMatrix[0, 1];
-                if (finish.X() == node.X() && finish.Y() == node.Y()+delta) return true;
+                if (finish.X() == node.X() && finish.Y() <= node.Y()+delta) return true;
             }
             else if (node.DestinationToFinish == Destinations.Down)
             {
                 var delta = node.NormMatrix[2, 1];
-                if (finish.X() == node.X() && finish.Y() == node.Y()-delta) return true;
+                if (finish.X() == node.X() && finish.Y() >= node.Y()-delta) return true;
             }
             else if (node.DestinationToFinish == Destinations.UpRight)
             {
                 var delta = node.NormMatrix[0, 2];
-                if (finish.X() == node.X() + delta && finish.Y() == node.Y()+delta) return true;
+                if (finish.X() <= node.X() + delta && finish.Y() <= node.Y()+delta) return true;
             }
             else if (node.DestinationToFinish == Destinations.DownLeft)
             {
                 var delta = node.NormMatrix[2, 0];
-                if (finish.X() == node.X() - delta && finish.Y() == node.Y() - delta) return true;
+                if (finish.X() >= node.X() - delta && finish.Y() >= node.Y() - delta) return true;
             }
             else if (node.DestinationToFinish == Destinations.UpLeft)
             {
                 var delta = node.NormMatrix[0, 0];
-                if (finish.X() == node.X() - delta && finish.Y() == node.Y() + delta) return true;
+                if (finish.X() >= node.X() - delta && finish.Y() <= node.Y() + delta) return true;
             }
             else if (node.DestinationToFinish == Destinations.DownRight)
             {
                 var delta = node.NormMatrix[2, 2];
-                if (finish.X() == node.X() + delta && finish.Y() == node.Y() - delta) return true;
+                if (finish.X() <= node.X() + delta && finish.Y() >= node.Y() - delta) return true;
             }
             return false;
         }

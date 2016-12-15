@@ -1,4 +1,6 @@
-﻿namespace Assets.Scripts.PathFinding
+﻿using UnityEngine;
+
+namespace Assets.Scripts.PathFinding
 {
     public class Point
     {
@@ -19,7 +21,23 @@
 
         public bool Belongs(StraightLine line)
         {
-            bool belongs = X > line.Start.X && X < line.Finish.X && Y > line.Start.Y && Y < line.Finish.Y;
+            var maxX = line.Finish.X;
+            var minX = line.Start.X;
+            if (line.Start.X > line.Finish.X)
+            {
+                maxX = line.Start.X;
+                minX = line.Finish.X;
+
+            }
+            var maxY = line.Finish.Y;
+            var minY = line.Start.Y;
+            if (line.Start.Y > line.Finish.Y)
+            {
+                maxY = line.Start.Y;
+                minY = line.Finish.Y;
+
+            }
+            bool belongs = X >= minX && X <= maxX && Y >= minY && Y <= maxY;
             return belongs;
         }
     }

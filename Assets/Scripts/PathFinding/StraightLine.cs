@@ -79,10 +79,10 @@ namespace Assets.Scripts.PathFinding
 
         public static Point Crossing(StraightLine line1, StraightLine line2)
         {
-            /*Debug.Log("Line1: " + line1.Start.X + " " + line1.Start.Y
+            Debug.Log("Line1: " + line1.Start.X + " " + line1.Start.Y
                         + " finish " + line1.Finish.X + " " + line1.Finish.Y);
             Debug.Log("Line2: start " + line2.Start.X + " " + line2.Start.Y
-                        + " finish " + line2.Finish.X + " " + line2.Finish.Y);*/
+                        + " finish " + line2.Finish.X + " " + line2.Finish.Y);
             return Crossing(line1.Start.X, line1.Start.Y, line1.Finish.X, line1.Finish.Y,
                 line2.Start.X, line2.Start.Y, line2.Finish.X, line2.Finish.Y);
         }
@@ -94,28 +94,25 @@ namespace Assets.Scripts.PathFinding
             var line1 = new StraightLine(new Point(x1,y1), new Point(x2,y2));
             var line2 = new StraightLine(new Point(x3, y3), new Point(x4, y4));
 
-            if ((y2-y1)*(x4-x3) == (y4-y3)*(x2-x1))
+            var a1 = y1 - y2;
+            var b1 = x2 - x1;
+            var c1 = x1*y2 - x2*y1;
+            var a2 = y3 - y4;
+            var b2 = x4 - x3;
+            var c2 = x3 * y4 - x4 * y3;
+            if (a1*b2 - a2*b1 == 0)
             {
                 return line1.Belongs(line2) || line2.Belongs(line1) ? new Point(-100, -100) : null;
             }
-            if (y1-y2 == 0)
-            {
-                crossPoint.X = ((x1*y2 - x2*y1) + (x4*y3 - x3*y4)*(x2 - x1))/((x2 - x1)*(y3 - y4) + (x4 - x3)*(y2 - y1));
-                crossPoint.Y = ((y2 - y1)*crossPoint.X + (x2*y1 - x1*y2))/(x2 - x1);
-
-                if (crossPoint.Belongs(line1) && crossPoint.Belongs(line2))
-                    isCrossing = true;
-            }
             else
             {
-                crossPoint.Y = ((x4*y3 - x3*y4)*(y1 - y2) + (x1*y2 - x2*y1))/((x1 - x2)*(y3 - y4) + (x4 - x3)*(y1 - y2));
-                crossPoint.X = ((x1 - x2)*crossPoint.Y + (x2*y1 - x1*y2))/(y1 - y2);
+                crossPoint.X = -(c1*b2 - c2*b1)/(a1*b2 - a2*b1);
+                crossPoint.Y = -(a1*c2 - a2*c1)/(a1*b2 - a2*b1);
 
                 if (crossPoint.Belongs(line1) && crossPoint.Belongs(line2))
                     isCrossing = true;
             }
-            
-
+            Debug.Log("Cross point = " + crossPoint.X + " " + crossPoint.Y + " " + isCrossing);
             return isCrossing ? crossPoint : null;
         }
     }

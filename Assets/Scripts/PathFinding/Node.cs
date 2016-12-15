@@ -1,4 +1,7 @@
-﻿namespace Assets.Scripts.PathFinding {
+﻿using AForge.Math;
+using Vector3 = UnityEngine.Vector3;
+
+namespace Assets.Scripts.PathFinding {
     public enum NodeState {
         Undiscovered = 2,
         Discovered = 0,
@@ -10,6 +13,7 @@
         public int[,] NormMatrix = new int[3, 3];
         public bool JumpPoint;
         public bool TargetJP;
+        public Vector3 Position;
 
         public readonly Informer InformerNode;
         public NodeState Visited;
@@ -21,6 +25,7 @@
             InformerNode = i;
             Visited = v;
             Distance = 0;
+            Position = i.transform.position;
             
             for (var k = 0; k < 3; ++k)
             {

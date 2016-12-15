@@ -419,7 +419,8 @@ namespace Assets.Scripts.PathFinding {
 			IsPrecomputed = true;
 		}
 
-		public List<Node> JPS(Informer from, Informer to){
+		public List<Node> JPS(Informer from, Informer to)
+		{
 			if (!IsPrecomputed) {
 				Debug.Log ("Precomputing...");
 				PrecomputeMap ();
@@ -431,17 +432,17 @@ namespace Assets.Scripts.PathFinding {
 		    var path = new List<Tree_Node>();
 		    path.Add(start);
             var linesFromFinish = new StraightLinesFromNode(finish.X(), finish.Y());
-		    var observed = Extensions.Neighbours(start.Currentnode.X(),start.Currentnode.Y(),NodesArray, finish, linesFromFinish);
             var current = start;
+		    if (Extensions.IsTargetJP(start.Currentnode, linesFromFinish).TargetJP)
+		    {
+                Debug.Log("start is target jp");
+                Debug.Log("Destination to finish "+start.Currentnode.DestinationToFinish);
+		        path.Add(new Tree_Node(start.Currentnode, finish));
+		        current = new Tree_Node(start.Currentnode, finish);
+		    }
+		    var observed = Extensions.Neighbours(start.Currentnode.X(),start.Currentnode.Y(),NodesArray, finish, linesFromFinish);
             Debug.Log("start " + start.Currentnode.InformerNode.transform.position);
             Debug.Log("finish "+finish.InformerNode.transform.position);
-            Debug.Log("Amount of neighbours "+observed.Count);
-            /*foreach (var lineFromFinish in linesFromFinish.Lines)
-            {
-               Debug.Log("Line from finish: start "+lineFromFinish.Start.X+" "+lineFromFinish.Start.Y
-                        +" finish " + lineFromFinish.Finish.X+" "+lineFromFinish.Finish.Y);
-                //Debug.Log("neighbour " + neighbour.Currentnode.InformerNode.transform.position);
-            }*/
 
             while (current.Currentnode != finish)
 		    {
@@ -464,6 +465,7 @@ namespace Assets.Scripts.PathFinding {
 		            if (Extensions.GoToFinish(current.Currentnode, finish))
 		            {
 		                path.Add(current);
+		                finish.DestinationFromPrevious = current.Currentnode.DestinationToFinish;
                         path.Add(new Tree_Node(current.Currentnode,finish));
 		                break;
 		            }
@@ -490,6 +492,9 @@ namespace Assets.Scripts.PathFinding {
 		            {
                         Debug.Log("Cross point = "+coordinates.X+" "+coordinates.Y);
 		                var tempNode = NodesArray[coordinates.X, coordinates.Y];
+		                tempNode.TargetJP = true;
+		                tempNode.DestinationToFinish = Extensions.DestinationInverse(lineFromFinish.Destination);
+                        Debug.Log("Destination to finish = " + (int)tempNode.DestinationToFinish);
 		                tempNode.Distance = tempNode.InformerNode.Metrics(finish.InformerNode);
 		                tempNode.Visited = NodeState.Discovered;
 		                tempList.Add(tempNode);
@@ -499,25 +504,15 @@ namespace Assets.Scripts.PathFinding {
 		        {
 		            tempList = tempList.OrderBy(arg => arg.Distance).ToList();
 		            var tempTreeList = Tree_Node.NodesToList(tempList, current.Currentnode);
-		            foreach (var treeNode in tempTreeList)
-		            {
-		                treeNode.FindDestination();
-		                treeNode.Currentnode.TargetJP = true;
-		            }
+                    path.Add(current);
 		            observed.InsertRange(0, tempTreeList);
 		        }
-		        else
-		        {
-                    var neighbours = Extensions.Neighbours(current.Currentnode.X(), current.Currentnode.Y(), NodesArray,
-                        current.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
-                    if (neighbours.Count != 0)
-                    {
-                        observed.InsertRange(0, neighbours);
-                        path.Add(current);
-                    }
-		        }
 		    }
-            if(path.Count!=0) Debug.Log("Path was found");
+            if(path.Count!=0) Debug.Log("Path was found:");
+		    foreach (var node in path)
+		    {
+		        Debug.Log(node.Currentnode.Position);
+		    }
 		    return Tree_Node.ToNodeList(path);
 		}
     }
