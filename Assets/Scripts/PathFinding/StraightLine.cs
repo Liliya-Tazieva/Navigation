@@ -1,4 +1,7 @@
-﻿using System.Net.NetworkInformation;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net.NetworkInformation;
+using Assets.Scripts.Core;
 using UnityEngine;
 
 namespace Assets.Scripts.PathFinding
@@ -8,14 +11,96 @@ namespace Assets.Scripts.PathFinding
         public Destinations Destination;
         public Point Start;
         public Point Finish;
+        public List<Point> Points;
 
+        public static List<Point> FindMiddlePoints(Node sNode, Node fNode)
+        {
+            var s = new Point(sNode.X(),sNode.Y());
+            var f = new Point(fNode.X(), fNode.Y());
+            var d = Extensions.DestinationInverse(fNode.DestinationFromPrevious);
+            return FindMiddlePoints(s, f, d);
+        }
+
+        public static Destinations FindDestination(Point start, Point finish)
+        {
+            var destination = Destinations.Default;
+            if (start.X > finish.Y)
+            {
+                if (start.Y > finish.Y) destination = Destinations.UpRight;
+                else if (start.Y < finish.Y) destination = Destinations.DownRight;
+                else destination = Destinations.Right;
+            }
+            else if (start.X < finish.X)
+            {
+                if (start.Y > finish.Y) destination = Destinations.UpLeft;
+                else if (start.Y < finish.Y) destination = Destinations.DownLeft;
+                else destination = Destinations.Left;
+            }
+            else
+            {
+                destination = start.Y > finish.Y ? Destinations.Up : Destinations.Down;
+            }
+            return destination;
+        }
+
+        public static List<Point> FindMiddlePoints(Point s, Point f, Destinations d)
+        {
+            var points = new List<Point>();
+            if (d == Destinations.Right)
+            {
+                for(var i = s.X;i<=f.X;++i)
+                    points.Add(new Point(i,s.Y));
+            }
+            else if (d == Destinations.Left)
+            {
+                for (var i = s.X; i >= f.X; --i)
+                    points.Add(new Point(i, s.Y));
+            }
+            else if (d == Destinations.Up)
+            {
+                for (var i = s.Y; i <= f.Y; ++i)
+                    points.Add(new Point(s.X, i));
+            }
+            else if (d == Destinations.Down)
+            {
+                for (var i = s.Y; i >= f.Y; --i)
+                    points.Add(new Point(s.X, i));
+            }
+            else if (d == Destinations.UpRight)
+            {
+                var delta = f.X - s.X;
+                for (var i = 0; i <= delta; ++i)
+                    points.Add(new Point(s.X + i, s.Y + i));
+            }
+            else if (d == Destinations.UpLeft)
+            {
+                var delta = f.Y - s.Y;
+                for (var i = 0; i <= delta; ++i)
+                    points.Add(new Point(s.X - i, s.Y + i));
+            }
+            else if (d == Destinations.DownRight)
+            {
+                var delta = f.X - s.X;
+                for (var i = 0; i <= delta; ++i)
+                    points.Add(new Point(s.X + i, s.Y - i));
+            }
+            else if (d == Destinations.DownLeft)
+            {
+                var delta = s.X - f.X;
+                for (var i = 0; i <= delta; ++i)
+                    points.Add(new Point(s.X - i, s.Y - i));
+            }
+            return points;
+        }
+        
         public StraightLine(Node node1, Node node2)
         {
             var start = new Point(node1.X(),node1.Y());
             var finish = new Point(node2.X(), node2.Y());
             Start = start;
             Finish = finish;
-            Destination = Destinations.Default;
+            Destination = FindDestination(start, finish);
+            Points = FindMiddlePoints(start, finish, Destination);
         }
 
         public StraightLine(int x, int y, Destinations destination)
@@ -62,13 +147,15 @@ namespace Assets.Scripts.PathFinding
                 var delta2 = y;
                 Finish = delta1 < delta2 ? new Point(0, y-delta1) : new Point(x - delta2, 0);
             }
+            Points = FindMiddlePoints(Start, Finish, Destination);
         }
 
         public StraightLine(Point s, Point f)
         {
             Start = s;
             Finish = f;
-            Destination = Destinations.Default;
+            Destination = FindDestination(s, f);
+            Points = FindMiddlePoints(Start, Finish, Destination);
         }
 
         public bool Belongs(StraightLine line)
@@ -79,10 +166,10 @@ namespace Assets.Scripts.PathFinding
 
         public static Point Crossing(StraightLine line1, StraightLine line2)
         {
-            Debug.Log("Line1: " + line1.Start.X + " " + line1.Start.Y
+            /*Debug.Log("Line1: " + line1.Start.X + " " + line1.Start.Y
                         + " finish " + line1.Finish.X + " " + line1.Finish.Y);
             Debug.Log("Line2: start " + line2.Start.X + " " + line2.Start.Y
-                        + " finish " + line2.Finish.X + " " + line2.Finish.Y);
+                        + " finish " + line2.Finish.X + " " + line2.Finish.Y);*/
             return Crossing(line1.Start.X, line1.Start.Y, line1.Finish.X, line1.Finish.Y,
                 line2.Start.X, line2.Start.Y, line2.Finish.X, line2.Finish.Y);
         }
@@ -90,11 +177,11 @@ namespace Assets.Scripts.PathFinding
         public static Point Crossing(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
         {
             var isCrossing = false;
-            var crossPoint = new Point();
             var line1 = new StraightLine(new Point(x1,y1), new Point(x2,y2));
             var line2 = new StraightLine(new Point(x3, y3), new Point(x4, y4));
+            var crossPoint = line1.Points.Intersect(line2.Points).ToList();
 
-            var a1 = y1 - y2;
+            /*var a1 = y1 - y2;
             var b1 = x2 - x1;
             var c1 = x1*y2 - x2*y1;
             var a2 = y3 - y4;
@@ -113,7 +200,8 @@ namespace Assets.Scripts.PathFinding
                     isCrossing = true;
             }
             Debug.Log("Cross point = " + crossPoint.X + " " + crossPoint.Y + " " + isCrossing);
-            return isCrossing ? crossPoint : null;
+            return isCrossing ? crossPoint : null;*/
+            return crossPoint.Count != 0 ? crossPoint[0] : null;
         }
     }
 }

@@ -419,8 +419,39 @@ namespace Assets.Scripts.PathFinding {
 			IsPrecomputed = true;
 		}
 
-		public List<Node> JPS(Informer from, Informer to)
+        public List<Node> JPS(Informer from, Informer to)
+        {
+            DebugInformationAlgorithm debugInformation;
+            var finalPath = JPS(from, to, false, out debugInformation);
+            return finalPath;
+
+        }
+
+        public List<Node> JPS(Informer from, Informer to, bool debugFlag, out DebugInformationAlgorithm debugInformation)
 		{
+            if (from == null || to == null)
+            {
+                Debug.LogError("Can't run JPS+. Enter proper from and to parameters!");
+                debugInformation = null;
+                return null;
+            }
+            //Debug.Log("From: " + from.transform.position);
+            //Debug.Log("To: " + to.transform.position);
+            if (debugFlag)
+            {
+                debugInformation = new DebugInformationAlgorithm
+                {
+                    From = from,
+                    To = to,
+                    Observed = new List<Node>(),
+                    FinalPath = new List<Informer>()
+                };
+            }
+            else
+            {
+                debugInformation = null;
+            }
+
 			if (!IsPrecomputed) {
 				Debug.Log ("Precomputing...");
 				PrecomputeMap ();
@@ -428,6 +459,8 @@ namespace Assets.Scripts.PathFinding {
 			}
 		    var finish = NodesArray[(int)to.transform.position.x/3, (int)to.transform.position.z/3];
             var start = new Tree_Node(null,NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3]);
+            Debug.Log("start " + start.Currentnode.InformerNode.transform.position);
+            Debug.Log("finish "+finish.InformerNode.transform.position);
             start.Currentnode.Visited = NodeState.Processed;
 		    var path = new List<Tree_Node>();
 		    path.Add(start);
@@ -437,12 +470,11 @@ namespace Assets.Scripts.PathFinding {
 		    {
                 Debug.Log("start is target jp");
                 Debug.Log("Destination to finish "+start.Currentnode.DestinationToFinish);
+		        finish.DestinationFromPrevious = Extensions.DestinationInverse(start.Currentnode.DestinationToFinish);
 		        path.Add(new Tree_Node(start.Currentnode, finish));
 		        current = new Tree_Node(start.Currentnode, finish);
 		    }
 		    var observed = Extensions.Neighbours(start.Currentnode.X(),start.Currentnode.Y(),NodesArray, finish, linesFromFinish);
-            Debug.Log("start " + start.Currentnode.InformerNode.transform.position);
-            Debug.Log("finish "+finish.InformerNode.transform.position);
 
             while (current.Currentnode != finish)
 		    {
@@ -508,12 +540,32 @@ namespace Assets.Scripts.PathFinding {
 		            observed.InsertRange(0, tempTreeList);
 		        }
 		    }
-            if(path.Count!=0) Debug.Log("Path was found:");
-		    foreach (var node in path)
-		    {
-		        Debug.Log(node.Currentnode.Position);
+            if(path.Count!=0)
+            {
+                Debug.Log("Path was found:");
+                var finalPath = new List<Node>();
+                for (var i = 1; i < path.Count; ++i)
+                {
+                    var middlePoints = StraightLine.FindMiddlePoints(path[i].Parent, path[i].Currentnode);
+                    middlePoints.Remove(new Point(path[i].Parent.X(), path[i].Parent.Y()));
+                    finalPath.AddRange(Extensions.ToNodes(middlePoints, NodesArray));
+                }
+
+                if (debugInformation != null)
+                {
+                    debugInformation.Observed = Extensions.ToNodes(
+                        observed.Where(arg => arg.Currentnode.Visited==NodeState.Processed).ToList());
+                    debugInformation.FinalPath = Extensions.ToInformers(finalPath);
+                }
+
+                foreach (var node in finalPath)
+                {
+                    Debug.Log(node.Position);
+                }
+
+                return finalPath;
 		    }
-		    return Tree_Node.ToNodeList(path);
+            else return null;
 		}
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Accord.MachineLearning.Structures;
 using Assets.Scripts.PathFinding;
+using UnityEditor;
 using UnityEngine;
 
 namespace Assets.Scripts.Core {
@@ -33,6 +34,36 @@ namespace Assets.Scripts.Core {
                 .ToList();
         }
 
+        public static List<Node> ToNodes(List<Point> points, Node [,] nodesArray)
+        {
+            var list = new List<Node>();
+            for (var i=0;i<points.Count;++i)
+            {
+                list.Add(nodesArray[points[i].X,points[i].Y]);
+            }
+            return list;
+        }
+
+        public static List<Node> ToNodes(List<Tree_Node> nodes)
+        {
+            var list = new List<Node>();
+            for (var i = 0; i < nodes.Count; ++i)
+            {
+                list.Add(nodes[i].Currentnode);
+            }
+            return list;
+        }
+
+        public static List<Informer> ToInformers(List<Node> nodes)
+        {
+            var list = new List<Informer>();
+            for (var i = 0; i < nodes.Count; ++i)
+            {
+                list.Add(nodes[i].InformerNode);
+            }
+            return list;
+        }
+        
         public static List<Informer> LoopEscape( Node from, Node to, KDTree<Informer> nodesTree, float radius ) {
             var current = from;
             current.Distance = current.InformerNode.Metrics( to.InformerNode );
@@ -248,6 +279,8 @@ namespace Assets.Scripts.Core {
                 var point = new Point(node.X(), node.Y());
                 if (point.Belongs(line))
                 {
+                    Debug.Log("Point "+point.X+" "+point.Y);
+                    Debug.Log("line "+line.Start.X+" "+line.Start.Y+" "+line.Finish.X+" "+line.Finish.Y);
                     isTargetJP.TargetJP = true;
                     isTargetJP.DestinationToFinish = DestinationInverse(line.Destination);
                     break;

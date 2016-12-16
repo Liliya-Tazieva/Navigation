@@ -21,23 +21,11 @@ namespace Assets.Scripts.PathFinding
 
         public bool Belongs(StraightLine line)
         {
-            var maxX = line.Finish.X;
-            var minX = line.Start.X;
-            if (line.Start.X > line.Finish.X)
+            var belongs = false;
+            foreach (var point in line.Points)
             {
-                maxX = line.Start.X;
-                minX = line.Finish.X;
-
+                if (X == point.X && Y == point.Y) belongs = true;
             }
-            var maxY = line.Finish.Y;
-            var minY = line.Start.Y;
-            if (line.Start.Y > line.Finish.Y)
-            {
-                maxY = line.Start.Y;
-                minY = line.Finish.Y;
-
-            }
-            bool belongs = X >= minX && X <= maxX && Y >= minY && Y <= maxY;
             return belongs;
         }
     }

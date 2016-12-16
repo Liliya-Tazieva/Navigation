@@ -62,8 +62,10 @@ public class OnA_StarGUI : MonoBehaviour {
 				index2 = rnd.Next(0, nodes.Count - 1);
 			}
 
-
-			controller.JPS(nodes[index1], nodes[index2]);
+            DebugInformationAlgorithm debugInformation;
+            controller.JPS(nodes[index1], nodes[index2],true,out debugInformation);
+            controller.InitializeDebugInfo();
+            controller.DebugManagerAStar.AddPath(debugInformation);
 		}
 
         _jps = GUI.Toggle(new Rect(30, 220, 100, 20), _jps, "Use JPS+");
@@ -74,7 +76,10 @@ public class OnA_StarGUI : MonoBehaviour {
             //If JPS
             if (_jps)
             {
-                controller.JPS(StartInformer, FinishInformer);
+                DebugInformationAlgorithm debugInformation;
+                controller.JPS(StartInformer, FinishInformer, true, out debugInformation);
+                controller.InitializeDebugInfo();
+                controller.DebugManagerAStar.AddPath(debugInformation);
             }
             //Default algorithm is A_Star
             else
