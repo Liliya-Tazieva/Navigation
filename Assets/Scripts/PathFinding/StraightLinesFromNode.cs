@@ -1,29 +1,33 @@
-﻿namespace Assets.Scripts.PathFinding
+﻿using System.Collections.Generic;
+
+namespace Assets.Scripts.PathFinding
 {
     public class StraightLinesFromNode
     {
-        public StraightLine[] Lines;
+        public List <StraightLine> Lines;
 
-        public StraightLinesFromNode(int x, int y, Destinations [] destinations)
+        public StraightLinesFromNode(Node node, List <Node> neighbours)
         {
-            Lines = new StraightLine[destinations.Length];
-            for (var i=0;i<destinations.Length;++i)
+            Lines = new List<StraightLine>();
+            foreach (var neighbour in neighbours)
             {
-                Lines[i] = new StraightLine(x, y, destinations[i]);
+                Lines.Add( new StraightLine(node, neighbour));
             }
         }
 
         public StraightLinesFromNode(int x, int y)
         {
-            Lines = new StraightLine[8];
-            Lines[0] = new StraightLine(x, y, Destinations.Up);
-            Lines[1] = new StraightLine(x, y, Destinations.UpRight);
-            Lines[2] = new StraightLine(x, y, Destinations.Right);
-            Lines[3] = new StraightLine(x, y, Destinations.DownRight);
-            Lines[4] = new StraightLine(x, y, Destinations.Down);
-            Lines[5] = new StraightLine(x, y, Destinations.DownLeft);
-            Lines[6] = new StraightLine(x, y, Destinations.Left);
-            Lines[7] = new StraightLine(x, y, Destinations.UpLeft);
+            Lines = new List<StraightLine>
+            {
+                new StraightLine(x, y, Destinations.Up),
+                new StraightLine(x, y, Destinations.UpRight),
+                new StraightLine(x, y, Destinations.Right),
+                new StraightLine(x, y, Destinations.DownRight),
+                new StraightLine(x, y, Destinations.Down),
+                new StraightLine(x, y, Destinations.DownLeft),
+                new StraightLine(x, y, Destinations.Left),
+                new StraightLine(x, y, Destinations.UpLeft)
+            };
         }
     }
 }

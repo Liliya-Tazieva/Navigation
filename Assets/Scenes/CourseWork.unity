@@ -114,6 +114,9 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 32f769f012f4e04418615a10e56722fd, type: 3}
   - {fileID: 2800000, guid: eedf8aa9f0e3bcd45829b6246ed58932, type: 3}
   - {fileID: 2800000, guid: 19f35c54ca0002f42a669c71a0e5f833, type: 3}
+  StartInformer: {fileID: 0}
+  FinishInformer: {fileID: 0}
+  Map: {fileID: 0}
 --- !u!114 &1109159514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,9 +128,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ceddd838b6acda41baa51229268ab8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Start: {fileID: 0}
-  Finish: {fileID: 0}
-  Map: {fileID: 1189904764}
 --- !u!1 &1189904764 stripped
 GameObject:
   m_PrefabParentObject: {fileID: 123280, guid: 1062b42ed64eb044a80f8565363db981, type: 2}
@@ -359,6 +359,11 @@ Prefab:
       propertyPath: Map
       value: 
       objectReference: {fileID: 2800000, guid: 1250d7e7314fcd64190d415922a93d39, type: 3}
+    - target: {fileID: 11478184, guid: 1062b42ed64eb044a80f8565363db981, type: 2}
+      propertyPath: Prefabs.Array.data[0]
+      value: 
+      objectReference: {fileID: 1000010163075992, guid: bdc477b5f25aef74babe5ab8fef484d3,
+        type: 2}
     m_RemovedComponents:
     - {fileID: 11427856, guid: 1062b42ed64eb044a80f8565363db981, type: 2}
   m_ParentPrefab: {fileID: 100100000, guid: 1062b42ed64eb044a80f8565363db981, type: 2}

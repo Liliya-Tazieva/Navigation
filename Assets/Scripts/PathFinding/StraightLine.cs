@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using Assets.Scripts.Core;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Assets.Scripts.PathFinding
 {
@@ -17,7 +18,7 @@ namespace Assets.Scripts.PathFinding
         {
             var s = new Point(sNode.X(),sNode.Y());
             var f = new Point(fNode.X(), fNode.Y());
-            var d = Extensions.DestinationInverse(fNode.DestinationFromPrevious);
+            var d = fNode.DestinationFromPrevious;
             return FindMiddlePoints(s, f, d);
         }
 
@@ -166,10 +167,10 @@ namespace Assets.Scripts.PathFinding
 
         public static Point Crossing(StraightLine line1, StraightLine line2)
         {
-            /*Debug.Log("Line1: " + line1.Start.X + " " + line1.Start.Y
-                        + " finish " + line1.Finish.X + " " + line1.Finish.Y);
+            Debug.Log("Line1: " + line1.Start.X + " " + line1.Start.Y
+                        + " finish " + line1.Finish.X + " " + line1.Finish.Y+" "+line1.Destination);
             Debug.Log("Line2: start " + line2.Start.X + " " + line2.Start.Y
-                        + " finish " + line2.Finish.X + " " + line2.Finish.Y);*/
+                        + " finish " + line2.Finish.X + " " + line2.Finish.Y + " " + line2.Destination);
             return Crossing(line1.Start.X, line1.Start.Y, line1.Finish.X, line1.Finish.Y,
                 line2.Start.X, line2.Start.Y, line2.Finish.X, line2.Finish.Y);
         }
@@ -179,9 +180,10 @@ namespace Assets.Scripts.PathFinding
             var isCrossing = false;
             var line1 = new StraightLine(new Point(x1,y1), new Point(x2,y2));
             var line2 = new StraightLine(new Point(x3, y3), new Point(x4, y4));
-            var crossPoint = line1.Points.Intersect(line2.Points).ToList();
+            //var crossPoint = line1.Points.Intersect(line2.Points).ToList();
 
-            /*var a1 = y1 - y2;
+            var crossPoint = new Point();
+            var a1 = y1 - y2;
             var b1 = x2 - x1;
             var c1 = x1*y2 - x2*y1;
             var a2 = y3 - y4;
@@ -200,8 +202,9 @@ namespace Assets.Scripts.PathFinding
                     isCrossing = true;
             }
             Debug.Log("Cross point = " + crossPoint.X + " " + crossPoint.Y + " " + isCrossing);
-            return isCrossing ? crossPoint : null;*/
-            return crossPoint.Count != 0 ? crossPoint[0] : null;
+            return isCrossing ? crossPoint : null;
+            /*if(crossPoint.Count!=0)Debug.Log("Cross point = " + crossPoint[0].X + " " + crossPoint[0].Y + " " + isCrossing);
+            return crossPoint.Count != 0 ? crossPoint[0] : null;*/
         }
     }
 }

@@ -4,6 +4,7 @@ using Accord.MachineLearning.Structures;
 using Assets.Scripts.Core;
 using JetBrains.Annotations;
 using UnityEngine;
+using System;
 
 namespace Assets.Scripts.PathFinding {
     public class Controller : MonoBehaviour {
@@ -264,6 +265,12 @@ namespace Assets.Scripts.PathFinding {
 							}
 						}
 					}
+				    if (NodesArray[i, j].JumpPoint)
+				    {
+                        var jPRenderer = NodesArray[i, j].InformerNode.GetComponent<Renderer>();
+                        jPRenderer.material.SetColor("_Color", Color.red);
+				    }
+                  
 				}
 			}
 
@@ -414,6 +421,19 @@ namespace Assets.Scripts.PathFinding {
 					    }
 						k++;
 					}
+				    if (!NodesArray[i, j].InformerNode.IsObstacle)
+				    {
+				        var tileText = NodesArray[i, j].InformerNode.GetComponentInChildren<TextMesh>();
+				        string text = "";
+				        for (int m = 0; m < 3; ++m)
+				        {
+                            for (int n = 0; n < 3; ++n)
+                                text = text + NodesArray[i, j].NormMatrix[m, n].ToString() + " ";
+				            text = text + "\n";
+				        }
+
+                        tileText.text = text;
+				    }
 				}
 			}
 			IsPrecomputed = true;
@@ -458,15 +478,16 @@ namespace Assets.Scripts.PathFinding {
                 Debug.Log("Done!");
 			}
 		    var finish = NodesArray[(int)to.transform.position.x/3, (int)to.transform.position.z/3];
+            var linesFromFinish = new StraightLinesFromNode(finish.X(), finish.Y());
             var start = new Tree_Node(null,NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3]);
             Debug.Log("start " + start.Currentnode.InformerNode.transform.position);
             Debug.Log("finish "+finish.InformerNode.transform.position);
-            start.Currentnode.Visited = NodeState.Processed;
+            //start.Currentnode.Visited = NodeState.Processed;
+		    start.Currentnode = Extensions.IsTargetJP(start.Currentnode, linesFromFinish);
 		    var path = new List<Tree_Node>();
 		    path.Add(start);
-            var linesFromFinish = new StraightLinesFromNode(finish.X(), finish.Y());
             var current = start;
-		    if (Extensions.IsTargetJP(start.Currentnode, linesFromFinish).TargetJP)
+		    /*if (Extensions.IsTargetJP(start.Currentnode, linesFromFinish).TargetJP)
 		    {
                 Debug.Log("start is target jp");
                 Debug.Log("Destination to finish "+start.Currentnode.DestinationToFinish);
@@ -474,9 +495,10 @@ namespace Assets.Scripts.PathFinding {
 		        path.Add(new Tree_Node(start.Currentnode, finish));
 		        current = new Tree_Node(start.Currentnode, finish);
 		    }
-		    var observed = Extensions.Neighbours(start.Currentnode.X(),start.Currentnode.Y(),NodesArray, finish, linesFromFinish);
+		    var observed = Extensions.Neighbours(start.Currentnode.X(),start.Currentnode.Y(),NodesArray, finish, linesFromFinish);*/
+		    var observed = new List<Tree_Node> {current};
 
-            while (current.Currentnode != finish)
+		    while (current.Currentnode != finish)
 		    {
                 if (!observed.Exists(arg => arg.Currentnode.Visited!=NodeState.Processed))
 		        {
@@ -487,10 +509,14 @@ namespace Assets.Scripts.PathFinding {
 		        current = observed[0];
                 Debug.Log("current " + current.Currentnode.InformerNode.transform.position);
 		        observed = observed.OrderBy(arg => arg.Currentnode.Visited).ToList();
-		        while (current.Parent != path[path.Count - 1].Currentnode)
+		        if (current != start)
 		        {
-		            path.RemoveAt(path.Count-1);
+		            while (current.Parent != path[path.Count - 1].Currentnode)
+		            {
+		                path.RemoveAt(path.Count - 1);
+		            }
 		        }
+		        
 
 		        if (current.Currentnode.TargetJP)
 		        {
@@ -503,11 +529,10 @@ namespace Assets.Scripts.PathFinding {
 		            }
                     else continue;
 		        }
-
+		        var neighbours = Extensions.Neighbours(current.Currentnode.X(), current.Currentnode.Y(), NodesArray,
+		            current.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
                 if (current.Currentnode.JumpPoint)
 		        {
-		            var neighbours = Extensions.Neighbours(current.Currentnode.X(), current.Currentnode.Y(), NodesArray,
-		                current.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
 		            if (neighbours.Count != 0)
 		            {
 		                observed.InsertRange(0, neighbours);
@@ -515,26 +540,38 @@ namespace Assets.Scripts.PathFinding {
 		                continue;
 		            }
 		        }
-                var line = new StraightLine(current.Parent,current.Currentnode);
+                var lines = new StraightLinesFromNode(current.Currentnode, Extensions.ToNodes(neighbours));
 		        var tempList = new List<Node>();
-		        foreach (var lineFromFinish in linesFromFinish.Lines)
+		        if (lines.Lines != null)
 		        {
-		            var coordinates = StraightLine.Crossing(line, lineFromFinish);
-		            if (coordinates != null)
+		            foreach (var line in lines.Lines)
 		            {
-                        Debug.Log("Cross point = "+coordinates.X+" "+coordinates.Y);
-		                var tempNode = NodesArray[coordinates.X, coordinates.Y];
-		                tempNode.TargetJP = true;
-		                tempNode.DestinationToFinish = Extensions.DestinationInverse(lineFromFinish.Destination);
-                        Debug.Log("Destination to finish = " + (int)tempNode.DestinationToFinish);
-		                tempNode.Distance = tempNode.InformerNode.Metrics(finish.InformerNode);
-		                tempNode.Visited = NodeState.Discovered;
-		                tempList.Add(tempNode);
+		                foreach (var lineFromFinish in linesFromFinish.Lines)
+		                {
+		                    var coordinates = StraightLine.Crossing(line, lineFromFinish);
+		                    if (coordinates != null)
+		                    {
+		                        Debug.Log("Cross point = " + coordinates.X + " " + coordinates.Y);
+		                        var tempNode = NodesArray[coordinates.X, coordinates.Y];
+		                        tempNode.TargetJP = true;
+		                        tempNode.DestinationToFinish = Extensions.DestinationInverse(lineFromFinish.Destination);
+		                        Debug.Log("Destination to finish = " + (int) tempNode.DestinationToFinish);
+		                        tempNode.Distance = tempNode.InformerNode.Metrics(finish.InformerNode);
+		                        tempNode.Visited = NodeState.Discovered;
+		                        tempList.Add(tempNode);
+		                    }
+		                }
 		            }
 		        }
+		        
+		        
 		        if (tempList.Count != 0)
 		        {
 		            tempList = tempList.OrderBy(arg => arg.Distance).ToList();
+		            foreach (var temp in tempList)
+		            {
+		                Debug.Log("Cross point "+temp.Position);
+		            }
 		            var tempTreeList = Tree_Node.NodesToList(tempList, current.Currentnode);
                     path.Add(current);
 		            observed.InsertRange(0, tempTreeList);

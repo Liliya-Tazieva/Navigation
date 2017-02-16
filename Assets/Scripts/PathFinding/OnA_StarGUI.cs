@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Map;
 using Assets.Scripts.PathFinding;
+using UnityEngine.UI;
 using Random = System.Random;
 
 public class OnA_StarGUI : MonoBehaviour {
@@ -67,8 +68,8 @@ public class OnA_StarGUI : MonoBehaviour {
             controller.InitializeDebugInfo();
             controller.DebugManagerAStar.AddPath(debugInformation);
 		}
-
         _jps = GUI.Toggle(new Rect(30, 220, 100, 20), _jps, "Use JPS+");
+
         if (GUI.Button(new Rect(30, 240, 100, 50), "Run"))
         {
             //Navigation
