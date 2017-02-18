@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Accord.MachineLearning.Structures;
+using Accord.Math;
 using Assets.Scripts.PathFinding;
 using UnityEngine;
 
@@ -110,6 +111,7 @@ namespace Assets.Scripts.Core {
             var neighbours = new List<Tree_Node>();
             var parent = array[x, y];
 
+
             //Left
             if (!array[x - 1, y].InformerNode.IsObstacle)
             {
@@ -118,6 +120,7 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.UpLeft || destination == Destinations.DownLeft)
                 {
                     var delta = parent.NormMatrix[1, 0] ;
+                    delta = Math.Abs(delta);
                     var node = array[x - delta, y];
                     node.DestinationFromPrevious = Destinations.Left;
                     if (delta != 0) neighbours.Add(new Tree_Node(parent,node));
@@ -130,6 +133,7 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.Up || destination == Destinations.UpLeft)
                 {
                     var delta = parent.NormMatrix[0, 0];
+                    delta = Math.Abs(delta);
                     var node = array[x - delta, y + delta];
                     node.DestinationFromPrevious = Destinations.UpLeft;
                     if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
@@ -143,6 +147,7 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.UpLeft || destination == Destinations.UpRight)
                 {
                     var delta = parent.NormMatrix[0, 1];
+                    delta = Math.Abs(delta);
                     var node = array[x, y + delta];
                     node.DestinationFromPrevious = Destinations.Up;
                     if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
@@ -155,6 +160,7 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.Up || destination == Destinations.UpRight)
                 {
                     var delta = parent.NormMatrix[0, 2];
+                    delta = Math.Abs(delta);
                     var node = array[x + delta, y + delta];
                     node.DestinationFromPrevious = Destinations.UpRight;
                     if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
@@ -168,6 +174,7 @@ namespace Assets.Scripts.Core {
                    destination == Destinations.UpRight || destination == Destinations.DownRight)
                 {
                     var delta = parent.NormMatrix[1, 2];
+                    delta = Math.Abs(delta);
                     var node = array[x + delta, y];
                     node.DestinationFromPrevious = Destinations.Right;
                     if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
@@ -180,6 +187,7 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.Down || destination == Destinations.DownRight)
                 {
                     var delta = parent.NormMatrix[2, 2];
+                    delta = Math.Abs(delta);
                     var node = array[x + delta, y - delta];
                     node.DestinationFromPrevious = Destinations.DownRight;
                     if (delta != 0) neighbours.Add(new Tree_Node(parent, node));    
@@ -193,6 +201,7 @@ namespace Assets.Scripts.Core {
                    destination == Destinations.DownLeft || destination == Destinations.DownRight)
                 {
                     var delta = parent.NormMatrix[2, 1];
+                    delta = Math.Abs(delta);
                     var node = array[x, y - delta];
                     node.DestinationFromPrevious = Destinations.Down;
                     if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
@@ -205,6 +214,7 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.Down || destination == Destinations.DownLeft)
                 {
                     var delta = parent.NormMatrix[2, 0];
+                    delta = Math.Abs(delta);
                     var node = array[x - delta, y - delta];
                     node.DestinationFromPrevious = Destinations.DownLeft;
                     if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
@@ -278,8 +288,8 @@ namespace Assets.Scripts.Core {
                 var point = new Point(node.X(), node.Y());
                 if (point.Belongs(line))
                 {
-                    Debug.Log("Point "+point.X+" "+point.Y);
-                    Debug.Log("line "+line.Start.X+" "+line.Start.Y+" "+line.Finish.X+" "+line.Finish.Y);
+                    /*Debug.Log("Point "+point.X+" "+point.Y);
+                    Debug.Log("line "+line.Start.X+" "+line.Start.Y+" "+line.Finish.X+" "+line.Finish.Y);*/
                     isTargetJP.TargetJP = true;
                     isTargetJP.DestinationToFinish = DestinationInverse(line.Destination);
                     break;

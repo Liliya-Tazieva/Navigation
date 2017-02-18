@@ -18,7 +18,7 @@ namespace Assets.Scripts.PathFinding
         {
             var s = new Point(sNode.X(),sNode.Y());
             var f = new Point(fNode.X(), fNode.Y());
-            var d = fNode.DestinationFromPrevious;
+            var d = sNode.DestinationToFinish;
             return FindMiddlePoints(s, f, d);
         }
 
@@ -167,10 +167,10 @@ namespace Assets.Scripts.PathFinding
 
         public static Point Crossing(StraightLine line1, StraightLine line2)
         {
-            Debug.Log("Line1: " + line1.Start.X + " " + line1.Start.Y
+            /*Debug.Log("Line1: " + line1.Start.X + " " + line1.Start.Y
                         + " finish " + line1.Finish.X + " " + line1.Finish.Y+" "+line1.Destination);
             Debug.Log("Line2: start " + line2.Start.X + " " + line2.Start.Y
-                        + " finish " + line2.Finish.X + " " + line2.Finish.Y + " " + line2.Destination);
+                        + " finish " + line2.Finish.X + " " + line2.Finish.Y + " " + line2.Destination);*/
             return Crossing(line1.Start.X, line1.Start.Y, line1.Finish.X, line1.Finish.Y,
                 line2.Start.X, line2.Start.Y, line2.Finish.X, line2.Finish.Y);
         }
@@ -201,7 +201,7 @@ namespace Assets.Scripts.PathFinding
                 if (crossPoint.Belongs(line1) && crossPoint.Belongs(line2))
                     isCrossing = true;
             }
-            Debug.Log("Cross point = " + crossPoint.X + " " + crossPoint.Y + " " + isCrossing);
+            //Debug.Log("Cross point = " + crossPoint.X + " " + crossPoint.Y + " " + isCrossing);
             return isCrossing ? crossPoint : null;
             /*if(crossPoint.Count!=0)Debug.Log("Cross point = " + crossPoint[0].X + " " + crossPoint[0].Y + " " + isCrossing);
             return crossPoint.Count != 0 ? crossPoint[0] : null;*/

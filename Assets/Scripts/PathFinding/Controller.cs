@@ -265,175 +265,202 @@ namespace Assets.Scripts.PathFinding {
 							}
 						}
 					}
-				    if (NodesArray[i, j].JumpPoint)
-				    {
-                        var jPRenderer = NodesArray[i, j].InformerNode.GetComponent<Renderer>();
-                        jPRenderer.material.SetColor("_Color", Color.red);
-				    }
-                  
+				    if (!NodesArray[i, j].JumpPoint) continue;
+				    var jPRenderer = NodesArray[i, j].InformerNode.GetComponent<Renderer>();
+				    jPRenderer.material.SetColor("_Color", Color.red);
 				}
 			}
 
 			//computing distances to jump points and obstacles
 			for (var i = 0; i < 34; ++i) {
 				for (var j = 0; j < 35; ++j) {
-					//Checking up
-					var k = 1;
-					while (j + k < 35) {
-						if(NodesArray [i, j+k].JumpPoint || NodesArray [i, j+k].InformerNode.IsObstacle){
-							if(NodesArray [i, j+k].JumpPoint) {
-								NodesArray [i, j].NormMatrix[0,1] = k;
-							}
-							else {
-                                NodesArray[i, j].NormMatrix[0, 1] = k-1;
-							}
-							break;
-						}
-                        if (j + k == 34)
-                        {
-                            NodesArray[i, j].NormMatrix[0, 1] = k;
-                        }
-						k++;
-					}
-					//Checking down
-					k = 1;
-					while (j-k >= 0) {
-						if(NodesArray [i, j-k].JumpPoint || NodesArray [i, j-k].InformerNode.IsObstacle){
-							if(NodesArray [i, j-k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[2, 1] = k;
-							}
-							else {
-                                NodesArray[i, j].NormMatrix[2, 1] = k-1;
-							}
-							break;
-						}
-                        if (j - k == 0)
-                        {
-                            NodesArray[i, j].NormMatrix[2, 1] = k;
-                        }
-						k++;
-					}
-					//Checking right
-					k = 1;
-					while (i + k < 34) {
-						if(NodesArray [i+k, j].JumpPoint || NodesArray [i+k, j].InformerNode.IsObstacle){
-							if(NodesArray [i+k, j].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[1, 2] = k;
-							}
-							else {
-                                NodesArray[i, j].NormMatrix[1, 2] = k-1;
-							}
-							break;
-						}
-                        if (i + k == 33)
-                        {
-                            NodesArray[i, j].NormMatrix[1, 2] = k;
-                        }
-						k++;
-					}
-					//Checking left
-					k = 1;
-					while (i-k >= 0) {
-						if(NodesArray [i-k, j].JumpPoint || NodesArray [i-k, j].InformerNode.IsObstacle){
-							if(NodesArray [i-k, j].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[1, 0] = k;
-							}
-							else {
-                                NodesArray[i, j].NormMatrix[1, 0] = k - 1;
-							}
-							break;
-						}
-                        if (i - k == 0)
-                        {
-                            NodesArray[i, j].NormMatrix[1, 0] = k;
-                        }
-						k++;
-					}
-					//Checking up-right
-					k = 1;
-					while (i+k<34 && j+k<35) {
-						if(NodesArray [i+k, j+k].JumpPoint || NodesArray [i+k, j+k].InformerNode.IsObstacle){
-							if(NodesArray [i+k, j+k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[0, 2] = k;
-							}
-							else {
-                                NodesArray[i, j].NormMatrix[0, 2] = k - 1;
-							}
-							break;
-						}
-                        if (i + k == 33 || j + k == 34)
-                        {
-                            NodesArray[i, j].NormMatrix[0, 2] = k;
-                        }
-						k++;
-					}
-					//Checking down-right
-					k = 1;
-					while (i+k<34 && j-k>=0) {
-						if(NodesArray [i+k, j-k].JumpPoint || NodesArray [i+k, j-k].InformerNode.IsObstacle){
-							if(NodesArray [i+k, j-k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[2, 2] = k;
-							}
-							else {
-                                NodesArray[i, j].NormMatrix[2, 2] = k - 1;
-							}
-							break;
-						}
-                        if (i + k == 33 || j - k == 0)
-                        {
-                            NodesArray[i, j].NormMatrix[2, 2] = k;
-                        }
-						k++;
-					}
-					//Checking up-left
-					k = 1;
-					while (i-k>=0 && j+k<35) {
-						if(NodesArray [i-k, j+k].JumpPoint || NodesArray [i-k, j+k].InformerNode.IsObstacle){
-							if(NodesArray [i-k, j+k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[0, 0] = k;
-							}
-							else {
-                                NodesArray[i, j].NormMatrix[0, 0] = k - 1;
-							}
-							break;
-						}
-                        if (i - k == 0 || j + k == 34)
-                        {
-                            NodesArray[i, j].NormMatrix[0, 0] = k;
-                        }
-						k++;
-					}
-					//Checking down-left
-					k = 1;
-					while (i-k>=0 && j-k>=0) {
-						if(NodesArray [i-k, j-k].JumpPoint || NodesArray [i-k, j-k].InformerNode.IsObstacle){
-							if(NodesArray [i-k, j-k].JumpPoint) {
-                                NodesArray[i, j].NormMatrix[2, 0] = k;
-							}
-							else {
-                                NodesArray[i, j].NormMatrix[2, 0] = k - 1;
-							}
-							break;
-						}
-					    if (i - k == 0 || j - k == 0)
-					    {
-                            NodesArray[i, j].NormMatrix[2, 0] = k;
-					    }
-						k++;
-					}
-				    if (!NodesArray[i, j].InformerNode.IsObstacle)
+				    if (NodesArray[i, j].InformerNode.IsObstacle) continue;
+				    //Checking up
+				    var k = 1;
+				    while (j + k < 35)
 				    {
-				        var tileText = NodesArray[i, j].InformerNode.GetComponentInChildren<TextMesh>();
-				        string text = "";
-				        for (int m = 0; m < 3; ++m)
+				        if (NodesArray[i, j + k].JumpPoint || NodesArray[i, j + k].InformerNode.IsObstacle)
 				        {
-                            for (int n = 0; n < 3; ++n)
-                                text = text + NodesArray[i, j].NormMatrix[m, n].ToString() + " ";
-				            text = text + "\n";
+				            if (NodesArray[i, j + k].JumpPoint)
+				            {
+				                NodesArray[i, j].NormMatrix[0, 1] = k;
+				            }
+				            else
+				            {
+				                NodesArray[i, j].NormMatrix[0, 1] = -(k - 1);
+				            }
+				            break;
 				        }
-
-                        tileText.text = text;
+				        if (j + k == 34)
+				        {
+				            NodesArray[i, j].NormMatrix[0, 1] = -k;
+				        }
+				        k++;
 				    }
+				    //Checking down
+				    k = 1;
+				    while (j - k >= 0)
+				    {
+				        if (NodesArray[i, j - k].JumpPoint || NodesArray[i, j - k].InformerNode.IsObstacle)
+				        {
+				            if (NodesArray[i, j - k].JumpPoint)
+				            {
+				                NodesArray[i, j].NormMatrix[2, 1] = k;
+				            }
+				            else
+				            {
+				                NodesArray[i, j].NormMatrix[2, 1] = -(k - 1);
+				            }
+				            break;
+				        }
+				        if (j - k == 0)
+				        {
+				            NodesArray[i, j].NormMatrix[2, 1] = -k;
+				        }
+				        k++;
+				    }
+				    //Checking right
+				    k = 1;
+				    while (i + k < 34)
+				    {
+				        if (NodesArray[i + k, j].JumpPoint || NodesArray[i + k, j].InformerNode.IsObstacle)
+				        {
+				            if (NodesArray[i + k, j].JumpPoint)
+				            {
+				                NodesArray[i, j].NormMatrix[1, 2] = k;
+				            }
+				            else
+				            {
+				                NodesArray[i, j].NormMatrix[1, 2] = -(k - 1);
+				            }
+				            break;
+				        }
+				        if (i + k == 33)
+				        {
+				            NodesArray[i, j].NormMatrix[1, 2] = -k;
+				        }
+				        k++;
+				    }
+				    //Checking left
+				    k = 1;
+				    while (i - k >= 0)
+				    {
+				        if (NodesArray[i - k, j].JumpPoint || NodesArray[i - k, j].InformerNode.IsObstacle)
+				        {
+				            if (NodesArray[i - k, j].JumpPoint)
+				            {
+				                NodesArray[i, j].NormMatrix[1, 0] = k;
+				            }
+				            else
+				            {
+				                NodesArray[i, j].NormMatrix[1, 0] = -(k - 1);
+				            }
+				            break;
+				        }
+				        if (i - k == 0)
+				        {
+				            NodesArray[i, j].NormMatrix[1, 0] = -k;
+				        }
+				        k++;
+				    }
+				    //Checking up-right
+				    k = 1;
+				    while (i + k < 34 && j + k < 35)
+				    {
+				        if (NodesArray[i + k, j + k].JumpPoint || NodesArray[i + k, j + k].InformerNode.IsObstacle)
+				        {
+				            if (NodesArray[i + k, j + k].JumpPoint)
+				            {
+				                NodesArray[i, j].NormMatrix[0, 2] = k;
+				            }
+				            else
+				            {
+				                NodesArray[i, j].NormMatrix[0, 2] = -(k - 1);
+				            }
+				            break;
+				        }
+				        if (i + k == 33 || j + k == 34)
+				        {
+				            NodesArray[i, j].NormMatrix[0, 2] = -k;
+				        }
+				        k++;
+				    }
+				    //Checking down-right
+				    k = 1;
+				    while (i + k < 34 && j - k >= 0)
+				    {
+				        if (NodesArray[i + k, j - k].JumpPoint || NodesArray[i + k, j - k].InformerNode.IsObstacle)
+				        {
+				            if (NodesArray[i + k, j - k].JumpPoint)
+				            {
+				                NodesArray[i, j].NormMatrix[2, 2] = k;
+				            }
+				            else
+				            {
+				                NodesArray[i, j].NormMatrix[2, 2] = -(k - 1);
+				            }
+				            break;
+				        }
+				        if (i + k == 33 || j - k == 0)
+				        {
+				            NodesArray[i, j].NormMatrix[2, 2] = -k;
+				        }
+				        k++;
+				    }
+				    //Checking up-left
+				    k = 1;
+				    while (i - k >= 0 && j + k < 35)
+				    {
+				        if (NodesArray[i - k, j + k].JumpPoint || NodesArray[i - k, j + k].InformerNode.IsObstacle)
+				        {
+				            if (NodesArray[i - k, j + k].JumpPoint)
+				            {
+				                NodesArray[i, j].NormMatrix[0, 0] = k;
+				            }
+				            else
+				            {
+				                NodesArray[i, j].NormMatrix[0, 0] = -(k - 1);
+				            }
+				            break;
+				        }
+				        if (i - k == 0 || j + k == 34)
+				        {
+				            NodesArray[i, j].NormMatrix[0, 0] = -k;
+				        }
+				        k++;
+				    }
+				    //Checking down-left
+				    k = 1;
+				    while (i - k >= 0 && j - k >= 0)
+				    {
+				        if (NodesArray[i - k, j - k].JumpPoint || NodesArray[i - k, j - k].InformerNode.IsObstacle)
+				        {
+				            if (NodesArray[i - k, j - k].JumpPoint)
+				            {
+				                NodesArray[i, j].NormMatrix[2, 0] = k;
+				            }
+				            else
+				            {
+				                NodesArray[i, j].NormMatrix[2, 0] = -(k - 1);
+				            }
+				            break;
+				        }
+				        if (i - k == 0 || j - k == 0)
+				        {
+				            NodesArray[i, j].NormMatrix[2, 0] = -k;
+				        }
+				        k++;
+				    }
+				    var tileText = NodesArray[i, j].InformerNode.GetComponentInChildren<TextMesh>();
+				    string text = "";
+				    for (int m = 0; m < 3; ++m)
+				    {
+				        for (int n = 0; n < 3; ++n)
+				            text = text + NodesArray[i, j].NormMatrix[m, n].ToString() + " ";
+				        text = text + "\n";
+				    }
+
+				    tileText.text = text;
 				}
 			}
 			IsPrecomputed = true;
@@ -480,13 +507,12 @@ namespace Assets.Scripts.PathFinding {
 		    var finish = NodesArray[(int)to.transform.position.x/3, (int)to.transform.position.z/3];
             var linesFromFinish = new StraightLinesFromNode(finish.X(), finish.Y());
             var start = new Tree_Node(null,NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3]);
-            Debug.Log("start " + start.Currentnode.InformerNode.transform.position);
-            Debug.Log("finish "+finish.InformerNode.transform.position);
+            /*Debug.Log("start " + start.Currentnode.InformerNode.transform.position);
+            Debug.Log("finish "+finish.InformerNode.transform.position);*/
             //start.Currentnode.Visited = NodeState.Processed;
 		    start.Currentnode = Extensions.IsTargetJP(start.Currentnode, linesFromFinish);
-		    var path = new List<Tree_Node>();
-		    path.Add(start);
-            var current = start;
+		    var path = new List<Tree_Node> {start};
+		    var current = start;
 		    /*if (Extensions.IsTargetJP(start.Currentnode, linesFromFinish).TargetJP)
 		    {
                 Debug.Log("start is target jp");
@@ -494,8 +520,8 @@ namespace Assets.Scripts.PathFinding {
 		        finish.DestinationFromPrevious = Extensions.DestinationInverse(start.Currentnode.DestinationToFinish);
 		        path.Add(new Tree_Node(start.Currentnode, finish));
 		        current = new Tree_Node(start.Currentnode, finish);
-		    }
-		    var observed = Extensions.Neighbours(start.Currentnode.X(),start.Currentnode.Y(),NodesArray, finish, linesFromFinish);*/
+		    }*/
+		    //var observed = Extensions.Neighbours(start.Currentnode.X(),start.Currentnode.Y(),NodesArray, finish, linesFromFinish);
 		    var observed = new List<Tree_Node> {current};
 
 		    while (current.Currentnode != finish)
@@ -505,8 +531,8 @@ namespace Assets.Scripts.PathFinding {
                     Debug.Log("No path was found");
 		            return null;
 		        }
-                observed[0].Currentnode.Visited = NodeState.Processed;
-		        current = observed[0];
+                //observed[0].Currentnode.Visited = NodeState.Processed;
+		        //current = observed[0];
                 Debug.Log("current " + current.Currentnode.InformerNode.transform.position);
 		        observed = observed.OrderBy(arg => arg.Currentnode.Visited).ToList();
 		        if (current != start)
@@ -516,18 +542,16 @@ namespace Assets.Scripts.PathFinding {
 		                path.RemoveAt(path.Count - 1);
 		            }
 		        }
-		        
 
+
+		        current.Currentnode = Extensions.IsTargetJP(current.Currentnode, linesFromFinish);
 		        if (current.Currentnode.TargetJP)
 		        {
-		            if (Extensions.GoToFinish(current.Currentnode, finish))
-		            {
-		                path.Add(current);
-		                finish.DestinationFromPrevious = current.Currentnode.DestinationToFinish;
-                        path.Add(new Tree_Node(current.Currentnode,finish));
-		                break;
-		            }
-                    else continue;
+                    Debug.Log("current is target jp");
+                    Debug.Log("Destination to finish " + current.Currentnode.DestinationToFinish);
+                    finish.DestinationFromPrevious = Extensions.DestinationInverse(current.Currentnode.DestinationToFinish);
+                    path.Add(new Tree_Node(current.Currentnode, finish));
+		            break;
 		        }
 		        var neighbours = Extensions.Neighbours(current.Currentnode.X(), current.Currentnode.Y(), NodesArray,
 		            current.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
@@ -540,7 +564,8 @@ namespace Assets.Scripts.PathFinding {
 		                continue;
 		            }
 		        }
-                var lines = new StraightLinesFromNode(current.Currentnode, Extensions.ToNodes(neighbours));
+                //var lines = new StraightLinesFromNode(current.Currentnode, Extensions.ToNodes(neighbours));
+                var lines = new StraightLinesFromNode(current.Currentnode.X(), current.Currentnode.Y());
 		        var tempList = new List<Node>();
 		        if (lines.Lines != null)
 		        {
@@ -576,6 +601,9 @@ namespace Assets.Scripts.PathFinding {
                     path.Add(current);
 		            observed.InsertRange(0, tempTreeList);
 		        }
+
+                observed[0].Currentnode.Visited = NodeState.Processed;
+                current = observed[0];
 		    }
             if(path.Count!=0)
             {
