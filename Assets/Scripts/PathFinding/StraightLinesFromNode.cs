@@ -20,9 +20,25 @@ namespace Assets.Scripts.PathFinding
             }
         }
 
-        public StraightLinesFromNode(int x, int y)
+        public StraightLinesFromNode(Node node)
         {
-            Lines = new List<StraightLine>
+            Lines = StraightLinesFromNodeFunction(node.X(), node.Y());
+        }
+
+        public StraightLinesFromNode(Node node, List<Destinations> destinations)
+        {
+            var x = node.X();
+            var y = node.Y();
+            Lines = new List<StraightLine>();
+            foreach (var destination in destinations)
+            {
+                Lines.Add(new StraightLine(x, y, destination));
+            }
+        }
+
+        public List<StraightLine> StraightLinesFromNodeFunction(int x, int y)
+        {
+            var lines = new List<StraightLine>
             {
                 new StraightLine(x, y, Destinations.Up),
                 new StraightLine(x, y, Destinations.UpRight),
@@ -33,6 +49,7 @@ namespace Assets.Scripts.PathFinding
                 new StraightLine(x, y, Destinations.Left),
                 new StraightLine(x, y, Destinations.UpLeft)
             };
+            return lines;
         }
 
         public static List<Node> ToList(StraightLinesFromNode lines, Node[,] nodesArray)

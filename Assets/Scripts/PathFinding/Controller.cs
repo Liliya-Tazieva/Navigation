@@ -539,12 +539,12 @@ namespace Assets.Scripts.PathFinding {
                 Debug.Log("Done!");
 			}
 		    var finish = NodesArray[(int)to.transform.position.x/3, (int)to.transform.position.z/3];
-            var linesFromFinish = new StraightLinesFromNode(finish.X(), finish.Y());
+            var linesFromFinish = new StraightLinesFromNode(finish);
 
             var start = new Tree_Node(null,NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3]);
 		    start.Currentnode.Distance = Extensions.Metrics(from, to);
 		    var current = start;
-		    var path = new List<Tree_Node> {start};
+		    var path = new List<Tree_Node>();
 		    var observed = new List<Tree_Node> {current};
 
             if (debugFlag)
@@ -565,6 +565,10 @@ namespace Assets.Scripts.PathFinding {
 
 		    while (current.Currentnode != finish)
 		    {
+
+                Debug.Log("Current "+current.Currentnode.Position);
+                if (current.Parent!=null) Debug.Log("Current's parent " + current.Parent.Position);
+                else Debug.Log("Current's parent " + null);
                 if (!observed.Exists(arg => arg.Currentnode.Visited!=NodeState.Processed))
 		        {
                     Debug.Log("No path was found");
@@ -572,20 +576,21 @@ namespace Assets.Scripts.PathFinding {
 		        }
                 observed[0].Currentnode.Visited = NodeState.Processed;
 
-                while (path.Count>1 && current.Parent != path[path.Count - 1].Currentnode)
+                //TODO: remove deadend correctly from the path
+                /*while (path.Count>1 && current.Parent != path[path.Count - 1].Currentnode)
 		        {
 		            path.RemoveAt(path.Count - 1);
-		        }
+		        }*/
 
                 //Go to finish if in Target JP
 		        current.Currentnode = Extensions.IsTargetJP(current.Currentnode, linesFromFinish);
-		        if (current.Currentnode.TargetJP && Extensions.Reachable(current.Currentnode,NodesArray))
+                if (current.Currentnode.TargetJP && Extensions.Reachable(current.Currentnode, finish, NodesArray))
 		        {
-                    Debug.Log("current is target jp");
-                    Debug.Log("Destination to finish " + current.Currentnode.DestinationToFinish);
-                    finish.DestinationFromPrevious = Extensions.DestinationInverse(current.Currentnode.DestinationToFinish);
-                    if(current!=start) path.Add(current);
-                    path.Add(new Tree_Node(current.Currentnode, finish));
+		            Debug.Log("current is target jp");
+		            Debug.Log("Destination to finish " + current.Currentnode.DestinationToFinish);
+		            finish.DestinationFromPrevious = Extensions.DestinationInverse(current.Currentnode.DestinationToFinish);
+		            if (current != start) path.Add(current);
+		            path.Add(new Tree_Node(current.Currentnode, finish));
 		            break;
 		        }
 
@@ -594,10 +599,11 @@ namespace Assets.Scripts.PathFinding {
                 //Neighbours
                 var neighbours = Extensions.Neighbours(current.Currentnode.X(), current.Currentnode.Y(), NodesArray,
                     current.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
-                neighbours = neighbours.OrderBy(arg => arg.Currentnode.Distance).ToList();
+                Debug.Log("Neighbours: " + neighbours.Count);
 
                 //Target JP
-                var lines = new StraightLinesFromNode(current.Currentnode, Tree_Node.ToNodeList(neighbours));
+                //var lines = new StraightLinesFromNode(current.Currentnode, Tree_Node.ToNodeList(neighbours));
+                var lines = new StraightLinesFromNode(current.Currentnode,Extensions.GetDestinationsFromNeighbours(neighbours));
 
                 var tempList = new List<Node>();
                 if (lines.Lines != null)
@@ -611,6 +617,7 @@ namespace Assets.Scripts.PathFinding {
                             if (coordinates != null)
                             {
                                 var tempNode = NodesArray[coordinates.X, coordinates.Y];
+                                if(tempNode.InformerNode.IsObstacle) continue;
                                 tempNode.TargetJP = true;
                                 tempNode.DestinationToFinish = Extensions.DestinationInverse(lineFromFinish.Destination);
                                 tempNode.Distance = tempNode.InformerNode.Metrics(finish.InformerNode);
@@ -630,6 +637,7 @@ namespace Assets.Scripts.PathFinding {
                         }
                     }
                 }
+
                 if (tempList.Count != 0)
                 {
                     if (debugFlag)
@@ -637,7 +645,23 @@ namespace Assets.Scripts.PathFinding {
                         debugInformation.CrossPoints.AddRange(tempList);
                     }
                     var tempTreeList = Tree_Node.NodesToList(tempList, current.Currentnode);
-                    tempTreeList = tempTreeList.OrderBy(arg => arg.DistanceFromParent).ToList();
+                    var tempReachableList = new List<Tree_Node>();
+                    foreach (var node in tempTreeList)
+                    {
+                        //TODO: CHECK REACABLE FUNCTION
+                        if (Extensions.Reachable(node.Currentnode, finish, NodesArray))
+                        {
+                            tempReachableList.Add(node);
+                        }
+                    }
+                    if (tempReachableList.Count != 0)
+                    {
+                        path.Add(current);
+                        observed.AddRange(tempReachableList);
+                        observed = observed.OrderBy(arg => arg.Currentnode.Visited).ThenBy(arg => arg.DistanceFromParent).ToList();
+                        current = observed[0];
+                        continue;
+                    }
                     observed.AddRange(tempTreeList);
                 }
 
@@ -645,12 +669,12 @@ namespace Assets.Scripts.PathFinding {
                 {
                     observed.AddRange(neighbours);
                 }
-		        observed = observed.OrderBy(arg => arg.Currentnode.Visited).ToList();
-                current = observed[0];
-
+		        observed = observed.OrderBy(arg => arg.Currentnode.Visited).ThenBy(arg => arg.Currentnode.Distance).ToList();
                 path.Add(current);
+                current = observed[0];
 		    }
-            if(path.Count!=1)
+            Debug.Log("Path: "+path.Count);
+            if(path.Count>1)
             {
                 var finalPath = new List<Node>();
                 for (var i = 1; i < path.Count; ++i)

@@ -368,60 +368,24 @@ namespace Assets.Scripts.Core {
                 return list;
         }
 
-        public static bool Reachable(Node from, Node[,] nodesArray)
+        public static bool Reachable(Node from, Node to, Node[,] nodesArray)
         {
-            var delta = from.NormMatrix[1, 1];
-            var distance = 0f;
-            if (from.DestinationToFinish == Destinations.Up)
+            var pointsBetween = StraightLine.FindMiddlePoints(from, to);
+            foreach (var point in pointsBetween)
             {
-                delta = Math.Abs(from.NormMatrix[0, 1]);
-                var to = nodesArray[from.X(), from.Y() + delta];
-                distance = Metrics(from.InformerNode, to.InformerNode);
+                if (nodesArray[point.X, point.Y].InformerNode.IsObstacle) return false;
             }
-            else if (from.DestinationToFinish == Destinations.UpRight)
-            {
-                delta = Math.Abs(from.NormMatrix[0, 2]);
-                var to = nodesArray[from.X() + delta, from.Y() + delta];
-                distance = Metrics(from.InformerNode, to.InformerNode);
-            }
-            else if (from.DestinationToFinish == Destinations.UpLeft)
-            {
-                delta = Math.Abs(from.NormMatrix[0, 0]);
-                var to = nodesArray[from.X() - delta, from.Y()+delta];
-                distance = Metrics(from.InformerNode, to.InformerNode);
-            }
-            else if (from.DestinationToFinish == Destinations.Down)
-            {
-                delta = Math.Abs(from.NormMatrix[2, 1]);
-                var to = nodesArray[from.X(), from.Y() - delta];
-                distance = Metrics(from.InformerNode, to.InformerNode);
-            }
-            else if (from.DestinationToFinish == Destinations.DownLeft)
-            {
-                delta = Math.Abs(from.NormMatrix[2, 0]);
-                var to = nodesArray[from.X() - delta, from.Y() - delta];
-                distance = Metrics(from.InformerNode, to.InformerNode);
-            }
-            else if (from.DestinationToFinish == Destinations.DownRight)
-            {
-                delta = Math.Abs(from.NormMatrix[2, 2]);
-                var to = nodesArray[from.X() + delta, from.Y() - delta];
-                distance = Metrics(from.InformerNode, to.InformerNode);
-            }
-            else if (from.DestinationToFinish == Destinations.Left)
-            {
-                delta = Math.Abs(from.NormMatrix[1, 0]);
-                var to = nodesArray[from.X() - delta, from.Y()];
-                distance = Metrics(from.InformerNode, to.InformerNode);
-            }
-            else if (from.DestinationToFinish == Destinations.Right)
-            {
-                delta = Math.Abs(from.NormMatrix[1, 2]);
-                var to = nodesArray[from.X() + delta, from.Y()];
-                distance = Metrics(from.InformerNode, to.InformerNode);
-            }
+            return true;
+        }
 
-            return distance >= from.Distance;
+        public static List<Destinations> GetDestinationsFromNeighbours(List<Tree_Node> neighbours)
+        {
+            var destinations = new List<Destinations>();
+            foreach (var neighbour in neighbours)
+            {
+                destinations.Add(neighbour.Currentnode.DestinationFromPrevious);
+            }
+            return destinations;
         }
     }
 }

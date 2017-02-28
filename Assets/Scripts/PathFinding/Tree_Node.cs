@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Assets.Scripts.Core;
+using UnityEngine;
 
 namespace Assets.Scripts.PathFinding
 {
@@ -15,6 +16,7 @@ namespace Assets.Scripts.PathFinding
             Parent = parent;
             if (Parent != null) DistanceFromParent = Extensions.Metrics(Currentnode.InformerNode, Parent.InformerNode);
             else DistanceFromParent = 0;
+            FindDestination();
         }
 
         public static List<Tree_Node> NodesToList(List<Node> nodes, Node parent)
@@ -30,24 +32,29 @@ namespace Assets.Scripts.PathFinding
 
         public void FindDestination()
         {
-            if (Parent == null) return;
-            if (Currentnode.X() > Parent.X())
-            {
-                if(Currentnode.Y()>Parent.Y())
-                    Currentnode.DestinationFromPrevious = Destinations.UpRight;
-                else if(Currentnode.Y() < Parent.Y()) Currentnode.DestinationFromPrevious = Destinations.DownRight;
-                    else Currentnode.DestinationFromPrevious = Destinations.Right;
-            }
-            if (Currentnode.X() < Parent.X())
-            {
-                if (Currentnode.Y() > Parent.Y())
-                    Currentnode.DestinationFromPrevious = Destinations.UpLeft;
-                else if (Currentnode.Y() < Parent.Y()) Currentnode.DestinationFromPrevious = Destinations.DownLeft;
-                else Currentnode.DestinationFromPrevious = Destinations.Left;
-            }
+            if (Parent == null) Currentnode.DestinationFromPrevious = Destinations.Default;
             else
             {
-                Currentnode.DestinationFromPrevious = Currentnode.Y() > Parent.Y() ? Destinations.Up : Destinations.Down;
+                if (Currentnode.X() > Parent.X())
+                {
+                    if (Currentnode.Y() > Parent.Y())
+                        Currentnode.DestinationFromPrevious = Destinations.UpRight;
+                    else if (Currentnode.Y() < Parent.Y()) Currentnode.DestinationFromPrevious = Destinations.DownRight;
+                    else Currentnode.DestinationFromPrevious = Destinations.Right;
+                }
+                else if (Currentnode.X() < Parent.X())
+                {
+                    if (Currentnode.Y() > Parent.Y())
+                        Currentnode.DestinationFromPrevious = Destinations.UpLeft;
+                    else if (Currentnode.Y() < Parent.Y()) Currentnode.DestinationFromPrevious = Destinations.DownLeft;
+                    else Currentnode.DestinationFromPrevious = Destinations.Left;
+                }
+                else
+                {
+                    Currentnode.DestinationFromPrevious = Currentnode.Y() > Parent.Y()
+                        ? Destinations.Up
+                        : Destinations.Down;
+                }
             }
         }
 
