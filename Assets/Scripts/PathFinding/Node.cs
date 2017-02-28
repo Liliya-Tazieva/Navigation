@@ -8,10 +8,17 @@ namespace Assets.Scripts.PathFinding {
         Processed = 1
     }
 
+    public enum JPType
+    {
+        Default = 2,
+        Diagonal = 1,
+        Primary = 0
+    }
+
     public class Node {
 
         public int[,] NormMatrix = new int[3, 3];
-        public bool JumpPoint;
+        public JPType IsJumpPoint;
         public bool TargetJP;
         public Vector3 Position;
 
@@ -34,7 +41,7 @@ namespace Assets.Scripts.PathFinding {
                     NormMatrix[k, j] = 0;
                 }
             }
-			JumpPoint = false;
+			IsJumpPoint = JPType.Default;
             TargetJP = false;
         }
 

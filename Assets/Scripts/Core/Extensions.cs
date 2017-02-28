@@ -5,6 +5,7 @@ using Accord.MachineLearning.Structures;
 using Accord.Math;
 using Assets.Scripts.PathFinding;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 namespace Assets.Scripts.Core {
 
@@ -123,7 +124,11 @@ namespace Assets.Scripts.Core {
                     delta = Math.Abs(delta);
                     var node = array[x - delta, y];
                     node.DestinationFromPrevious = Destinations.Left;
-                    if (delta != 0) neighbours.Add(new Tree_Node(parent,node));
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent,node));
+                    }
                 }
             }
             //Up-left
@@ -136,7 +141,11 @@ namespace Assets.Scripts.Core {
                     delta = Math.Abs(delta);
                     var node = array[x - delta, y + delta];
                     node.DestinationFromPrevious = Destinations.UpLeft;
-                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
                 }
             }
             //Up
@@ -150,7 +159,11 @@ namespace Assets.Scripts.Core {
                     delta = Math.Abs(delta);
                     var node = array[x, y + delta];
                     node.DestinationFromPrevious = Destinations.Up;
-                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
                 }
             }
             //Up-right
@@ -163,7 +176,11 @@ namespace Assets.Scripts.Core {
                     delta = Math.Abs(delta);
                     var node = array[x + delta, y + delta];
                     node.DestinationFromPrevious = Destinations.UpRight;
-                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
                 }
             }
             //Right
@@ -177,7 +194,11 @@ namespace Assets.Scripts.Core {
                     delta = Math.Abs(delta);
                     var node = array[x + delta, y];
                     node.DestinationFromPrevious = Destinations.Right;
-                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
                 }
             }
             //Down-right
@@ -190,7 +211,11 @@ namespace Assets.Scripts.Core {
                     delta = Math.Abs(delta);
                     var node = array[x + delta, y - delta];
                     node.DestinationFromPrevious = Destinations.DownRight;
-                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));    
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
                 }
             }
             //Down
@@ -204,7 +229,11 @@ namespace Assets.Scripts.Core {
                     delta = Math.Abs(delta);
                     var node = array[x, y - delta];
                     node.DestinationFromPrevious = Destinations.Down;
-                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
                 }
             }
             //Down-left
@@ -217,7 +246,11 @@ namespace Assets.Scripts.Core {
                     delta = Math.Abs(delta);
                     var node = array[x - delta, y - delta];
                     node.DestinationFromPrevious = Destinations.DownLeft;
-                    if (delta != 0) neighbours.Add(new Tree_Node(parent, node));
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
                 }
             }
             foreach (var node in neighbours)
@@ -228,9 +261,9 @@ namespace Assets.Scripts.Core {
                 node.Currentnode.TargetJP = tempNode.TargetJP;
                 node.Currentnode.DestinationToFinish = tempNode.DestinationToFinish;
             }
-            neighbours = neighbours.OrderBy(arg => arg.Currentnode.Distance).ToList();
             neighbours = neighbours.OrderByDescending(arg => arg.Currentnode.TargetJP).
-                ThenByDescending(arg => arg.Currentnode.JumpPoint).ToList();
+                ThenByDescending(arg => arg.Currentnode.IsJumpPoint!=JPType.Default).ToList();
+            neighbours = neighbours.OrderBy(arg => arg.Currentnode.Distance).ThenBy(arg => arg.DistanceFromParent).ToList();
 
             return neighbours;
         }
@@ -335,5 +368,60 @@ namespace Assets.Scripts.Core {
                 return list;
         }
 
+        public static bool Reachable(Node from, Node[,] nodesArray)
+        {
+            var delta = from.NormMatrix[1, 1];
+            var distance = 0f;
+            if (from.DestinationToFinish == Destinations.Up)
+            {
+                delta = Math.Abs(from.NormMatrix[0, 1]);
+                var to = nodesArray[from.X(), from.Y() + delta];
+                distance = Metrics(from.InformerNode, to.InformerNode);
+            }
+            else if (from.DestinationToFinish == Destinations.UpRight)
+            {
+                delta = Math.Abs(from.NormMatrix[0, 2]);
+                var to = nodesArray[from.X() + delta, from.Y() + delta];
+                distance = Metrics(from.InformerNode, to.InformerNode);
+            }
+            else if (from.DestinationToFinish == Destinations.UpLeft)
+            {
+                delta = Math.Abs(from.NormMatrix[0, 0]);
+                var to = nodesArray[from.X() - delta, from.Y()+delta];
+                distance = Metrics(from.InformerNode, to.InformerNode);
+            }
+            else if (from.DestinationToFinish == Destinations.Down)
+            {
+                delta = Math.Abs(from.NormMatrix[2, 1]);
+                var to = nodesArray[from.X(), from.Y() - delta];
+                distance = Metrics(from.InformerNode, to.InformerNode);
+            }
+            else if (from.DestinationToFinish == Destinations.DownLeft)
+            {
+                delta = Math.Abs(from.NormMatrix[2, 0]);
+                var to = nodesArray[from.X() - delta, from.Y() - delta];
+                distance = Metrics(from.InformerNode, to.InformerNode);
+            }
+            else if (from.DestinationToFinish == Destinations.DownRight)
+            {
+                delta = Math.Abs(from.NormMatrix[2, 2]);
+                var to = nodesArray[from.X() + delta, from.Y() - delta];
+                distance = Metrics(from.InformerNode, to.InformerNode);
+            }
+            else if (from.DestinationToFinish == Destinations.Left)
+            {
+                delta = Math.Abs(from.NormMatrix[1, 0]);
+                var to = nodesArray[from.X() - delta, from.Y()];
+                distance = Metrics(from.InformerNode, to.InformerNode);
+            }
+            else if (from.DestinationToFinish == Destinations.Right)
+            {
+                delta = Math.Abs(from.NormMatrix[1, 2]);
+                var to = nodesArray[from.X() + delta, from.Y()];
+                distance = Metrics(from.InformerNode, to.InformerNode);
+            }
+
+            return distance >= from.Distance;
+        }
     }
 }

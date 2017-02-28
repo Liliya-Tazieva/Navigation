@@ -11,7 +11,8 @@ namespace Assets.Scripts.PathFinding {
         Path = 1,
         From = 2,
         To = 3,
-		JumpPoint = 4
+		Line = 4,
+        CrossPoint = 5,
     }
 
     public class PathRenderer: MonoBehaviour {
@@ -54,12 +55,26 @@ namespace Assets.Scripts.PathFinding {
         public IEnumerator RendererPath() {
             if (DebugInformation != null) {
                 yield return AStarDebug(DebugInformation.From, Show.From);
+                yield return AStarDebug(DebugInformation.To, Show.To);
+                foreach (var informer in DebugInformation.LinesFromFinish)
+                {
+                    if (informer.InformerNode != DebugInformation.From && informer.InformerNode != DebugInformation.To)
+                    {
+                        yield return AStarDebug(informer.InformerNode, Show.Line);
+                    }
+                }
+                foreach (var informer in DebugInformation.CrossPoints)
+                {
+                    if (informer.InformerNode != DebugInformation.From && informer.InformerNode != DebugInformation.To)
+                    {
+                        yield return AStarDebug(informer.InformerNode, Show.CrossPoint);
+                    }
+                }
                 foreach (var informer in DebugInformation.Observed) {
                     if (informer.InformerNode != DebugInformation.From && informer.InformerNode != DebugInformation.To) {
                         yield return AStarDebug(informer.InformerNode, Show.Observed);
                     }
                 }
-                yield return AStarDebug(DebugInformation.To, Show.To);
                 foreach (var informer in DebugInformation.FinalPath) {
                     if (informer != DebugInformation.From && informer != DebugInformation.To) {
                         yield return AStarDebug(informer, Show.Path);
@@ -88,13 +103,18 @@ namespace Assets.Scripts.PathFinding {
             }
 
             if ( show == Show.Observed ) {
-                component.material.SetColor( "_Color", Color.yellow );
+                component.material.SetColor( "_Color", Color.green );
             } else if ( show == Show.Path ) {
                 component.material.SetColor( "_Color", Color.red );
             } else if ( show == Show.From ) {
                 component.material.SetColor( "_Color", Color.cyan );
-            } else {
+            } else if ( show == Show.To) {
                 component.material.SetColor( "_Color", Color.magenta );
+            } else if (show == Show.Line) {
+                component.material.SetColor("_Color", Color.gray);
+            }
+            else {
+                component.material.SetColor("_Color", Color.white);
             }
             yield return new WaitForSeconds( .01f );
         }

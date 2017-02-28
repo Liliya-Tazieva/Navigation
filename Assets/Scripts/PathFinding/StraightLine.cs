@@ -18,28 +18,28 @@ namespace Assets.Scripts.PathFinding
         {
             var s = new Point(sNode.X(),sNode.Y());
             var f = new Point(fNode.X(), fNode.Y());
-            var d = sNode.DestinationToFinish;
+            var d = FindDestination(s, f);
             return FindMiddlePoints(s, f, d);
         }
 
         public static Destinations FindDestination(Point start, Point finish)
         {
             var destination = Destinations.Default;
-            if (start.X > finish.Y)
+            if (start.X < finish.X)
             {
-                if (start.Y > finish.Y) destination = Destinations.UpRight;
-                else if (start.Y < finish.Y) destination = Destinations.DownRight;
+                if (start.Y < finish.Y) destination = Destinations.UpRight;
+                else if (start.Y > finish.Y) destination = Destinations.DownRight;
                 else destination = Destinations.Right;
             }
-            else if (start.X < finish.X)
+            else if (start.X > finish.X)
             {
-                if (start.Y > finish.Y) destination = Destinations.UpLeft;
-                else if (start.Y < finish.Y) destination = Destinations.DownLeft;
+                if (start.Y < finish.Y) destination = Destinations.UpLeft;
+                else if (start.Y > finish.Y) destination = Destinations.DownLeft;
                 else destination = Destinations.Left;
             }
             else
             {
-                destination = start.Y > finish.Y ? Destinations.Up : Destinations.Down;
+                destination = start.Y < finish.Y ? Destinations.Up : Destinations.Down;
             }
             return destination;
         }
@@ -167,12 +167,22 @@ namespace Assets.Scripts.PathFinding
 
         public static Point Crossing(StraightLine line1, StraightLine line2)
         {
-            /*Debug.Log("Line1: " + line1.Start.X + " " + line1.Start.Y
-                        + " finish " + line1.Finish.X + " " + line1.Finish.Y+" "+line1.Destination);
-            Debug.Log("Line2: start " + line2.Start.X + " " + line2.Start.Y
-                        + " finish " + line2.Finish.X + " " + line2.Finish.Y + " " + line2.Destination);*/
-            return Crossing(line1.Start.X, line1.Start.Y, line1.Finish.X, line1.Finish.Y,
-                line2.Start.X, line2.Start.Y, line2.Finish.X, line2.Finish.Y);
+            var isCrossing = false;
+
+            var crossPoint = new Point();
+            foreach (var pointInLine1 in line1.Points)
+            {
+                if (pointInLine1.Belongs(line2))
+                {
+                    isCrossing = true;
+                    crossPoint = pointInLine1;
+                    break;
+                }
+            }
+
+            return isCrossing ? crossPoint : null;
+            /*return Crossing(line1.Start.X, line1.Start.Y, line1.Finish.X, line1.Finish.Y,
+                line2.Start.X, line2.Start.Y, line2.Finish.X, line2.Finish.Y);*/
         }
 
         public static Point Crossing(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
@@ -180,20 +190,16 @@ namespace Assets.Scripts.PathFinding
             var isCrossing = false;
             var line1 = new StraightLine(new Point(x1,y1), new Point(x2,y2));
             var line2 = new StraightLine(new Point(x3, y3), new Point(x4, y4));
-            //var crossPoint = line1.Points.Intersect(line2.Points).ToList();
 
             var crossPoint = new Point();
+            
             var a1 = y1 - y2;
             var b1 = x2 - x1;
             var c1 = x1*y2 - x2*y1;
             var a2 = y3 - y4;
             var b2 = x4 - x3;
             var c2 = x3 * y4 - x4 * y3;
-            if (a1*b2 - a2*b1 == 0)
-            {
-                return line1.Belongs(line2) || line2.Belongs(line1) ? new Point(-100, -100) : null;
-            }
-            else
+            if (a1*b2 - a2*b1 != 0)
             {
                 crossPoint.X = -(c1*b2 - c2*b1)/(a1*b2 - a2*b1);
                 crossPoint.Y = -(a1*c2 - a2*c1)/(a1*b2 - a2*b1);
@@ -201,10 +207,12 @@ namespace Assets.Scripts.PathFinding
                 if (crossPoint.Belongs(line1) && crossPoint.Belongs(line2))
                     isCrossing = true;
             }
-            //Debug.Log("Cross point = " + crossPoint.X + " " + crossPoint.Y + " " + isCrossing);
+            else
+            {
+                return line1.Belongs(line2) || line2.Belongs(line1) ? new Point(-100, -100) : null;
+            }
+
             return isCrossing ? crossPoint : null;
-            /*if(crossPoint.Count!=0)Debug.Log("Cross point = " + crossPoint[0].X + " " + crossPoint[0].Y + " " + isCrossing);
-            return crossPoint.Count != 0 ? crossPoint[0] : null;*/
         }
     }
 }

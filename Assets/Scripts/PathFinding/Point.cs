@@ -21,12 +21,7 @@ namespace Assets.Scripts.PathFinding
 
         public bool Belongs(StraightLine line)
         {
-            var belongs = false;
-            foreach (var point in line.Points)
-            {
-                if (X == point.X && Y == point.Y) belongs = true;
-            }
-            return belongs;
+            return line.Points.Exists(arg => arg.X == X && arg.Y == Y);
         }
     }
 }

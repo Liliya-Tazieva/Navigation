@@ -6,6 +6,11 @@ namespace Assets.Scripts.PathFinding
     {
         public List <StraightLine> Lines;
 
+        public StraightLinesFromNode()
+        {
+            Lines = new List<StraightLine>();
+        }
+
         public StraightLinesFromNode(Node node, List <Node> neighbours)
         {
             Lines = new List<StraightLine>();
@@ -28,6 +33,21 @@ namespace Assets.Scripts.PathFinding
                 new StraightLine(x, y, Destinations.Left),
                 new StraightLine(x, y, Destinations.UpLeft)
             };
+        }
+
+        public static List<Node> ToList(StraightLinesFromNode lines, Node[,] nodesArray)
+        {
+            var list = new List<Node>();
+            foreach (var line in lines.Lines)
+            {
+                foreach (var point in line.Points)
+                {
+                    var node = nodesArray[point.X, point.Y];
+                    if(node.InformerNode.IsObstacle) continue;
+                    list.Add(node);
+                }
+            }
+            return list;
         }
     }
 }

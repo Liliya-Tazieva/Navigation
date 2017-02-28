@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Assets.Scripts.Core;
 
 namespace Assets.Scripts.PathFinding
 {
@@ -6,11 +7,14 @@ namespace Assets.Scripts.PathFinding
     {
         public Node Currentnode;
         public Node Parent;
+        public float DistanceFromParent;
 
         public Tree_Node(Node parent, Node current)
         {
             Currentnode = current;
             Parent = parent;
+            if (Parent != null) DistanceFromParent = Extensions.Metrics(Currentnode.InformerNode, Parent.InformerNode);
+            else DistanceFromParent = 0;
         }
 
         public static List<Tree_Node> NodesToList(List<Node> nodes, Node parent)
