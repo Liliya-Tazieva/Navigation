@@ -573,7 +573,6 @@ namespace Assets.Scripts.PathFinding {
 
 		    while (current.Currentnode != finish)
 		    {
-
                 Debug.Log("Current "+current.Currentnode.Position+" Distance "+current.Currentnode.Distance);
                 if (current.Parent!=null) Debug.Log("Current's parent " + current.Parent.Position);
                 else Debug.Log("Current's parent " + null);
@@ -621,7 +620,7 @@ namespace Assets.Scripts.PathFinding {
                             if (coordinates != null && Extensions.Reachable(NodesArray[coordinates.X, coordinates.Y], finish, NodesArray)
                                 && Extensions.Reachable(current.Currentnode,NodesArray[coordinates.X,coordinates.Y],NodesArray))
                             {
-                                var tempNode = NodesArray[coordinates.X, coordinates.Y];
+                                var tempNode = new Node(NodesArray[coordinates.X, coordinates.Y]);
                                 tempNode.Distance = Extensions.Metrics(new Tree_Node(current.Currentnode,tempNode), finish);
                                 tempNode.TargetJP = true;
                                 tempNode.DestinationToFinish = Extensions.DestinationInverse(lineFromFinish.Destination);
@@ -666,7 +665,7 @@ namespace Assets.Scripts.PathFinding {
             if(path.Count>1)
             {
                 var finalPath = new List<Node>();
-                while (current!=start)
+                while (current.Currentnode!=start.Currentnode)
                 {
                     var middlePoints = StraightLine.FindMiddlePoints(current.Parent, current.Currentnode);
                     if(current.Parent!=start.Currentnode) middlePoints.RemoveAt(0);

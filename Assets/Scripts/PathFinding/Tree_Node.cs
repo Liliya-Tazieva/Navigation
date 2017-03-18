@@ -12,7 +12,7 @@ namespace Assets.Scripts.PathFinding
 
         public Tree_Node(Node parent, Node current)
         {
-            Currentnode = current;
+            Currentnode = new Node(current);
             Parent = parent;
             DistanceFromParent = Parent != null ? Currentnode.InformerNode.MetricsAStar(Parent.InformerNode) : 0;
             FindDestination();

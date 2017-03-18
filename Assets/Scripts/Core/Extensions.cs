@@ -132,7 +132,7 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parent.NormMatrix[1, 0] ;
                     delta = Math.Abs(delta);
-                    var node = array[x - delta, y];
+                    var node = new Node(array[x - delta, y]);
                     node.DestinationFromPrevious = Destinations.Left;
                     if (delta != 0)
                     {
@@ -149,7 +149,7 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parent.NormMatrix[0, 0];
                     delta = Math.Abs(delta);
-                    var node = array[x - delta, y + delta];
+                    var node = new Node(array[x - delta, y + delta]);
                     node.DestinationFromPrevious = Destinations.UpLeft;
                     if (delta != 0)
                     {
@@ -167,7 +167,7 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parent.NormMatrix[0, 1];
                     delta = Math.Abs(delta);
-                    var node = array[x, y + delta];
+                    var node = new Node(array[x, y + delta]);
                     node.DestinationFromPrevious = Destinations.Up;
                     if (delta != 0)
                     {
@@ -184,7 +184,7 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parent.NormMatrix[0, 2];
                     delta = Math.Abs(delta);
-                    var node = array[x + delta, y + delta];
+                    var node = new Node(array[x + delta, y + delta]);
                     node.DestinationFromPrevious = Destinations.UpRight;
                     if (delta != 0)
                     {
@@ -202,7 +202,7 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parent.NormMatrix[1, 2];
                     delta = Math.Abs(delta);
-                    var node = array[x + delta, y];
+                    var node = new Node(array[x + delta, y]);
                     node.DestinationFromPrevious = Destinations.Right;
                     if (delta != 0)
                     {
@@ -219,7 +219,7 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parent.NormMatrix[2, 2];
                     delta = Math.Abs(delta);
-                    var node = array[x + delta, y - delta];
+                    var node = new Node(array[x + delta, y - delta]);
                     node.DestinationFromPrevious = Destinations.DownRight;
                     if (delta != 0)
                     {
@@ -237,7 +237,7 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parent.NormMatrix[2, 1];
                     delta = Math.Abs(delta);
-                    var node = array[x, y - delta];
+                    var node = new Node(array[x, y - delta]);
                     node.DestinationFromPrevious = Destinations.Down;
                     if (delta != 0)
                     {
@@ -254,7 +254,7 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parent.NormMatrix[2, 0];
                     delta = Math.Abs(delta);
-                    var node = array[x - delta, y - delta];
+                    var node = new Node(array[x - delta, y - delta]);
                     node.DestinationFromPrevious = Destinations.DownLeft;
                     if (delta != 0)
                     {

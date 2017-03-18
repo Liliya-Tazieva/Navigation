@@ -45,6 +45,21 @@ namespace Assets.Scripts.PathFinding {
             TargetJP = false;
         }
 
+        public Node(Node n)
+        {
+            if (n != null)
+            {
+                InformerNode = n.InformerNode;
+                Visited = n.Visited;
+                Distance = 0;
+                Position = n.Position;
+
+                NormMatrix = n.NormMatrix;
+                IsJumpPoint = n.IsJumpPoint;
+                TargetJP = false;
+            }
+        }
+
         public int X()
         {
             return (int)InformerNode.transform.position.x/3;
