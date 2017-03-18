@@ -14,8 +14,7 @@ namespace Assets.Scripts.PathFinding
         {
             Currentnode = current;
             Parent = parent;
-            if (Parent != null) DistanceFromParent = Extensions.Metrics(Currentnode.InformerNode, Parent.InformerNode);
-            else DistanceFromParent = 0;
+            DistanceFromParent = Parent != null ? Currentnode.InformerNode.MetricsAStar(Parent.InformerNode) : 0;
             FindDestination();
         }
 

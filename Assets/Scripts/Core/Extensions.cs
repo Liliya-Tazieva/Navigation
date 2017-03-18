@@ -24,9 +24,20 @@ namespace Assets.Scripts.Core {
 			return node.InformerNode.transform.position;
 		}
 
-        public static float Metrics( this Informer from, Informer to ) {
+        public static float MetricsAStar( this Informer from, Informer to ) {
             var metric = ( to.transform.position - from.transform.position ).sqrMagnitude;
             return metric;
+        }
+
+        public static float Metrics(Tree_Node from, Node to)
+        {
+
+            if (from.Parent != null)
+            {
+                return ((to.Position - from.Currentnode.Position).sqrMagnitude +
+                        (from.Currentnode.Position - from.Parent.Position).sqrMagnitude) / 2;
+            }
+            else return MetricsAStar(from.Currentnode.InformerNode, to.InformerNode);
         }
 
         public static List<Node> ToList( this KDTreeNodeList<Informer> tree ) {
@@ -67,7 +78,7 @@ namespace Assets.Scripts.Core {
         
         public static List<Informer> LoopEscape( Node from, Node to, KDTree<Informer> nodesTree, float radius ) {
             var current = from;
-            current.Distance = current.InformerNode.Metrics( to.InformerNode );
+            current.Distance = current.InformerNode.MetricsAStar( to.InformerNode );
             var path = new List<Informer> { current.InformerNode };
             while ( current.InformerNode != to.InformerNode ) {
                 var query = nodesTree.Nearest( current.InformerNode.transform.position.ToArray(), radius ).ToList();
@@ -77,7 +88,7 @@ namespace Assets.Scripts.Core {
                             && informer.InformerNode.IsObstacle != true )
                         .ToList();
                 foreach ( var informer in query ) {
-                    informer.Distance = informer.InformerNode.Metrics( to.InformerNode );
+                    informer.Distance = informer.InformerNode.MetricsAStar( to.InformerNode );
                 }
                 query = query.Where( informer => informer.Distance < current.Distance )
                 .ToList().OrderBy( informer => informer.Distance ).ToList();
@@ -102,11 +113,10 @@ namespace Assets.Scripts.Core {
 
         public static List<Tree_Node> Neighbours(int x, int y, Node[,] array, Node finish, StraightLinesFromNode linesFromFinish)
         {
-            var neighbours = Neighbours(x,y,array,Destinations.Default, finish, linesFromFinish);
+            var neighbours = NeighboursSelective(x, y, array, Destinations.Default, finish, linesFromFinish);
             return neighbours;
         }
-
-        public static List<Tree_Node> Neighbours(int x, int y, Node[,] array, Destinations destination, Node finish,
+        public static List<Tree_Node> NeighboursSelective(int x, int y, Node[,] array, Destinations destination, Node finish,
             StraightLinesFromNode linesFromFinish)
         {
             var neighbours = new List<Tree_Node>();
@@ -255,15 +265,9 @@ namespace Assets.Scripts.Core {
             }
             foreach (var node in neighbours)
             {
-                node.Currentnode.Distance = Metrics(node.Currentnode.InformerNode, finish.InformerNode);
+                node.Currentnode.Distance = Metrics(node, finish);
                 node.Currentnode.Visited = NodeState.Discovered;
-                var tempNode = IsTargetJP(node.Currentnode, linesFromFinish);
-                node.Currentnode.TargetJP = tempNode.TargetJP;
-                node.Currentnode.DestinationToFinish = tempNode.DestinationToFinish;
             }
-            neighbours = neighbours.OrderByDescending(arg => arg.Currentnode.TargetJP).
-                ThenByDescending(arg => arg.Currentnode.IsJumpPoint!=JPType.Default).ToList();
-            neighbours = neighbours.OrderBy(arg => arg.Currentnode.Distance).ThenBy(arg => arg.DistanceFromParent).ToList();
 
             return neighbours;
         }
@@ -370,6 +374,7 @@ namespace Assets.Scripts.Core {
 
         public static bool Reachable(Node from, Node to, Node[,] nodesArray)
         {
+            if (from.InformerNode.IsObstacle) return false;
             var pointsBetween = StraightLine.FindMiddlePoints(from, to);
             foreach (var point in pointsBetween)
             {

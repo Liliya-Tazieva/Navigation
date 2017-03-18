@@ -1,9 +1,9 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2008
-
-Project("{846495F9-CEED-11AC-CF88-79F555936A7D}") = "Navigation", "Assembly-CSharp.csproj", "{8723F692-E265-6724-2351-D989DE068EA2}"
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Navigation", "Assembly-CSharp.csproj", "{8723F692-E265-6724-2351-D989DE068EA2}"
 EndProject
-Project("{846495F9-CEED-11AC-CF88-79F555936A7D}") = "Navigation", "Assembly-CSharp-Editor.csproj", "{D0254800-E52D-71E5-142E-A45E64128D31}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Navigation", "Assembly-CSharp-Editor.csproj", "{D0254800-E52D-71E5-142E-A45E64128D31}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

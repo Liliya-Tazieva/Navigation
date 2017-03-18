@@ -63,6 +63,9 @@ public class OnA_StarGUI : MonoBehaviour {
 				index2 = rnd.Next(0, nodes.Count - 1);
 			}
 
+            Debug.Log("From " + nodes[index1].transform.position);
+            Debug.Log("To " + nodes[index2].transform.position);
+
             DebugInformationAlgorithm debugInformation;
             controller.JPS(nodes[index1], nodes[index2],true,out debugInformation);
             controller.InitializeDebugInfo();
