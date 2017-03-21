@@ -381,6 +381,25 @@ namespace Assets.Scripts.Core {
         {
             if (from.InformerNode.IsObstacle) return false;
             var pointsBetween = StraightLine.FindMiddlePoints(from, to);
+            var destination = StraightLine.FindDestination(from, to);
+            if (destination == Destinations.UpRight || destination == Destinations.UpLeft ||
+                destination == Destinations.DownLeft || destination == Destinations.DownRight)
+            {
+                if (destination == Destinations.UpRight || destination == Destinations.UpLeft)
+                {
+                    foreach (var point in pointsBetween)
+                    {
+                        if (nodesArray[point.X, point.Y + 1].InformerNode.IsObstacle) return false;
+                    }
+                }
+                else
+                {
+                    foreach (var point in pointsBetween)
+                    {
+                        if (nodesArray[point.X, point.Y - 1].InformerNode.IsObstacle) return false;
+                    }
+                }
+            }
             foreach (var point in pointsBetween)
             {
                 if (nodesArray[point.X, point.Y].InformerNode.IsObstacle) return false;

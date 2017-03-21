@@ -276,8 +276,10 @@ namespace Assets.Scripts.PathFinding {
 				    if (!NodesArray[i, j].InformerNode.IsObstacle
 				        && (Convert.ToInt32(r_u_obstcle) + Convert.ToInt32(l_u_obstcle)
 				            + Convert.ToInt32(r_d_obstcle) + Convert.ToInt32(l_d_obstcle)) == 4
-				        && (Convert.ToInt32(!rObstcle) + Convert.ToInt32(!lObstcle) +
-				            Convert.ToInt32(!uObstcle) + Convert.ToInt32(!dObstcle)) >= 3)
+				        && (Convert.ToInt32(!rObstcle) + Convert.ToInt32(!uObstcle) == 2 ||
+                        Convert.ToInt32(!lObstcle) + Convert.ToInt32(!uObstcle) == 2 ||
+                            Convert.ToInt32(!rObstcle) + Convert.ToInt32(!dObstcle) == 2||
+                            Convert.ToInt32(!lObstcle) + Convert.ToInt32(!dObstcle) == 2))
 				    {
                         NodesArray[i, j].IsJumpPoint = JPType.Primary;
 				    }

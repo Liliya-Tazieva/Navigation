@@ -115,6 +115,7 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 32f769f012f4e04418615a10e56722fd, type: 3}
   - {fileID: 2800000, guid: aae7f310185e75746b9880d4ae978a26, type: 3}
   - {fileID: 2800000, guid: 309faa3d071e2d8429f37213a616ae62, type: 3}
+  - {fileID: 2800000, guid: a62b2ba2d078ada499d04be224c992b0, type: 3}
   StartInformer: {fileID: 0}
   FinishInformer: {fileID: 0}
   Map: {fileID: 0}

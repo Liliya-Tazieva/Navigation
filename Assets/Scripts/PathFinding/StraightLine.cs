@@ -22,6 +22,13 @@ namespace Assets.Scripts.PathFinding
             return FindMiddlePoints(s, f, d);
         }
 
+        public static Destinations FindDestination(Node start, Node finish)
+        {
+            var sPoint = new Point(start.X(),start.Y());
+            var fpoint = new Point(finish.X(),finish.Y());
+            return FindDestination(sPoint,fpoint);
+        }
+
         public static Destinations FindDestination(Point start, Point finish)
         {
             Destinations destination;
