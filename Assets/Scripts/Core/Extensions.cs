@@ -31,6 +31,11 @@ namespace Assets.Scripts.Core {
 
         public static float Metrics(Tree_Node from, Node to)
         {
+            return MetricsAStar(from.Currentnode.InformerNode, to.InformerNode);
+        }
+
+        public static float MetricsForTargetJP(Tree_Node from, Node to)
+        {
 
             if (from.Parent != null)
             {
@@ -111,16 +116,16 @@ namespace Assets.Scripts.Core {
             else return Destinations.UpLeft;
         }
 
-        public static List<Tree_Node> Neighbours(int x, int y, Node[,] array, Node finish, StraightLinesFromNode linesFromFinish)
+        public static List<Tree_Node> Neighbours(Node node, Node[,] array, Node finish, StraightLinesFromNode linesFromFinish)
         {
-            var neighbours = NeighboursSelective(x, y, array, Destinations.Default, finish, linesFromFinish);
+            var neighbours = NeighboursSelective(node.X(), node.Y(), array, node.DestinationFromPrevious, finish, linesFromFinish);
             return neighbours;
         }
         public static List<Tree_Node> NeighboursSelective(int x, int y, Node[,] array, Destinations destination, Node finish,
             StraightLinesFromNode linesFromFinish)
         {
             var neighbours = new List<Tree_Node>();
-            var parent = array[x, y];
+            var parent = new Node(array[x, y]);
 
 
             //Left

@@ -24,7 +24,7 @@ namespace Assets.Scripts.PathFinding
 
         public static Destinations FindDestination(Point start, Point finish)
         {
-            var destination = Destinations.Default;
+            Destinations destination;
             if (start.X < finish.X)
             {
                 if (start.Y < finish.Y) destination = Destinations.UpRight;

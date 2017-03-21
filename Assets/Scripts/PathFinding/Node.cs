@@ -51,12 +51,12 @@ namespace Assets.Scripts.PathFinding {
             {
                 InformerNode = n.InformerNode;
                 Visited = n.Visited;
-                Distance = 0;
+                Distance = n.Distance;
                 Position = n.Position;
 
                 NormMatrix = n.NormMatrix;
                 IsJumpPoint = n.IsJumpPoint;
-                TargetJP = false;
+                TargetJP = n.TargetJP;
             }
         }
 

@@ -573,6 +573,12 @@ namespace Assets.Scripts.PathFinding {
 
 		    while (current.Currentnode != finish)
 		    {
+                if (observed.Count > 900)
+                {
+                    Debug.Log("Observed too big!!!");
+                    return null;
+                }
+
                 Debug.Log("Current "+current.Currentnode.Position+" Distance "+current.Currentnode.Distance);
                 if (current.Parent!=null) Debug.Log("Current's parent " + current.Parent.Position);
                 else Debug.Log("Current's parent " + null);
@@ -592,20 +598,16 @@ namespace Assets.Scripts.PathFinding {
 		            path.Add(current);
 		            current = new Tree_Node(current.Currentnode, finish);
 		            path.Add(current);
-                    Debug.Log("Current's TJP");
+                    Debug.Log("Current is TargetJP");
 		            break;
 		        }
 
                 //Find next node
 
                 //Neighbours
-                /*var neighbours = Extensions.NeighboursSelective(current.Currentnode.X(), current.Currentnode.Y(), NodesArray,
-                    current.Currentnode.DestinationFromPrevious, finish, linesFromFinish);*/
-                var neighbours = Extensions.Neighbours(current.Currentnode.X(), current.Currentnode.Y(), NodesArray, finish, linesFromFinish);
-                Debug.Log("Neighbours: " + neighbours.Count);
+                var neighbours = Extensions.Neighbours(current.Currentnode, NodesArray, finish, linesFromFinish);
 
                 //Target JP
-                //var lines = new StraightLinesFromNode(current.Currentnode, Tree_Node.ToNodeList(neighbours));
                 var lines = new StraightLinesFromNode(current.Currentnode,Extensions.GetDestinationsFromNeighbours(neighbours));
 
                 var minMetrics = current.Currentnode.Distance;
@@ -621,7 +623,7 @@ namespace Assets.Scripts.PathFinding {
                                 && Extensions.Reachable(current.Currentnode,NodesArray[coordinates.X,coordinates.Y],NodesArray))
                             {
                                 var tempNode = new Node(NodesArray[coordinates.X, coordinates.Y]);
-                                tempNode.Distance = Extensions.Metrics(new Tree_Node(current.Currentnode,tempNode), finish);
+                                tempNode.Distance = Extensions.MetricsForTargetJP(new Tree_Node(current.Currentnode, tempNode), finish);
                                 tempNode.TargetJP = true;
                                 tempNode.DestinationToFinish = Extensions.DestinationInverse(lineFromFinish.Destination);
                                 tempNode.Visited = NodeState.Discovered;
@@ -642,7 +644,6 @@ namespace Assets.Scripts.PathFinding {
                     }
                 }
                 
-                Debug.Log("Cross points list count "+tempList.Count);
                 if (tempList.Count != 0)
                 {
                     if (debugFlag)
@@ -655,8 +656,13 @@ namespace Assets.Scripts.PathFinding {
 
                 if (neighbours.Count != 0)
                 {
-                    observed.AddRange(neighbours);
+                    foreach(var neighbour in neighbours)
+                    {
+                        if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
+                            observed.Add(neighbour);
+                    }
                 }
+                observed = observed.Distinct().ToList();
                 observed = observed.OrderBy(arg => arg.Currentnode.Visited).ThenBy(arg => arg.Currentnode.Distance).ToList();
                 path.Add(current);
                 current = observed[0];
@@ -665,12 +671,12 @@ namespace Assets.Scripts.PathFinding {
             if(path.Count>1)
             {
                 var finalPath = new List<Node>();
-                while (current.Currentnode!=start.Currentnode)
+                while (current!=start)
                 {
                     var middlePoints = StraightLine.FindMiddlePoints(current.Parent, current.Currentnode);
                     if(current.Parent!=start.Currentnode) middlePoints.RemoveAt(0);
                     finalPath.InsertRange(0,Extensions.ToNodes(middlePoints, NodesArray));
-                    current = path.Find(arg => arg.Currentnode == current.Parent);
+                    current = path.Find(arg => arg.Currentnode.Position == current.Parent.Position);
                 }
 
                 if (debugInformation != null)
@@ -680,10 +686,6 @@ namespace Assets.Scripts.PathFinding {
                     debugInformation.FinalPath = Extensions.ToInformers(finalPath);
                 }
                 Debug.Log("Final path: " + finalPath.Count);
-                foreach (var node in finalPath)
-                {
-                    Debug.Log(node.Position);
-                }
 
                 return finalPath;
 		    }
