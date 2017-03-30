@@ -176,6 +176,12 @@ public class OnA_StarGUI : MonoBehaviour {
         Debug.Log("Finish" + FinishInformer.transform.position);
     }
 
+    public void PrecomputeMap()
+    {
+        var controller = GetComponentInChildren<Controller>();
+        if(!controller.IsPrecomputed) controller.PrecomputeMap();
+    }
+
     public void ClearMap()
     {
         var colorList = GetComponent<DefaultColours>();
@@ -186,15 +192,16 @@ public class OnA_StarGUI : MonoBehaviour {
         {
             for (var k = 0; k < Maps[_currentMap].width; ++k)
             {
-                if (!nodesArray[j, k].InformerNode.IsObstacle &&
-                    nodesArray[j, k].InformerNode != StartInformer &&
-                    nodesArray[j, k].InformerNode != FinishInformer)
+                if (!nodesArray[j, k].InformerNode.IsObstacle)
                 {
                     var currentRenderer = nodesArray[j,k].InformerNode.GetComponent<Renderer>();
                     currentRenderer.material = colorList.DefaultMaterials[0];
                 }
             }
         }
+        Extensions.ShowJP(controller.JumpPoints);
+        _startRenderer.material.SetColor("_Color", Color.cyan);
+        _finishRenderer.material.SetColor("_Color", Color.magenta);
     }
 
     public void ShowFinalPathAStar()

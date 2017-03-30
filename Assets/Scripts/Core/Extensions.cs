@@ -465,5 +465,14 @@ namespace Assets.Scripts.Core {
                 Destroy = false
             };
         }
+
+        public static void ShowJP(List<Node> jumpPoits)
+        {
+            foreach (var jp in jumpPoits)
+            {
+                var renderer = jp.InformerNode.GetComponent<Renderer>();
+                renderer.material.SetColor("_Color", Color.blue);
+            }
+        }
     }
 }

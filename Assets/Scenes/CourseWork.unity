@@ -1165,12 +1165,6 @@ MonoBehaviour:
 GameObject:
   m_PrefabParentObject: {fileID: 123280, guid: 1062b42ed64eb044a80f8565363db981, type: 2}
   m_PrefabInternal: {fileID: 2127409374}
---- !u!114 &1189904765 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 11461346, guid: 1062b42ed64eb044a80f8565363db981,
-    type: 2}
-  m_PrefabInternal: {fileID: 2127409374}
-  m_Script: {fileID: 11500000, guid: c5e13537cd18de9438095604daf4db11, type: 3}
 --- !u!114 &1189904768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1958,7 +1952,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1189904765}
+      - m_Target: {fileID: 1109159513}
         m_MethodName: PrecomputeMap
         m_Mode: 1
         m_Arguments:

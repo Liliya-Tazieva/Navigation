@@ -23,6 +23,7 @@ namespace Assets.Scripts.PathFinding {
         public KDTree<Informer> NodesTree = new KDTree<Informer>(3);
 		public Node [,] NodesArray = new Node [34,35];
 		public bool IsPrecomputed;
+        public List<Node> JumpPoints = new List<Node>();
 
         public void RegisterInformer(Informer informer) {
             var position = informer.transform.position;
@@ -209,7 +210,8 @@ namespace Assets.Scripts.PathFinding {
             return finalPath;
         }
     
-		public void PrecomputeMap(){
+		public void PrecomputeMap()
+		{
 			//finding jump points
 			for (var i = 0; i < 34; ++i) {
 				for (var j = 0; j < 35; ++j) {
@@ -284,13 +286,13 @@ namespace Assets.Scripts.PathFinding {
                         NodesArray[i, j].IsJumpPoint = JPType.Primary;
 				    }
 				    if (NodesArray[i, j].IsJumpPoint != JPType.Primary) continue;
-				    var jPRenderer = NodesArray[i, j].InformerNode.GetComponent<Renderer>();
-				    jPRenderer.material.SetColor("_Color", Color.blue);
+				    JumpPoints.Add(NodesArray[i, j]);
 				}
-			}
+            }
+            Extensions.ShowJP(JumpPoints);
 
-			//computing distances to jump points and obstacles
-			for (var i = 0; i < 34; ++i) {
+            //computing distances to jump points and obstacles
+            for (var i = 0; i < 34; ++i) {
 				for (var j = 0; j < 35; ++j) {
 				    if (NodesArray[i, j].InformerNode.IsObstacle) continue;
 				    //Checking up
