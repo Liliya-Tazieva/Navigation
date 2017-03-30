@@ -31,16 +31,10 @@ namespace Assets.Scripts.Core {
 
         public static float Metrics(Tree_Node from, Node to)
         {
-            return MetricsAStar(from.Currentnode.InformerNode, to.InformerNode);
-        }
-
-        public static float MetricsForTargetJP(Tree_Node from, Node to)
-        {
-
             if (from.Parent != null)
             {
                 return ((to.Position - from.Currentnode.Position).sqrMagnitude +
-                        (from.Currentnode.Position - from.Parent.Position).sqrMagnitude) / 2;
+                        (from.Currentnode.Position - from.Parent.Position).sqrMagnitude);
             }
             else return MetricsAStar(from.Currentnode.InformerNode, to.InformerNode);
         }
@@ -116,7 +110,8 @@ namespace Assets.Scripts.Core {
             else return Destinations.UpLeft;
         }
 
-        public static List<Tree_Node> Neighbours(Node node, Node[,] array, Node finish, StraightLinesFromNode linesFromFinish)
+        public static List<Tree_Node> Neighbours(Node node, Node[,] array, Node finish, 
+            StraightLinesFromNode linesFromFinish)
         {
             var neighbours = NeighboursSelective(node.X(), node.Y(), array, node.DestinationFromPrevious, finish, linesFromFinish);
             return neighbours;
@@ -415,6 +410,60 @@ namespace Assets.Scripts.Core {
                 destinations.Add(neighbour.Currentnode.DestinationFromPrevious);
             }
             return destinations;
+        }
+
+        public static void NeighboursAndTJP(Informer start, Informer finish, 
+            Node[,] nodesArray, out DebugInformationAlgorithm debugInfo)
+        {
+            var startNode = new Node(start,NodeState.Processed);
+            startNode.Distance = MetricsAStar(start, finish);
+            var finishNode = new Node(finish, NodeState.Processed);
+            var sraightLinesFromStart = new StraightLinesFromNode(startNode);
+            var sraightLinesFromFinish = new StraightLinesFromNode(finishNode);
+            var neighbours = Neighbours(startNode, nodesArray, finishNode, sraightLinesFromFinish);
+
+            var minMetrics = startNode.Distance;
+            var tempList = new List<Node>();
+            if (sraightLinesFromStart.Lines != null)
+            {
+                foreach (var lineFromFinish in sraightLinesFromFinish.Lines)
+                {
+                    foreach (var line in sraightLinesFromStart.Lines)
+                    {
+                        var coordinates = StraightLine.Crossing(line, lineFromFinish);
+                        if (coordinates != null && Reachable(nodesArray[coordinates.X, coordinates.Y], finishNode, nodesArray)
+                            && Reachable(startNode, nodesArray[coordinates.X, coordinates.Y], nodesArray))
+                        {
+                            var tempNode = new Node(nodesArray[coordinates.X, coordinates.Y]);
+                            tempNode.Distance = Metrics(new Tree_Node(startNode, tempNode), finishNode);
+                            tempNode.TargetJP = true;
+                            tempNode.DestinationToFinish = DestinationInverse(lineFromFinish.Destination);
+                            tempNode.Visited = NodeState.Discovered;
+                            if (tempNode.Distance < minMetrics)
+                            {
+                                minMetrics = tempNode.Distance;
+                                tempList.Clear();
+                                tempList.Add(tempNode);
+                            }
+                            else if (Math.Abs(tempNode.Distance - minMetrics) < 0.00000000001)
+                            {
+                                tempList.Add(tempNode);
+                            }
+                        }
+                    }
+                }
+            }
+            var straightLines = StraightLinesFromNode.JoinLines(sraightLinesFromStart, sraightLinesFromFinish,
+                nodesArray);
+            debugInfo = new DebugInformationAlgorithm
+            {
+                From = startNode.InformerNode,
+                To = finishNode.InformerNode,
+                Observed = ToNodes(neighbours),
+                LinesFromFinish = straightLines,
+                CrossPoints = tempList,
+                Destroy = false
+            };
         }
     }
 }

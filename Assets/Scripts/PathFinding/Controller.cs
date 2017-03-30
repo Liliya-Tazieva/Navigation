@@ -526,11 +526,11 @@ namespace Assets.Scripts.PathFinding {
 		    IsPrecomputed = true;
 		}
 
-        public List<Node> JPS(Informer from, Informer to)
+        public List<Informer> JPS(Informer from, Informer to)
         {
             DebugInformationAlgorithm debugInformation;
             var finalPath = JPS(from, to, false, out debugInformation);
-            return finalPath;
+            return Extensions.ToInformers(finalPath);
 
         }
 
@@ -625,14 +625,13 @@ namespace Assets.Scripts.PathFinding {
                                 && Extensions.Reachable(current.Currentnode,NodesArray[coordinates.X,coordinates.Y],NodesArray))
                             {
                                 var tempNode = new Node(NodesArray[coordinates.X, coordinates.Y]);
-                                tempNode.Distance = Extensions.MetricsForTargetJP(new Tree_Node(current.Currentnode, tempNode), finish);
+                                tempNode.Distance = Extensions.Metrics(new Tree_Node(current.Currentnode, tempNode), finish);
                                 tempNode.TargetJP = true;
                                 tempNode.DestinationToFinish = Extensions.DestinationInverse(lineFromFinish.Destination);
                                 tempNode.Visited = NodeState.Discovered;
                                 if (tempNode.Distance < minMetrics)
                                 {
                                     minMetrics = tempNode.Distance;
-                                    tempNode.Distance = Extensions.Metrics(new Tree_Node(current.Currentnode, tempNode), finish);
                                     tempList.Clear();
                                     tempList.Add(tempNode);
                                 }

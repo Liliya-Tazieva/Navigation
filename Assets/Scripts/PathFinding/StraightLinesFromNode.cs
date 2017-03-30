@@ -52,6 +52,14 @@ namespace Assets.Scripts.PathFinding
             return lines;
         }
 
+        public static List<Node> JoinLines(StraightLinesFromNode l1, StraightLinesFromNode l2, Node[,] nodesArray)
+        {
+            var list = new List<Node>();
+            list.AddRange(ToList(l1, nodesArray));
+            list.AddRange(ToList(l2,nodesArray));
+            return list;
+        }
+
         public static List<Node> ToList(StraightLinesFromNode lines, Node[,] nodesArray)
         {
             var list = new List<Node>();

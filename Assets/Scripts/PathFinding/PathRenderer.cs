@@ -13,6 +13,7 @@ namespace Assets.Scripts.PathFinding {
         To = 3,
 		Line = 4,
         CrossPoint = 5,
+        PathJPS = 6
     }
 
     public class PathRenderer: MonoBehaviour {
@@ -36,18 +37,25 @@ namespace Assets.Scripts.PathFinding {
         }
 
         [UsedImplicitly]
-        public void OnDestroy() {
-            _usedRenderers.ForEach( e => _defaultColors[e].UseCount-- );
+        public void OnDestroy()
+        {
+            if (DebugInformation!=null && DebugInformation.Destroy)
+            {
+                _usedRenderers.ForEach(e => _defaultColors[e].UseCount--);
 
-            if (_defaultColors != null) {
-                
-            _defaultColors
-                .Where( pair => pair.Value.UseCount == 0 )
-					.ForEach( pair => {
-						if(pair.Key!=null) {
-							pair.Key.material.SetColor( "_Color", pair.Value.DefaultColor );
-						}
-					} );
+                if (_defaultColors != null)
+                {
+                    _defaultColors
+                        .Where(pair => pair.Value.UseCount == 0)
+                        .ForEach(pair =>
+                        {
+                            if (pair.Key != null && (pair.Key.material.GetColor("_Color") != Color.cyan
+                                                     && pair.Key.material.GetColor("_Color") != Color.magenta))
+                            {
+                                pair.Key.material.SetColor("_Color", pair.Value.DefaultColor);
+                            }
+                        });
+                }
             }
         }
 
@@ -78,6 +86,13 @@ namespace Assets.Scripts.PathFinding {
                 foreach (var informer in DebugInformation.FinalPath) {
                     if (informer != DebugInformation.From && informer != DebugInformation.To) {
                         yield return AStarDebug(informer, Show.Path);
+                    }
+                }
+                foreach (var informer in DebugInformation.FinalPathJPS)
+                {
+                    if (informer != DebugInformation.From && informer != DebugInformation.To)
+                    {
+                        yield return AStarDebug(informer, Show.PathJPS);
                     }
                 }
             } else yield return null;
@@ -113,8 +128,13 @@ namespace Assets.Scripts.PathFinding {
             } else if (show == Show.Line) {
                 component.material.SetColor("_Color", Color.gray);
             }
-            else {
+            else if (show == Show.CrossPoint)
+            {
                 component.material.SetColor("_Color", Color.white);
+            }
+            else
+            {
+                component.material.SetColor("_Color", Color.yellow);
             }
             yield return new WaitForSeconds( .01f );
         }
