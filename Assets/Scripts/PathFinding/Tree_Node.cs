@@ -9,16 +9,26 @@ namespace Assets.Scripts.PathFinding
         public Node Currentnode;
         public Node Parent;
         public float DistanceFromParent;
+        public int Level;
 
-        public Tree_Node(Node parent, Node current)
+        public Tree_Node(Tree_Node parent, Node current)
         {
             Currentnode = new Node(current);
-            Parent = parent;
+            if (parent != null)
+            {
+                Parent = parent.Currentnode;
+                Level = parent.Level + 1;
+            }
+            else
+            {
+                Parent = null;
+                Level = 0;
+            }
             DistanceFromParent = Parent != null ? Currentnode.InformerNode.MetricsAStar(Parent.InformerNode) : 0;
             FindDestination();
         }
 
-        public static List<Tree_Node> NodesToList(List<Node> nodes, Node parent)
+        public static List<Tree_Node> NodesToList(List<Node> nodes, Tree_Node parent)
         {
             var list = new List<Tree_Node>();
             foreach (var node in nodes)

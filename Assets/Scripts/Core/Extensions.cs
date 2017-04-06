@@ -31,12 +31,14 @@ namespace Assets.Scripts.Core {
 
         public static float Metrics(Tree_Node from, Node to)
         {
+            var metricAStar = MetricsAStar(from.Currentnode.InformerNode, to.InformerNode);
             if (from.Parent != null)
             {
-                return ((to.Position - from.Currentnode.Position).sqrMagnitude +
-                        (from.Currentnode.Position - from.Parent.Position).sqrMagnitude);
+                var metric = (to.Position - from.Currentnode.Position).sqrMagnitude +
+                             (from.Currentnode.Position - from.Parent.Position).sqrMagnitude;
+                return metric;
             }
-            else return MetricsAStar(from.Currentnode.InformerNode, to.InformerNode);
+            else return metricAStar;
         }
 
         public static List<Node> ToList( this KDTreeNodeList<Informer> tree ) {
@@ -110,17 +112,18 @@ namespace Assets.Scripts.Core {
             else return Destinations.UpLeft;
         }
 
-        public static List<Tree_Node> Neighbours(Node node, Node[,] array, Node finish, 
+        public static List<Tree_Node> Neighbours(Tree_Node node, Node[,] array, Node finish, 
             StraightLinesFromNode linesFromFinish)
         {
-            var neighbours = NeighboursSelective(node.X(), node.Y(), array, node.DestinationFromPrevious, finish, linesFromFinish);
+            var neighbours = NeighboursSelective(node, node.Currentnode.X(), node.Currentnode.Y(), array, 
+                node.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
             return neighbours;
         }
-        public static List<Tree_Node> NeighboursSelective(int x, int y, Node[,] array, Destinations destination, Node finish,
+        public static List<Tree_Node> NeighboursSelective(Tree_Node parent,int x, int y, Node[,] array, Destinations destination, Node finish,
             StraightLinesFromNode linesFromFinish)
         {
             var neighbours = new List<Tree_Node>();
-            var parent = new Node(array[x, y]);
+            var parentNode = parent.Currentnode;
 
 
             //Left
@@ -130,7 +133,7 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.Up || destination == Destinations.Down ||
                     destination == Destinations.UpLeft || destination == Destinations.DownLeft)
                 {
-                    var delta = parent.NormMatrix[1, 0] ;
+                    var delta = parentNode.NormMatrix[1, 0] ;
                     delta = Math.Abs(delta);
                     var node = new Node(array[x - delta, y]);
                     node.DestinationFromPrevious = Destinations.Left;
@@ -147,7 +150,7 @@ namespace Assets.Scripts.Core {
                 if (destination == Destinations.Default || destination == Destinations.Left ||
                     destination == Destinations.Up || destination == Destinations.UpLeft)
                 {
-                    var delta = parent.NormMatrix[0, 0];
+                    var delta = parentNode.NormMatrix[0, 0];
                     delta = Math.Abs(delta);
                     var node = new Node(array[x - delta, y + delta]);
                     node.DestinationFromPrevious = Destinations.UpLeft;
@@ -165,7 +168,7 @@ namespace Assets.Scripts.Core {
                     destination == Destinations.Up || destination == Destinations.Right ||
                     destination == Destinations.UpLeft || destination == Destinations.UpRight)
                 {
-                    var delta = parent.NormMatrix[0, 1];
+                    var delta = parentNode.NormMatrix[0, 1];
                     delta = Math.Abs(delta);
                     var node = new Node(array[x, y + delta]);
                     node.DestinationFromPrevious = Destinations.Up;
@@ -182,7 +185,7 @@ namespace Assets.Scripts.Core {
                 if (destination == Destinations.Default || destination == Destinations.Right ||
                     destination == Destinations.Up || destination == Destinations.UpRight)
                 {
-                    var delta = parent.NormMatrix[0, 2];
+                    var delta = parentNode.NormMatrix[0, 2];
                     delta = Math.Abs(delta);
                     var node = new Node(array[x + delta, y + delta]);
                     node.DestinationFromPrevious = Destinations.UpRight;
@@ -200,7 +203,7 @@ namespace Assets.Scripts.Core {
                    destination == Destinations.Up || destination == Destinations.Down ||
                    destination == Destinations.UpRight || destination == Destinations.DownRight)
                 {
-                    var delta = parent.NormMatrix[1, 2];
+                    var delta = parentNode.NormMatrix[1, 2];
                     delta = Math.Abs(delta);
                     var node = new Node(array[x + delta, y]);
                     node.DestinationFromPrevious = Destinations.Right;
@@ -217,7 +220,7 @@ namespace Assets.Scripts.Core {
                 if (destination == Destinations.Default || destination == Destinations.Right ||
                     destination == Destinations.Down || destination == Destinations.DownRight)
                 {
-                    var delta = parent.NormMatrix[2, 2];
+                    var delta = parentNode.NormMatrix[2, 2];
                     delta = Math.Abs(delta);
                     var node = new Node(array[x + delta, y - delta]);
                     node.DestinationFromPrevious = Destinations.DownRight;
@@ -235,7 +238,7 @@ namespace Assets.Scripts.Core {
                    destination == Destinations.Right || destination == Destinations.Down ||
                    destination == Destinations.DownLeft || destination == Destinations.DownRight)
                 {
-                    var delta = parent.NormMatrix[2, 1];
+                    var delta = parentNode.NormMatrix[2, 1];
                     delta = Math.Abs(delta);
                     var node = new Node(array[x, y - delta]);
                     node.DestinationFromPrevious = Destinations.Down;
@@ -252,7 +255,7 @@ namespace Assets.Scripts.Core {
                 if (destination == Destinations.Default || destination == Destinations.Left ||
                     destination == Destinations.Down || destination == Destinations.DownLeft)
                 {
-                    var delta = parent.NormMatrix[2, 0];
+                    var delta = parentNode.NormMatrix[2, 0];
                     delta = Math.Abs(delta);
                     var node = new Node(array[x - delta, y - delta]);
                     node.DestinationFromPrevious = Destinations.DownLeft;
@@ -416,11 +419,13 @@ namespace Assets.Scripts.Core {
             Node[,] nodesArray, out DebugInformationAlgorithm debugInfo)
         {
             var startNode = new Node(start,NodeState.Processed);
+            var startTreeNode = new Tree_Node(null, startNode);
             startNode.Distance = MetricsAStar(start, finish);
             var finishNode = new Node(finish, NodeState.Processed);
             var sraightLinesFromStart = new StraightLinesFromNode(startNode);
             var sraightLinesFromFinish = new StraightLinesFromNode(finishNode);
-            var neighbours = Neighbours(startNode, nodesArray, finishNode, sraightLinesFromFinish);
+            var neighbours = Neighbours(startTreeNode, nodesArray, finishNode, 
+                sraightLinesFromFinish);
 
             var minMetrics = startNode.Distance;
             var tempList = new List<Node>();
@@ -435,7 +440,7 @@ namespace Assets.Scripts.Core {
                             && Reachable(startNode, nodesArray[coordinates.X, coordinates.Y], nodesArray))
                         {
                             var tempNode = new Node(nodesArray[coordinates.X, coordinates.Y]);
-                            tempNode.Distance = Metrics(new Tree_Node(startNode, tempNode), finishNode);
+                            tempNode.Distance = Metrics(new Tree_Node(startTreeNode, tempNode), finishNode);
                             tempNode.TargetJP = true;
                             tempNode.DestinationToFinish = DestinationInverse(lineFromFinish.Destination);
                             tempNode.Visited = NodeState.Discovered;
