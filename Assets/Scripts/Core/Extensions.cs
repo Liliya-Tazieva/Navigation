@@ -379,27 +379,24 @@ namespace Assets.Scripts.Core {
         {
             if (from.InformerNode.IsObstacle) return false;
             var pointsBetween = StraightLine.FindMiddlePoints(from, to);
+            pointsBetween.RemoveAt(0);
+            if (pointsBetween.Count > 1) pointsBetween.RemoveAt(pointsBetween.Count - 1);
+            else if(pointsBetween.Count == 1) pointsBetween.RemoveAt(0);
             var destination = StraightLine.FindDestination(from, to);
-            if (destination == Destinations.UpRight || destination == Destinations.UpLeft ||
-                destination == Destinations.DownLeft || destination == Destinations.DownRight)
-            {
-                if (destination == Destinations.UpRight || destination == Destinations.UpLeft)
-                {
-                    foreach (var point in pointsBetween)
-                    {
-                        if (nodesArray[point.X, point.Y + 1].InformerNode.IsObstacle) return false;
-                    }
-                }
-                else
-                {
-                    foreach (var point in pointsBetween)
-                    {
-                        if (nodesArray[point.X, point.Y - 1].InformerNode.IsObstacle) return false;
-                    }
-                }
-            }
             foreach (var point in pointsBetween)
             {
+                if (destination == Destinations.UpRight
+                    && (nodesArray[point.X, point.Y + 1].InformerNode.IsObstacle
+                        || nodesArray[point.X + 1, point.Y].InformerNode.IsObstacle)) return false;
+                if (destination == Destinations.UpLeft
+                    && (nodesArray[point.X, point.Y + 1].InformerNode.IsObstacle
+                        || nodesArray[point.X - 1, point.Y].InformerNode.IsObstacle)) return false;
+                if (destination == Destinations.DownRight
+                    && (nodesArray[point.X, point.Y - 1].InformerNode.IsObstacle
+                        || nodesArray[point.X + 1, point.Y].InformerNode.IsObstacle)) return false;
+                if (destination == Destinations.DownLeft
+                    && (nodesArray[point.X, point.Y - 1].InformerNode.IsObstacle
+                        || nodesArray[point.X - 1, point.Y].InformerNode.IsObstacle)) return false;
                 if (nodesArray[point.X, point.Y].InformerNode.IsObstacle) return false;
             }
             return true;
@@ -426,6 +423,7 @@ namespace Assets.Scripts.Core {
             var sraightLinesFromFinish = new StraightLinesFromNode(finishNode);
             var neighbours = Neighbours(startTreeNode, nodesArray, finishNode, 
                 sraightLinesFromFinish);
+            Debug.Log("ShowTJPAndNeighbours neighbours.Count "+neighbours.Count);
 
             var minMetrics = startNode.Distance;
             var tempList = new List<Node>();
@@ -478,6 +476,150 @@ namespace Assets.Scripts.Core {
                 var renderer = jp.InformerNode.GetComponent<Renderer>();
                 renderer.material.SetColor("_Color", Color.blue);
             }
+        }
+
+        public static List<Node> FindPrimaryJP(Node[,] NodesArray)
+        {
+            var JumpPoints = new List<Node>();
+            //finding jump points
+            for (var i = 0; i < 34; ++i)
+            {
+                for (var j = 0; j < 35; ++j)
+                {
+
+                    //obstacle-types
+                    var r_u_obstcle = false;
+                    var l_u_obstcle = false;
+                    var r_d_obstcle = false;
+                    var l_d_obstcle = false;
+                    var uObstcle = false;
+                    var dObstcle = false;
+                    var rObstcle = false;
+                    var lObstcle = false;
+
+
+                    if (j > 0)
+                    {
+                        if (NodesArray[i, j - 1].InformerNode.IsObstacle)
+                            dObstcle = true;
+                    }
+                    if (j < 34)
+                    {
+                        if (NodesArray[i, j + 1].InformerNode.IsObstacle)
+                            uObstcle = true;
+                    }
+                    if (i > 0)
+                    {
+                        if (j > 0)
+                        {
+                            if (NodesArray[i - 1, j - 1].InformerNode.IsObstacle)
+                                l_d_obstcle = true;
+                        }
+                        if (j < 34)
+                        {
+                            if (NodesArray[i - 1, j + 1].InformerNode.IsObstacle)
+                                l_u_obstcle = true;
+                        }
+                        if (NodesArray[i - 1, j].InformerNode.IsObstacle)
+                            lObstcle = true;
+                    }
+                    if (i < 33)
+                    {
+                        if (j > 0)
+                        {
+                            if (NodesArray[i + 1, j - 1].InformerNode.IsObstacle)
+                                r_d_obstcle = true;
+                        }
+                        if (j < 34)
+                        {
+                            if (NodesArray[i + 1, j + 1].InformerNode.IsObstacle)
+                                r_u_obstcle = true;
+                        }
+                        if (NodesArray[i + 1, j].InformerNode.IsObstacle)
+                            rObstcle = true;
+                    }
+
+
+                    if (!NodesArray[i, j].InformerNode.IsObstacle
+                        && !rObstcle && !dObstcle && !lObstcle && !uObstcle
+                        && (r_u_obstcle || l_u_obstcle || r_d_obstcle || l_d_obstcle))
+                    {
+                        NodesArray[i, j].IsJumpPoint = JPType.Primary;
+                    }
+                    /*if (!NodesArray[i, j].InformerNode.IsObstacle
+				        && (Convert.ToInt32(r_u_obstcle) + Convert.ToInt32(l_u_obstcle)
+				            + Convert.ToInt32(r_d_obstcle) + Convert.ToInt32(l_d_obstcle)) == 4
+				        && (Convert.ToInt32(!rObstcle) + Convert.ToInt32(!uObstcle) == 2 ||
+                        Convert.ToInt32(!lObstcle) + Convert.ToInt32(!uObstcle) == 2 ||
+                            Convert.ToInt32(!rObstcle) + Convert.ToInt32(!dObstcle) == 2||
+                            Convert.ToInt32(!lObstcle) + Convert.ToInt32(!dObstcle) == 2))
+				    {
+                        NodesArray[i, j].IsJumpPoint = JPType.Primary;
+				    }*/
+                    var obstacleAmount = Convert.ToInt32(r_u_obstcle) + Convert.ToInt32(l_u_obstcle)
+                                         + Convert.ToInt32(r_d_obstcle) + Convert.ToInt32(l_d_obstcle) +
+                                         Convert.ToInt32(rObstcle) + Convert.ToInt32(dObstcle) +
+                                         Convert.ToInt32(lObstcle) + Convert.ToInt32(uObstcle);
+                    if (!NodesArray[i, j].InformerNode.IsObstacle &&
+                        obstacleAmount == 4) NodesArray[i, j].IsJumpPoint = JPType.Primary;
+
+                    if (NodesArray[i, j].IsJumpPoint != JPType.Primary) continue;
+                    JumpPoints.Add(NodesArray[i, j]);
+                }
+            }
+            ShowJP(JumpPoints);
+
+            return JumpPoints;
+        }
+
+        public static List<Node> FindPrimaryJPWithObstacles(Node[,] NodesArray)
+        {
+            var JumpPoints = new List<Node>();
+            for (var i = 0; i < 34; ++i)
+            {
+                for (var j = 0; j < 35; ++j)
+                {
+                    if (NodesArray[i, j].InformerNode.IsObstacle)
+                    {
+                        if (j > 0 && !NodesArray[i, j - 1].InformerNode.IsObstacle)
+                        {
+                            if (i < 33 &&
+                                !NodesArray[i + 1, j - 1].InformerNode.IsObstacle &&
+                                !NodesArray[i + 1, j].InformerNode.IsObstacle)
+                            {
+                                NodesArray[i + 1, j - 1].IsJumpPoint = JPType.Primary;
+                                JumpPoints.Add(NodesArray[i + 1, j - 1]);
+                            }
+                            if (i > 0 &&
+                                !NodesArray[i - 1, j - 1].InformerNode.IsObstacle &&
+                                !NodesArray[i - 1, j].InformerNode.IsObstacle)
+                            {
+                                NodesArray[i - 1, j - 1].IsJumpPoint = JPType.Primary;
+                                JumpPoints.Add(NodesArray[i - 1, j - 1]);
+                            }
+                        }
+                        if (j < 34 && !NodesArray[i, j + 1].InformerNode.IsObstacle)
+                        {
+                            if (i < 33 &&
+                                !NodesArray[i + 1, j + 1].InformerNode.IsObstacle &&
+                                !NodesArray[i + 1, j].InformerNode.IsObstacle)
+                            {
+                                NodesArray[i + 1, j + 1].IsJumpPoint = JPType.Primary;
+                                JumpPoints.Add(NodesArray[i + 1, j + 1]);
+                            }
+                            if (i > 0 &&
+                                !NodesArray[i - 1, j + 1].InformerNode.IsObstacle &&
+                                !NodesArray[i - 1, j].InformerNode.IsObstacle)
+                            {
+                                NodesArray[i - 1, j + 1].IsJumpPoint = JPType.Primary;
+                                JumpPoints.Add(NodesArray[i - 1, j + 1]);
+                            }
+                        }
+                    }
+                }
+            }
+            ShowJP(JumpPoints);
+            return JumpPoints;
         }
     }
 }

@@ -41,7 +41,7 @@ namespace Assets.Scripts.PathFinding {
                     NormMatrix[k, j] = 0;
                 }
             }
-			IsJumpPoint = JPType.Default;
+            IsJumpPoint = JPType.Default;
             TargetJP = false;
         }
 
