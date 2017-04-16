@@ -379,24 +379,17 @@ namespace Assets.Scripts.Core {
         {
             if (from.InformerNode.IsObstacle) return false;
             var pointsBetween = StraightLine.FindMiddlePoints(from, to);
-            pointsBetween.RemoveAt(0);
-            if (pointsBetween.Count > 1) pointsBetween.RemoveAt(pointsBetween.Count - 1);
-            else if(pointsBetween.Count == 1) pointsBetween.RemoveAt(0);
             var destination = StraightLine.FindDestination(from, to);
             foreach (var point in pointsBetween)
             {
                 if (destination == Destinations.UpRight
-                    && (nodesArray[point.X, point.Y + 1].InformerNode.IsObstacle
-                        || nodesArray[point.X + 1, point.Y].InformerNode.IsObstacle)) return false;
+                    && nodesArray[point.X, point.Y].NormMatrix[0,2] == 0) return false;
                 if (destination == Destinations.UpLeft
-                    && (nodesArray[point.X, point.Y + 1].InformerNode.IsObstacle
-                        || nodesArray[point.X - 1, point.Y].InformerNode.IsObstacle)) return false;
+                    && nodesArray[point.X, point.Y].NormMatrix[0, 0] == 0) return false;
                 if (destination == Destinations.DownRight
-                    && (nodesArray[point.X, point.Y - 1].InformerNode.IsObstacle
-                        || nodesArray[point.X + 1, point.Y].InformerNode.IsObstacle)) return false;
+                    && nodesArray[point.X, point.Y].NormMatrix[2, 2] == 0) return false;
                 if (destination == Destinations.DownLeft
-                    && (nodesArray[point.X, point.Y - 1].InformerNode.IsObstacle
-                        || nodesArray[point.X - 1, point.Y].InformerNode.IsObstacle)) return false;
+                    && nodesArray[point.X, point.Y].NormMatrix[2, 0] == 0) return false;
                 if (nodesArray[point.X, point.Y].InformerNode.IsObstacle) return false;
             }
             return true;
@@ -416,14 +409,14 @@ namespace Assets.Scripts.Core {
             Node[,] nodesArray, out DebugInformationAlgorithm debugInfo)
         {
             var startNode = new Node(start,NodeState.Processed);
-            var startTreeNode = new Tree_Node(null, startNode);
+            startNode.NormMatrix = nodesArray[startNode.X(), startNode.Y()].NormMatrix;
             startNode.Distance = MetricsAStar(start, finish);
+            var startTreeNode = new Tree_Node(null, startNode);
             var finishNode = new Node(finish, NodeState.Processed);
             var sraightLinesFromStart = new StraightLinesFromNode(startNode);
             var sraightLinesFromFinish = new StraightLinesFromNode(finishNode);
             var neighbours = Neighbours(startTreeNode, nodesArray, finishNode, 
                 sraightLinesFromFinish);
-            Debug.Log("ShowTJPAndNeighbours neighbours.Count "+neighbours.Count);
 
             var minMetrics = startNode.Distance;
             var tempList = new List<Node>();

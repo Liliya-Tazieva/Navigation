@@ -33,7 +33,10 @@ namespace Assets.Scripts.PathFinding {
             Visited = v;
             Distance = 0;
             Position = i.transform.position;
-            
+            DestinationFromPrevious = Destinations.Default;
+            DestinationToFinish = Destinations.Default;
+
+
             for (var k = 0; k < 3; ++k)
             {
                 for (var j = 0; j<3; ++j)
@@ -53,6 +56,8 @@ namespace Assets.Scripts.PathFinding {
                 Visited = n.Visited;
                 Distance = n.Distance;
                 Position = n.Position;
+                DestinationToFinish = n.DestinationToFinish;
+                DestinationFromPrevious = n.DestinationFromPrevious;
 
                 NormMatrix = n.NormMatrix;
                 IsJumpPoint = n.IsJumpPoint;
