@@ -337,9 +337,13 @@ namespace Assets.Scripts.PathFinding {
                                 || NodesArray[i + k+1, j + k].InformerNode.IsObstacle
                                 || NodesArray[i + k, j + k+1].InformerNode.IsObstacle)
 		                    {
-		                        if (NodesArray[i + k, j + k].InformerNode.IsObstacle)
+		                        if (NodesArray[i + k, j + k].IsJumpPoint == JPType.Primary
+		                            || NodesArray[i + k, j + k].NormMatrix[0, 1] > 0
+		                            || NodesArray[i + k, j + k].NormMatrix[1, 2] > 0)
 		                        {
-		                            NodesArray[i, j].NormMatrix[0, 2] = -(k - 1);
+		                            NodesArray[i, j].NormMatrix[0, 2] = k;
+		                            //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
+		                                //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
 		                        }
                                 else if (NodesArray[i + k + 1, j + k].InformerNode.IsObstacle
                                         || NodesArray[i + k, j + k + 1].InformerNode.IsObstacle)
@@ -348,9 +352,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
 		                        else
 		                        {
-		                            NodesArray[i, j].NormMatrix[0, 2] = k;
-		                            //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
-		                                //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
+		                            NodesArray[i, j].NormMatrix[0, 2] = -(k - 1);
 		                        }
 		                        break;
 		                    }
@@ -374,20 +376,22 @@ namespace Assets.Scripts.PathFinding {
                                 || NodesArray[i + k, j - k-1].InformerNode.IsObstacle
                                 || NodesArray[i + k+1, j - k].InformerNode.IsObstacle)
                             {
-                                if (NodesArray[i + k, j - k].InformerNode.IsObstacle)
+                                if(NodesArray[i + k, j - k].IsJumpPoint == JPType.Primary
+                                || NodesArray[i + k, j - k].NormMatrix[1, 2] > 0
+                                || NodesArray[i + k, j - k].NormMatrix[2, 1] > 0)
                                 {
-                                    NodesArray[i, j].NormMatrix[2, 2] = -(k - 1);
+                                    NodesArray[i, j].NormMatrix[2, 2] = k;
+                                    //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
+                                    //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
                                 }
                                 else if (NodesArray[i + k, j - k - 1].InformerNode.IsObstacle
-                                        || NodesArray[i + k + 1, j - k].InformerNode.IsObstacle)
+                                         || NodesArray[i + k + 1, j - k].InformerNode.IsObstacle)
                                 {
                                     NodesArray[i, j].NormMatrix[2, 2] = -k;
                                 }
                                 else
                                 {
-                                    NodesArray[i, j].NormMatrix[2, 2] = k;
-                                    //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
-                                        //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
+                                    NodesArray[i, j].NormMatrix[2, 2] = -(k - 1);
                                 }
                                 break;
                             }
@@ -411,9 +415,13 @@ namespace Assets.Scripts.PathFinding {
                                 || NodesArray[i - k-1, j + k].InformerNode.IsObstacle
                                 || NodesArray[i - k, j + k+1].InformerNode.IsObstacle)
                             {
-                                if (NodesArray[i - k, j + k].InformerNode.IsObstacle)
+                                if (NodesArray[i - k, j + k].IsJumpPoint == JPType.Primary
+                                    || NodesArray[i - k, j + k].NormMatrix[0, 1] > 0
+                                    || NodesArray[i - k, j + k].NormMatrix[1, 0] > 0)
                                 {
-                                    NodesArray[i, j].NormMatrix[0, 0] = -(k - 1);
+                                    NodesArray[i, j].NormMatrix[0, 0] = k;
+                                    //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
+                                    //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
                                 }
                                 else if (NodesArray[i - k - 1, j + k].InformerNode.IsObstacle
                                         || NodesArray[i - k, j + k + 1].InformerNode.IsObstacle)
@@ -422,9 +430,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
                                 else
                                 {
-                                    NodesArray[i, j].NormMatrix[0, 0] = k;
-                                    //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
-                                        //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
+                                    NodesArray[i, j].NormMatrix[0, 0] = -(k - 1);
                                 }
                                 break;
                             }
@@ -448,9 +454,13 @@ namespace Assets.Scripts.PathFinding {
                                 || NodesArray[i - k-1, j - k].InformerNode.IsObstacle
                                 || NodesArray[i - k, j - k-1].InformerNode.IsObstacle)
                             {
-                                if (NodesArray[i - k, j - k].InformerNode.IsObstacle)
+                                if (NodesArray[i - k, j - k].IsJumpPoint == JPType.Primary
+                                    || NodesArray[i - k, j - k].NormMatrix[1, 0] > 0
+                                    || NodesArray[i - k, j - k].NormMatrix[2, 1] > 0)
                                 {
-                                    NodesArray[i, j].NormMatrix[2, 0] = -(k - 1);
+                                    NodesArray[i, j].NormMatrix[2, 0] = k;
+                                    //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
+                                        //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
                                 }
                                 else if (NodesArray[i - k - 1, j - k].InformerNode.IsObstacle
                                          || NodesArray[i - k, j - k - 1].InformerNode.IsObstacle)
@@ -459,9 +469,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
                                 else
                                 {
-                                    NodesArray[i, j].NormMatrix[2, 0] = k;
-                                    //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
-                                        //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
+                                    NodesArray[i, j].NormMatrix[2, 0] = -(k - 1);
                                 }
                                 break;
                             }
