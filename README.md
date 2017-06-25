@@ -1,4 +1,4 @@
-#Description:
+# Description:
 
 Project Navigation includes implementation of two navigation algorithms: A* and JPS+. 
 Unity3D was used to visualize their perfomance.
