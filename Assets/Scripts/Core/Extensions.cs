@@ -275,6 +275,28 @@ namespace Assets.Scripts.Core {
             return neighbours;
         }
 
+        public static bool SelectJPFromNeighbours(Tree_Node parent, Tree_Node neighbour)
+        {
+            var result = false;
+            if (neighbour.Currentnode.DestinationFromPrevious == Destinations.UpLeft &&
+                parent.Currentnode.NormMatrix[0, 0] > 0) result = true;
+            if (neighbour.Currentnode.DestinationFromPrevious == Destinations.Up &&
+                parent.Currentnode.NormMatrix[0, 1] > 0) result = true;
+            if (neighbour.Currentnode.DestinationFromPrevious == Destinations.UpRight &&
+                parent.Currentnode.NormMatrix[0, 2] > 0) result = true;
+            if (neighbour.Currentnode.DestinationFromPrevious == Destinations.Left &&
+                parent.Currentnode.NormMatrix[1, 0] > 0) result = true;
+            if (neighbour.Currentnode.DestinationFromPrevious == Destinations.Right &&
+                parent.Currentnode.NormMatrix[1, 2] > 0) result = true;
+            if (neighbour.Currentnode.DestinationFromPrevious == Destinations.DownLeft &&
+                parent.Currentnode.NormMatrix[2, 0] > 0) result = true;
+            if (neighbour.Currentnode.DestinationFromPrevious == Destinations.Down &&
+                parent.Currentnode.NormMatrix[2, 1] > 0) result = true;
+            if (neighbour.Currentnode.DestinationFromPrevious == Destinations.DownRight &&
+                parent.Currentnode.NormMatrix[2, 2] > 0) result = true;
+            return result;
+        }
+
         public static bool GoToFinish(Node node, Node finish)
         {
             if (node.DestinationToFinish == Destinations.Right)
@@ -380,6 +402,8 @@ namespace Assets.Scripts.Core {
             if (from.InformerNode.IsObstacle) return false;
             var pointsBetween = StraightLine.FindMiddlePoints(from, to);
             var destination = StraightLine.FindDestination(from, to);
+            pointsBetween.Remove(new Point(from.X(), from.Y()));
+            pointsBetween.Remove(new Point(to.X(), to.Y()));
             foreach (var point in pointsBetween)
             {
                 if (destination == Destinations.UpRight

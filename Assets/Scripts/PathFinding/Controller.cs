@@ -145,7 +145,31 @@ namespace Assets.Scripts.PathFinding {
                         current = temp;
                     }
                 }
-                var loopflag = false;
+
+
+            Debug.Log("Path: " + path.Count);
+            finalPath.Add(path[0].InformerNode);
+            for (var i = 1; i < path.Count; ++i)
+            {
+                var maxIndex = i;
+                for (var j = i; j < path.Count; ++j)
+                {
+                    if (StraightLine.OnOneLine(path[i], path[j], NodesArray)) maxIndex = j;
+                }
+                if (maxIndex != i)
+                {
+                    var points = StraightLine.FindMiddlePoints(path[i], path[maxIndex]);
+                    foreach (var point in points)
+                    {
+                        finalPath.Add(NodesArray[point.X,point.Y].InformerNode);
+                    }
+                    i = maxIndex;
+                }
+            }
+            finalPath.Reverse();
+            Debug.Log("Final path: " +finalPath.Count);
+
+            /*var loopflag = false;
                 Node loopstart = null;
                 for (var i = path.Count - 1; i >= 0; --i) {
                     var neighbours = NodesTree.Nearest(path[i].InformerNode.transform.position.ToArray(), radius).ToList();
@@ -199,7 +223,7 @@ namespace Assets.Scripts.PathFinding {
                             }
                         }
                     }
-                }
+                }*/
             if (debugInformation != null) {
                 debugInformation.FinalPath = finalPath;
             }
@@ -555,11 +579,6 @@ namespace Assets.Scripts.PathFinding {
 
 		    while (current.Currentnode != finish)
 		    {
-                if (observed.Count > 900)
-                {
-                    Debug.Log("Observed too big!!!");
-                    return null;
-                }
                 
                 if (!observed.Exists(arg => arg.Currentnode.Visited!=NodeState.Processed))
 		        {
@@ -573,17 +592,14 @@ namespace Assets.Scripts.PathFinding {
                     return null;
 		        }
                 observed[0].Currentnode.Visited = NodeState.Processed;
-                //Debug.Log("Current "+current.Currentnode.Position+" Distance "+current.Currentnode.Distance);
 
 
                 //Go to finish if in Target JP
-		        current.Currentnode = Extensions.IsTargetJP(current.Currentnode, linesFromFinish);
+                current.Currentnode = Extensions.IsTargetJP(current.Currentnode, linesFromFinish);
                 if (current.Currentnode.TargetJP && Extensions.Reachable(current.Currentnode, finish, NodesArray))
 		        {
 		            finish.DestinationFromPrevious = Extensions.DestinationInverse(current.Currentnode.DestinationToFinish);
 		            path.Add(current);
-                    Debug.Log("Current is a targetJP "+current.Currentnode.Position);
-                    if(current.Parent!=null) Debug.Log("Parent "+current.Parent.Position);
 		            current = new Tree_Node(current, finish);
 		            path.Add(current);
 		            break;
@@ -606,6 +622,8 @@ namespace Assets.Scripts.PathFinding {
                         foreach (var line in lines.Lines)
                         {
                             var coordinates = StraightLine.Crossing(line, lineFromFinish);
+                            if(coordinates!=null &&
+                                Extensions.Reachable(current.Currentnode, NodesArray[coordinates.X, coordinates.Y], NodesArray))
                             if (coordinates != null && Extensions.Reachable(NodesArray[coordinates.X, coordinates.Y], finish, NodesArray)
                                 && Extensions.Reachable(current.Currentnode,NodesArray[coordinates.X,coordinates.Y],NodesArray))
                             {
@@ -629,48 +647,65 @@ namespace Assets.Scripts.PathFinding {
                         }
                     }
                 }
-                
+                Tree_Node tempTargetJP = null;
                 if (tempList.Count != 0)
                 {
-                    if (debugFlag)
+                    tempTargetJP = new Tree_Node(current, tempList[0]);
+                    if (tempList.Count > 1)
                     {
-                        debugInformation.CrossPoints.AddRange(tempList);
-                    }
-                    var tempTreeList = Tree_Node.NodesToList(tempList, current);
-                    foreach (var tempTreeNode in tempTreeList)
-                    {
-                        if (!observed.Exists(arg => arg.Currentnode.Position == tempTreeNode.Currentnode.Position))
-                            observed.Add(tempTreeNode);
-                        else
+                        var min = tempTargetJP.DistanceFromParent;
+                        foreach (var node in tempList)
                         {
-                            var index = observed.FindIndex(arg => arg.Currentnode.Position == tempTreeNode.Currentnode.Position);
-                            if (observed[index].Currentnode.Visited == NodeState.Discovered)
-                                observed[index].Currentnode.Distance = tempTreeNode.Currentnode.Distance;
+                            var tempMetrics = current.Currentnode.InformerNode.MetricsAStar(node.InformerNode);
+                            if (tempMetrics < min)
+                            {
+                                tempTargetJP = new Tree_Node(current, node);
+                                min = tempMetrics;
+                            }
                         }
                     }
+                    if (debugFlag)
+                    {
+                        debugInformation.CrossPoints.Add(tempTargetJP.Currentnode);
+                    }
+                    if (!observed.Exists(arg => arg.Currentnode.Position == tempTargetJP.Currentnode.Position))
+                        observed.Add(tempTargetJP);
+                    else
+                    {
+                        var index =
+                            observed.FindIndex(arg => arg.Currentnode.Position == tempTargetJP.Currentnode.Position);
+                        if (observed[index].Currentnode.Visited == NodeState.Discovered)
+                            observed[index].Currentnode.Distance = tempTargetJP.Currentnode.Distance;
+                    }
                 }
-
-                if (neighbours.Count != 0 && tempList.Count == 0)
+                if (neighbours.Count != 0)
                 {
                     foreach(var neighbour in neighbours)
                     {
                         if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
-                            observed.Add(neighbour);
+                        {
+                            if (Extensions.SelectJPFromNeighbours(current,neighbour)) observed.Add(neighbour);
+                        }
                         else
                         {
-                            var index = observed.FindIndex(arg => arg.Currentnode.Position == neighbour.Currentnode.Position);
-                            if(observed[index].Currentnode.Visited == NodeState.Discovered)
+                            var index =
+                                observed.FindIndex(arg => arg.Currentnode.Position == neighbour.Currentnode.Position);
+                            if (observed[index].Currentnode.Visited == NodeState.Discovered)
                                 observed[index].Currentnode.Distance = neighbour.Currentnode.Distance;
                         }
                     }
                 }
                 observed = observed.OrderBy(arg => arg.Currentnode.Visited).
                     ThenBy(arg => arg.Currentnode.Distance).ToList();
-                /*observed = observed.OrderByDescending(arg => arg.Level).
-                    ThenBy(arg => arg.Currentnode.Distance).OrderBy(arg => arg.Currentnode.Visited).ToList();*/
                 path.Add(current);
 
-                current = observed[0];
+		        if (!observed[0].Currentnode.TargetJP && tempTargetJP != null)
+		        {
+		            current = observed[0].DistanceFromParent < tempTargetJP.DistanceFromParent ? observed[0] : tempTargetJP;
+		        }
+		        else current = observed[0];
+
+
 		    }
             Debug.Log("Path: "+path.Count);
             if(path.Count>1)
