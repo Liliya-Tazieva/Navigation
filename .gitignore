@@ -281,6 +281,7 @@ CMake*
 !CMakeLists*
 
 Library/
+Paths/
 
 /[Ll]ibrary/
 /[Tt]emp/
