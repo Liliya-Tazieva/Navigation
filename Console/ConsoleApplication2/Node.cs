@@ -46,6 +46,7 @@ namespace ConsoleApplication2
         public float Distance;
         public Destinations DestinationFromPrevious;
         public Destinations DestinationToFinish;
+        public Node Parent;
 
         public Node(int i, int j, char symbol)
         {
@@ -57,6 +58,7 @@ namespace ConsoleApplication2
             DestinationToFinish = Destinations.Default;
             IsJumpPoint = JPType.Default;
             TargetJP = false;
+            Parent = null;
 
             for (var k = 0; k < 3; ++k)
             {
@@ -77,7 +79,7 @@ namespace ConsoleApplication2
             }
         }
 
-        public Node(Node n)
+        public Node(Node n, Destinations destinationFromParent = Destinations.Default)
         {
             if (n != null)
             {
@@ -86,11 +88,17 @@ namespace ConsoleApplication2
                 Distance = n.Distance;
                 Position = n.Position;
                 DestinationToFinish = n.DestinationToFinish;
-                DestinationFromPrevious = n.DestinationFromPrevious;
+                DestinationFromPrevious = destinationFromParent;
                 NormMatrix = n.NormMatrix;
                 IsJumpPoint = n.IsJumpPoint;
                 TargetJP = n.TargetJP;
+                Parent = n.Parent;
             }
+        }
+
+        public Node(Node parent, Node node, Destinations destinationFromParent)
+        {
+            
         }
 
         public static float MetricsAStar(Node from, Node to)

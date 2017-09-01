@@ -32,12 +32,15 @@ namespace ConsoleApplication2
             line = file.ReadLine();
             for (var i = 0; i < height; ++i)
             {
+                line = file.ReadLine();
                 for (var j = 0; j < widght; ++j)
                 {
-                    var symbol = Convert.ToChar(file.Read());
-                    nodesArray[i, j] = new Node(i, j, symbol);
+                    if (line != null)
+                    {
+                        var symbol = Convert.ToChar(line[j]);
+                        nodesArray[i, j] = new Node(i, j, symbol);
+                    }
                 }
-                file.Read();
             }
             NodesArray = new NodeArray(height, widght, nodesArray);
         }
