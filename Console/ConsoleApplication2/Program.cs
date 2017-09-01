@@ -48,11 +48,11 @@ namespace ConsoleApplication2
         public static List<Node> AStar(Node from, Node to)
         {
             var finalPath = new List<Node>();
-            /*if (from.IsObstacle || to.IsObstacle)
+            if (from.IsObstacle || to.IsObstacle)
             {
-                Console.WriteLine("Can't run A*! Enter proper from and to!");
+                Console.WriteLine("Can't run A*! Enter proper from and to, one of them is an obsttacle!");
                 return finalPath;
-            }*/
+            }
             var current = new Node(from) {Distance = Node.MetricsAStar(@from, to), Visited = NodeState.Processed};
             var observed = new List<Node> {current};
 
@@ -94,13 +94,14 @@ namespace ConsoleApplication2
                 if (maxIndex != i)
                 {
                     var points = StraightLine.FindMiddlePoints(observed[i], observed[maxIndex]);
+                    points.RemoveAt(0);
                     foreach (var point in points)
                     {
                         var coordinatesX = Convert.ToInt32(point.X);
                         var coordinatesY = Convert.ToInt32(point.Y);
                         finalPath.Add(NodesArray.Array[coordinatesX, coordinatesY]);
                     }
-                    i = maxIndex;
+                    i = maxIndex-1;
                 }
             }
             finalPath.Reverse();
@@ -126,6 +127,7 @@ namespace ConsoleApplication2
             var tasks = new System.IO.StreamReader("arena.map.scen");
             var line = tasks.ReadLine();
             var caseNumber = 0;
+            var successCounter = 0;
             //Create directory to save visualization
             var directoryName = Directory.GetCurrentDirectory();
             directoryName = Path.GetFullPath(Path.Combine(directoryName, @"..\..\"));
@@ -181,10 +183,17 @@ namespace ConsoleApplication2
                 }
                 pathVisualizer.Close();
                 //Write results in console
-                Console.WriteLine("Case " + caseNumber + " Start " + splitLine[4] + " " + splitLine[5] + " Goal " + " " + splitLine[6] +
-                                  " " + splitLine[7] + " Optimal Lenght = " + optimalLength + " Length = " + length);
+                var result = "Not Accurate";
+                if (Math.Abs(length - optimalLength) < 0.0001)
+                {
+                    result = "Perfect";
+                    ++successCounter;
+                }
+                Console.WriteLine("Case " + caseNumber + " Start " + splitLine[4] + " " + splitLine[5] + " Goal " + " " +
+                                  splitLine[6] + " " + splitLine[7] + " Optimal Lenght = " + optimalLength 
+                                  + " Length = " + length + " " + result);
             }
-
+            Console.WriteLine(successCounter + " Absolutely accurate out of " + caseNumber);
             Console.ReadKey();
         }
     }

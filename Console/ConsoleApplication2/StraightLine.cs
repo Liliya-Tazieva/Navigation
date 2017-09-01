@@ -18,44 +18,44 @@ namespace ConsoleApplication2
         {
             Destination = destination;
             Start = new Vector2(x, y);
-            if (destination == Destinations.Right)
+            if (destination == Destinations.Down)
             {
                 Finish = new Vector2(nodesArray.widght-1, y);
             }
-            else if (destination == Destinations.Left)
+            else if (destination == Destinations.Up)
             {
                 Finish = new Vector2(0, y);
             }
-            else if (destination == Destinations.Down)
+            else if (destination == Destinations.Left)
             {
                 Finish = new Vector2(x, 0);
             }
-            else if (destination == Destinations.Up)
+            else if (destination == Destinations.Right)
             {
                 Finish = new Vector2(x, nodesArray.height - 1);
             }
-            else if (destination == Destinations.DownRight)
+            else if (destination == Destinations.DownLeft)
             {
                 var delta1 = nodesArray.widght - 1 - x;
                 var delta2 = y;
                 Finish = delta1 < delta2 ? new Vector2(nodesArray.widght - 1, y - delta1) 
                     : new Vector2(x + delta2, 0);
             }
-            else if (destination == Destinations.DownLeft)
+            else if (destination == Destinations.UpLeft)
             {
                 var delta1 = x;
                 var delta2 = y;
                 Finish = delta1 < delta2 ? new Vector2(0, y - delta1) 
                     : new Vector2(x - delta2, 0);
             }
-            else if (destination == Destinations.UpRight)
+            else if (destination == Destinations.DownRight)
             {
                 var delta1 = nodesArray.widght - 1 - x;
                 var delta2 = nodesArray.height - 1 - y;
                 Finish = delta1 < delta2 ? new Vector2(nodesArray.widght - 1, y + delta1) 
                     : new Vector2(x + delta2, nodesArray.height - 1);
             }
-            else if (destination == Destinations.UpLeft)
+            else if (destination == Destinations.UpRight)
             {
                 var delta1 = x;
                 var delta2 = nodesArray.widght - 1 - y;
@@ -72,11 +72,16 @@ namespace ConsoleApplication2
                 destination, nodesArray);
             if (line.Points.Exists(arg => arg == finishPoint))
             {
-                for (var i = 0; i < line.Points.Count; ++i)
+                for (var i = 1; i < line.Points.Count; ++i)
                 {
-                    if (nodesArray.Array[Convert.ToInt32(line.Points[i].X), Convert.ToInt32(line.Points[i].Y)]
-                            .IsObstacle) return false;
+                    var pointX = Convert.ToInt32(line.Points[i].X);
+                    var pointY = Convert.ToInt32(line.Points[i].Y);
+                    if (nodesArray.Array[pointX, pointY].IsObstacle) return false;
                     if (line.Points[i] == finishPoint) return true;
+                    if (( destination == Destinations.UpRight || destination == Destinations.DownRight)
+                    && !nodesArray.Array[pointX, pointY + 1].IsObstacle) return false;
+                    if ((destination == Destinations.UpLeft || destination == Destinations.DownLeft)
+                        && !nodesArray.Array[pointX, pointY - 1].IsObstacle) return false;
                 }
             }
             return false;
@@ -98,19 +103,19 @@ namespace ConsoleApplication2
             var finishY = Convert.ToInt32(finish.Y);
             if (startX < finishX)
             {
-                if (startY < finishY) destination = Destinations.UpRight;
-                else if (startY > finishY) destination = Destinations.DownRight;
-                else destination = Destinations.Right;
+                if (startY < finishY) destination = Destinations.DownRight;
+                else if (startY > finishY) destination = Destinations.DownLeft;
+                else destination = Destinations.Down;
             }
             else if (startX > finishX)
             {
-                if (startY < finishY) destination = Destinations.UpLeft;
-                else if (startY > finishY) destination = Destinations.DownLeft;
-                else destination = Destinations.Left;
+                if (startY < finishY) destination = Destinations.UpRight;
+                else if (startY > finishY) destination = Destinations.UpLeft;
+                else destination = Destinations.Up;
             }
             else
             {
-                destination = startY < finishY ? Destinations.Up : Destinations.Down;
+                destination = startY < finishY ? Destinations.Right : Destinations.Left;
             }
             return destination;
         }
@@ -128,45 +133,45 @@ namespace ConsoleApplication2
             var sY = Convert.ToInt32(s.Y);
             var fX = Convert.ToInt32(f.X);
             var fY = Convert.ToInt32(f.Y);
-            if (d == Destinations.Right)
+            if (d == Destinations.Down)
             {
                 for (var i = sX; i <= fX; ++i)
                     points.Add(new Vector2(i, sY));
             }
-            else if (d == Destinations.Left)
+            else if (d == Destinations.Up)
             {
                 for (var i = sX; i >= fX; --i)
                     points.Add(new Vector2(i, sY));
             }
-            else if (d == Destinations.Down)
+            else if (d == Destinations.Left)
             {
                 for (var i = sY; i >= fY; --i)
                     points.Add(new Vector2(sX, i));
             }
-            else if (d == Destinations.Up)
+            else if (d == Destinations.Right)
             {
                 for (var i = sY; i <= fY; ++i)
                     points.Add(new Vector2(sX, i));
             }
-            else if (d == Destinations.DownRight)
+            else if (d == Destinations.DownLeft)
             {
                 var delta = fX - sX;
                 for (var i = 0; i <= delta; ++i)
                     points.Add(new Vector2(sX + i, sY - i));
             }
-            else if (d == Destinations.DownLeft)
+            else if (d == Destinations.UpLeft)
             {
                 var delta = sX - fX;
                 for (var i = 0; i <= delta; ++i)
                     points.Add(new Vector2(sX - i, sY - i));
             }
-            else if (d == Destinations.UpRight)
+            else if (d == Destinations.DownRight)
             {
                 var delta = fX - sX;
                 for (var i = 0; i <= delta; ++i)
                     points.Add(new Vector2(sX + i, sY + i));
             }
-            else if (d == Destinations.UpLeft)
+            else if (d == Destinations.UpRight)
             {
                 var delta = sX - fX;
                 for (var i = 0; i <= delta; ++i)

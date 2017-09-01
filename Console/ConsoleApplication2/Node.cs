@@ -79,7 +79,7 @@ namespace ConsoleApplication2
             }
         }
 
-        public Node(Node n, Destinations destinationFromParent = Destinations.Default)
+        public Node(Node n)
         {
             if (n != null)
             {
@@ -88,7 +88,7 @@ namespace ConsoleApplication2
                 Distance = n.Distance;
                 Position = n.Position;
                 DestinationToFinish = n.DestinationToFinish;
-                DestinationFromPrevious = destinationFromParent;
+                DestinationFromPrevious = n.DestinationFromPrevious;
                 NormMatrix = n.NormMatrix;
                 IsJumpPoint = n.IsJumpPoint;
                 TargetJP = n.TargetJP;
@@ -98,7 +98,16 @@ namespace ConsoleApplication2
 
         public Node(Node parent, Node node, Destinations destinationFromParent)
         {
-            
+            IsObstacle = node.IsObstacle;
+            Visited = node.Visited;
+            Distance = node.Distance;
+            Position = node.Position;
+            DestinationToFinish = node.DestinationToFinish;
+            DestinationFromPrevious = destinationFromParent;
+            NormMatrix = node.NormMatrix;
+            IsJumpPoint = node.IsJumpPoint;
+            TargetJP = node.TargetJP;
+            Parent = parent;
         }
 
         public static float MetricsAStar(Node from, Node to)
