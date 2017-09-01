@@ -24,13 +24,14 @@ namespace ConsoleApplication2
             var neighbours = new List<Node>();
             var x = Convert.ToInt32(current.Position.X);
             var y = Convert.ToInt32(current.Position.Y);
-            if (x > 0) neighbours.Add(Array[x - 1, y]); //Left
-            if (y > 0 && x > 0) neighbours.Add(Array[x - 1, y - 1]); // Up-Left
-            if (y > 0) neighbours.Add(Array[x, y - 1]); //Up
-            if (x < widght - 1) neighbours.Add(Array[x + 1, y]); //Right
-            if (x < widght - 1 && y < height - 1) neighbours.Add(Array[x + 1, y + 1]); // Down-Right
-            if (y < height - 1) neighbours.Add(Array[x, y + 1]); //Down
-            if (x > 0 && y < height - 1) neighbours.Add(Array[x - 1, y + 1]); // Down-Left
+            if (x > 0) neighbours.Add(new Node(Array[x - 1, y])); //Left
+            if (y < height - 1 && x > 0) neighbours.Add(new Node(Array[x - 1, y + 1])); // Up-Left
+            if (y < height - 1) neighbours.Add(new Node(Array[x, y + 1])); //Up
+            if (x < widght - 1 && y < height - 1) neighbours.Add(new Node(Array[x + 1, y + 1])); //Up-Right
+            if (x < widght - 1) neighbours.Add(new Node(Array[x + 1, y])); //Right
+            if (x < widght - 1 && y > 0) neighbours.Add(new Node(Array[x + 1, y - 1])); // Down-Right
+            if (y > 0) neighbours.Add(new Node(Array[x, y - 1])); //Down
+            if (x > 0 && y > 0) neighbours.Add(new Node(Array[x - 1, y - 1])); // Down-Left
 
             return neighbours;
         }

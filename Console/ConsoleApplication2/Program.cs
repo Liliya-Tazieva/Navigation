@@ -37,6 +37,7 @@ namespace ConsoleApplication2
                     var symbol = Convert.ToChar(file.Read());
                     nodesArray[i, j] = new Node(i, j, symbol);
                 }
+                file.Read();
             }
             NodesArray = new NodeArray(height, widght, nodesArray);
         }
@@ -44,15 +45,15 @@ namespace ConsoleApplication2
         public static List<Node> AStar(Node from, Node to)
         {
             var finalPath = new List<Node>();
-            if (from.IsObstacle || to.IsObstacle)
+            /*if (from.IsObstacle || to.IsObstacle)
             {
                 Console.WriteLine("Can't run A*! Enter proper from and to!");
                 return finalPath;
-            }
+            }*/
             var current = new Node(from) {Distance = Node.MetricsAStar(@from, to), Visited = NodeState.Processed};
             var observed = new List<Node> {current};
 
-            while (current != to)
+            while (current.Position != to.Position)
             {
                 var query = NodesArray.Neighbours(current);
                 query = query.Where(node => !node.IsObstacle).ToList();
@@ -121,18 +122,65 @@ namespace ConsoleApplication2
 
             var tasks = new System.IO.StreamReader("arena.map.scen");
             var line = tasks.ReadLine();
+            var caseNumber = 0;
+            //Create directory to save visualization
+            var directoryName = Directory.GetCurrentDirectory();
+            directoryName = Path.GetFullPath(Path.Combine(directoryName, @"..\..\"));
+            directoryName = Path.Combine(directoryName, "Paths");
+            if (Directory.Exists(directoryName)) Directory.Delete(directoryName, true);
+            System.IO.Directory.CreateDirectory(directoryName);
             while ((line = tasks.ReadLine()) != null)
             {
+                // Get Case
+                ++caseNumber;
                 string[] splitLine = line.Split('\t');
                 var from = NodesArray.Array[Convert.ToInt32(splitLine[4]), Convert.ToInt32(splitLine[5])];
                 var to = NodesArray.Array[Convert.ToInt32(splitLine[6]), Convert.ToInt32(splitLine[7])];
                 var optimalLength = Convert.ToDouble(splitLine[8], new CultureInfo("en-US"));
+                //Find path
                 var path = AStar(from, to);
                 var length = PathLength(path);
-                Console.WriteLine(splitLine[4] + " " + splitLine[5] + " " + splitLine[6] + " " +
-                              splitLine[7] + " Optimal Lenght = " + optimalLength + " Length = " + length + " Path: " + path.Count);
+                //Visualize path
+                var fileName = "Case" + Convert.ToString(caseNumber) + ".map";
+                var pathVisualizer = System.IO.File.Create(Path.Combine(directoryName, fileName));
+                //Save visualization to file
+                for (var i = 0; i < NodesArray.height; ++i)
+                {
+                    for (var j = 0; j < NodesArray.widght; ++j)
+                    {
+                        if (
+                            path.Exists(
+                                arg => Convert.ToInt32(arg.Position.X) == i && Convert.ToInt32(arg.Position.Y) == j
+                                       && arg.Position != from.Position && arg.Position != to.Position))
+                        {
+                            pathVisualizer.WriteByte(Convert.ToByte('*'));
+                        }
+                        else if (NodesArray.Array[i, j].IsObstacle && NodesArray.Array[i, j] != from
+                                 && NodesArray.Array[i, j] != to)
+                        {
+                            pathVisualizer.WriteByte(Convert.ToByte('T'));
+                        }
+                        else if (!NodesArray.Array[i, j].IsObstacle && NodesArray.Array[i, j] != from
+                                 && NodesArray.Array[i, j] != to)
+                        {
+                            pathVisualizer.WriteByte(Convert.ToByte('.'));
+                        }
+                        else if (NodesArray.Array[i, j] == from)
+                        {
+                            pathVisualizer.WriteByte(Convert.ToByte('S'));
+                        }
+                        else
+                        {
+                            pathVisualizer.WriteByte(Convert.ToByte('G'));
+                        }
+                    }
+                    pathVisualizer.WriteByte(Convert.ToByte('\n'));
+                }
+                pathVisualizer.Close();
+                //Write results in console
+                Console.WriteLine("Case " + caseNumber + " Start " + splitLine[4] + " " + splitLine[5] + " Goal " + " " + splitLine[6] +
+                                  " " + splitLine[7] + " Optimal Lenght = " + optimalLength + " Length = " + length);
             }
-            tasks.Close();
 
             Console.ReadKey();
         }
