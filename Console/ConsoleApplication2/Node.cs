@@ -43,7 +43,8 @@ namespace ConsoleApplication2
         public Vector2 Position;
         public readonly bool IsObstacle;
         public NodeState Visited;
-        public float Distance;
+        public float DistanceToGoal;
+        public float DistanceToStart;
         public Destinations DestinationFromPrevious;
         public Destinations DestinationToFinish;
         public Node Parent;
@@ -51,7 +52,8 @@ namespace ConsoleApplication2
         public Node(int i, int j, char symbol)
         {
             Visited = NodeState.Undiscovered;
-            Distance = 0;
+            DistanceToGoal = 0;
+            DistanceToStart = 0;
             Position.X = i;
             Position.Y = j;
             DestinationFromPrevious = Destinations.Default;
@@ -85,7 +87,8 @@ namespace ConsoleApplication2
             {
                 IsObstacle = n.IsObstacle;
                 Visited = n.Visited;
-                Distance = n.Distance;
+                DistanceToGoal = n.DistanceToGoal;
+                DistanceToStart = n.DistanceToStart;
                 Position = n.Position;
                 DestinationToFinish = n.DestinationToFinish;
                 DestinationFromPrevious = n.DestinationFromPrevious;
@@ -100,9 +103,10 @@ namespace ConsoleApplication2
         {
             IsObstacle = node.IsObstacle;
             Visited = node.Visited;
-            Distance = node.Distance;
+            DistanceToGoal = node.DistanceToGoal;
             Position = node.Position;
             DestinationToFinish = node.DestinationToFinish;
+            DistanceToStart = MetricsAStar(parent,node);
             DestinationFromPrevious = destinationFromParent;
             NormMatrix = node.NormMatrix;
             IsJumpPoint = node.IsJumpPoint;

@@ -45,6 +45,72 @@ namespace ConsoleApplication2
             NodesArray = new NodeArray(height, widght, nodesArray);
         }
 
+        public static List<Node> AStarBuTheBook(Node start, Node goal)
+        {;
+            if (start.IsObstacle || goal.IsObstacle)
+            {
+                Console.WriteLine("Can't run A*! Enter proper from and to, one of them is an obsttacle!");
+                return null;
+            }
+            // The set of nodes already evaluated
+            var closedSet = new List<Node>();
+
+            // The set of currently discovered nodes that are not evaluated yet.
+            // Initially, only the start node is known.
+            var openSet = new List<Node> {start};
+
+            // For each node, which node it can most efficiently be reached from.
+            // If a node can be reached from many nodes, cameFrom will eventually contain the
+            // most efficient previous step.
+            var cameFrom = new List<Node>();
+
+            while (openSet.Count != 0)
+            {
+                openSet.OrderBy(arg => arg.DistanceToStart);
+                var current = openSet[0];
+
+                if (current.Position == goal.Position)
+                {
+                    return reconstructPath(cameFrom, current);
+                }
+
+                var neighbours = NodesArray.Neighbours(current);
+
+                openSet.Remove(current);
+                closedSet.Add(current);
+
+                foreach (var neighbour in neighbours)
+                {
+                    if(closedSet.Exists(arg => arg.Position == neighbour.Position))
+                        continue; // Ignore the neighbor which is already evaluated.
+                    if(!openSet.Exists(arg => arg.Position == neighbour.Position))
+                        openSet.Add(neighbour); // Discover a new node
+                    var tentativeDistance = current.DistanceToGoal + Node.MetricsAStar(current, neighbour);
+                    if(tentativeDistance > neighbour.DistanceToGoal ||
+                        tentativeDistance-neighbour.DistanceToGoal<0.000001) continue; // This is not a better path.
+
+                    // This path is the best until now. Record it!
+                    cameFrom.Add(current);
+                    neighbour.DistanceToGoal = tentativeDistance;
+                    neighbour.DistanceToStart = neighbour.DistanceToGoal + Node.MetricsAStar(neighbour, goal);
+                }
+            }
+
+            return null;
+        }
+
+        private static List<Node> reconstructPath(List<Node> cameFrom, Node goal)
+        {
+            var path = new List<Node>();
+            path.Add(goal);
+            foreach (var node in cameFrom)
+            {
+                path.Add(node);
+            }
+            path.Reverse();
+            return path;
+        }
+
         public static List<Node> AStar(Node from, Node to)
         {
             var finalPath = new List<Node>();
@@ -53,7 +119,7 @@ namespace ConsoleApplication2
                 Console.WriteLine("Can't run A*! Enter proper from and to, one of them is an obsttacle!");
                 return finalPath;
             }
-            var current = new Node(from) {Distance = Node.MetricsAStar(@from, to), Visited = NodeState.Processed};
+            var current = new Node(from) {DistanceToGoal = Node.MetricsAStar(@from, to), Visited = NodeState.Processed};
             var observed = new List<Node> {current};
 
             while (current.Position != to.Position)
@@ -64,12 +130,12 @@ namespace ConsoleApplication2
                 {
                     if (!observed.Exists(arg => arg.Position == node.Position))
                     {
-                        node.Distance = Node.MetricsAStar(node, to);
+                        node.DistanceToGoal = Node.MetricsAStar(node, to);
                         node.Visited = NodeState.Discovered;
                         observed.Add(node);
                     }
                 }
-                observed = observed.OrderBy(arg => arg.Visited).ThenBy(arg => arg.Distance).ToList();
+                observed = observed.OrderBy(arg => arg.Visited).ThenBy(arg => arg.DistanceToGoal).ToList();
                 if (observed[0].Visited != NodeState.Processed)
                 {
                     current = observed[0];
@@ -143,7 +209,8 @@ namespace ConsoleApplication2
                 var to = NodesArray.Array[Convert.ToInt32(splitLine[6]), Convert.ToInt32(splitLine[7])];
                 var optimalLength = Convert.ToDouble(splitLine[8], new CultureInfo("en-US"));
                 //Find path
-                var path = AStar(from, to);
+                //var path = AStar(from, to);
+                var path = AStarBuTheBook(from, to);
                 var length = PathLength(path);
                 //Visualize path
                 var fileName = "Case" + Convert.ToString(caseNumber) + ".map";
