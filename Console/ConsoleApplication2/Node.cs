@@ -103,7 +103,7 @@ namespace ConsoleApplication2
         {
             IsObstacle = node.IsObstacle;
             Visited = node.Visited;
-            DistanceToGoal = node.DistanceToGoal;
+            DistanceToGoal = sizeof(float);
             Position = node.Position;
             DestinationToFinish = node.DestinationToFinish;
             DistanceToStart = MetricsAStar(parent,node);

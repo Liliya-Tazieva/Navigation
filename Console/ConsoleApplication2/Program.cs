@@ -66,7 +66,7 @@ namespace ConsoleApplication2
 
             while (openSet.Count != 0)
             {
-                openSet.OrderBy(arg => arg.DistanceToStart);
+                openSet.OrderBy(arg => arg.DistanceToGoal);
                 var current = openSet[0];
 
                 if (current.Position == goal.Position)
@@ -85,14 +85,13 @@ namespace ConsoleApplication2
                         continue; // Ignore the neighbor which is already evaluated.
                     if(!openSet.Exists(arg => arg.Position == neighbour.Position))
                         openSet.Add(neighbour); // Discover a new node
-                    var tentativeDistance = current.DistanceToGoal + Node.MetricsAStar(current, neighbour);
-                    if(tentativeDistance > neighbour.DistanceToGoal ||
-                        tentativeDistance-neighbour.DistanceToGoal<0.000001) continue; // This is not a better path.
+                    var tentativeDistance = current.DistanceToStart + Node.MetricsAStar(current, neighbour);
+                    if (tentativeDistance > neighbour.DistanceToStart) continue; // This is not a better path.
 
                     // This path is the best until now. Record it!
                     cameFrom.Add(current);
-                    neighbour.DistanceToGoal = tentativeDistance;
-                    neighbour.DistanceToStart = neighbour.DistanceToGoal + Node.MetricsAStar(neighbour, goal);
+                    neighbour.DistanceToStart = tentativeDistance;
+                    neighbour.DistanceToGoal = neighbour.DistanceToStart + Node.MetricsAStar(neighbour, goal);
                 }
             }
 
@@ -208,48 +207,55 @@ namespace ConsoleApplication2
                 var from = NodesArray.Array[Convert.ToInt32(splitLine[4]), Convert.ToInt32(splitLine[5])];
                 var to = NodesArray.Array[Convert.ToInt32(splitLine[6]), Convert.ToInt32(splitLine[7])];
                 var optimalLength = Convert.ToDouble(splitLine[8], new CultureInfo("en-US"));
-                //Find path
+
+                //Find path using A*
                 //var path = AStar(from, to);
+
+                //Find path using A* by the book
                 var path = AStarBuTheBook(from, to);
-                var length = PathLength(path);
-                //Visualize path
-                var fileName = "Case" + Convert.ToString(caseNumber) + ".map";
-                var pathVisualizer = System.IO.File.Create(Path.Combine(directoryName, fileName));
-                //Save visualization to file
-                for (var i = 0; i < NodesArray.height; ++i)
+                var length = 0f;
+                if (path != null)
                 {
-                    for (var j = 0; j < NodesArray.widght; ++j)
+                    length = PathLength(path);
+                    //Visualize path
+                    var fileName = "Case" + Convert.ToString(caseNumber) + ".map";
+                    var pathVisualizer = System.IO.File.Create(Path.Combine(directoryName, fileName));
+                    //Save visualization to file
+                    for (var i = 0; i < NodesArray.height; ++i)
                     {
-                        if (
-                            path.Exists(
-                                arg => Convert.ToInt32(arg.Position.X) == i && Convert.ToInt32(arg.Position.Y) == j
-                                       && arg.Position != from.Position && arg.Position != to.Position))
+                        for (var j = 0; j < NodesArray.widght; ++j)
                         {
-                            pathVisualizer.WriteByte(Convert.ToByte('*'));
+                            if (
+                                path.Exists(
+                                    arg => Convert.ToInt32(arg.Position.X) == i && Convert.ToInt32(arg.Position.Y) == j
+                                           && arg.Position != from.Position && arg.Position != to.Position))
+                            {
+                                pathVisualizer.WriteByte(Convert.ToByte('*'));
+                            }
+                            else if (NodesArray.Array[i, j].IsObstacle && NodesArray.Array[i, j] != from
+                                     && NodesArray.Array[i, j] != to)
+                            {
+                                pathVisualizer.WriteByte(Convert.ToByte('T'));
+                            }
+                            else if (!NodesArray.Array[i, j].IsObstacle && NodesArray.Array[i, j] != from
+                                     && NodesArray.Array[i, j] != to)
+                            {
+                                pathVisualizer.WriteByte(Convert.ToByte('.'));
+                            }
+                            else if (NodesArray.Array[i, j] == from)
+                            {
+                                pathVisualizer.WriteByte(Convert.ToByte('S'));
+                            }
+                            else
+                            {
+                                pathVisualizer.WriteByte(Convert.ToByte('G'));
+                            }
                         }
-                        else if (NodesArray.Array[i, j].IsObstacle && NodesArray.Array[i, j] != from
-                                 && NodesArray.Array[i, j] != to)
-                        {
-                            pathVisualizer.WriteByte(Convert.ToByte('T'));
-                        }
-                        else if (!NodesArray.Array[i, j].IsObstacle && NodesArray.Array[i, j] != from
-                                 && NodesArray.Array[i, j] != to)
-                        {
-                            pathVisualizer.WriteByte(Convert.ToByte('.'));
-                        }
-                        else if (NodesArray.Array[i, j] == from)
-                        {
-                            pathVisualizer.WriteByte(Convert.ToByte('S'));
-                        }
-                        else
-                        {
-                            pathVisualizer.WriteByte(Convert.ToByte('G'));
-                        }
+                        pathVisualizer.WriteByte(Convert.ToByte('\n'));
                     }
-                    pathVisualizer.WriteByte(Convert.ToByte('\n'));
+                    pathVisualizer.Close();
                 }
-                pathVisualizer.Close();
-                //Write results in console
+            //Write results in console
                 var result = "Not Accurate";
                 if (Math.Abs(length - optimalLength) < 0.0001)
                 {
