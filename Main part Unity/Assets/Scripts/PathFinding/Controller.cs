@@ -533,9 +533,58 @@ namespace Assets.Scripts.PathFinding {
         public void ComputeBoundingBoxes()
         {
             var dijkstra = new DijkstraFloodFill(NodesArray);
+            Debug.Log("Goal Bounding Preprocessing\n");
 
+            for (var startRow = 0; startRow < 34; ++startRow)
+            {
+                Debug.Log("Startrow = "+startRow+"\n");
 
-            dijkstra.Flood();
+                for (var startCol = 0; startCol < 35; ++startCol)
+                {
+                    if (NodesArray[startRow, startCol].InformerNode.IsObstacle)
+                    {
+                        continue;
+                    }
+
+                    dijkstra.Flood(startRow, startCol);
+                    var currentIteration = dijkstra.GetCurrentIteration();
+
+                    for (var r = 0; r < 34; ++r)
+                    {
+                        for (var c = 0; c < 35; ++c)
+                        {
+                            if (NodesArray[r,c].InformerNode.IsObstacle)
+                            {
+                                continue;
+                            }
+                            
+                            var dir = (int) dijkstra.NodesArray[r, c].Currentnode.DestinationFromStart;
+
+                            if (dijkstra.NodesArray[r, c].Currentnode.Iteration == currentIteration &&
+                                dijkstra.NodesArray[r,c].Currentnode.Visited == NodeState.Processed &&
+                                dir >= 1 && dir <= 8)
+                            {
+                                if (NodesArray[startRow, startCol].GoalBounds[dir - 1, (int)GoalBoundsEnum.MinRow] > r)
+                                {
+                                    NodesArray[startRow, startCol].GoalBounds[dir - 1, (int)GoalBoundsEnum.MinRow] = r;
+                                }
+                                if (NodesArray[startRow, startCol].GoalBounds[dir - 1, (int)GoalBoundsEnum.MaxRow] < r)
+                                {
+                                    NodesArray[startRow, startCol].GoalBounds[dir - 1, (int)GoalBoundsEnum.MaxRow] = r;
+                                }
+                                if (NodesArray[startRow, startCol].GoalBounds[dir - 1, (int)GoalBoundsEnum.MinCol] > c)
+                                {
+                                    NodesArray[startRow, startCol].GoalBounds[dir - 1, (int)GoalBoundsEnum.MinCol] = c;
+                                }
+                                if (NodesArray[startRow, startCol].GoalBounds[dir - 1, (int)GoalBoundsEnum.MaxCol] < c)
+                                {
+                                    NodesArray[startRow, startCol].GoalBounds[dir - 1, (int)GoalBoundsEnum.MaxCol] = c;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public List<Informer> JPS(Informer from, Informer to)
@@ -616,7 +665,7 @@ namespace Assets.Scripts.PathFinding {
                 //Find next nodes
 
                 //Neighbours
-                var neighbours = Extensions.Neighbours(current, NodesArray, finish, linesFromFinish);
+                var neighbours = Extensions.Neighbours(current, NodesArray, finish);
 
                 //Target JP
                 var lines = new StraightLinesFromNode(current.Currentnode,Extensions.GetDestinationsFromNeighbours(neighbours));

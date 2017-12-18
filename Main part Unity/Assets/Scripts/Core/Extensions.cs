@@ -112,15 +112,24 @@ namespace Assets.Scripts.Core {
             else return Destinations.UpLeft;
         }
 
-        public static List<Tree_Node> Neighbours(Tree_Node node, Node[,] array, Node finish, 
-            StraightLinesFromNode linesFromFinish)
+        public static List<Tree_Node> Neighbours(Tree_Node node, Tree_Node[,] array, Node finish)
+        {
+
+            var nodesArray = new Node[array.Rows(), array.Columns()];
+            for (var i =0; i<array.Rows(); ++i)
+            for (var j = 0; j < array.Columns(); ++j)
+                nodesArray[i, j] = array[i, j].Currentnode;
+            return Neighbours(node, nodesArray, finish);
+        }
+
+        public static List<Tree_Node> Neighbours(Tree_Node node, Node[,] array, Node finish)
         {
             var neighbours = NeighboursSelective(node, node.Currentnode.X(), node.Currentnode.Y(), array, 
-                node.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
+                node.Currentnode.DestinationFromPrevious, finish);
             return neighbours;
         }
-        public static List<Tree_Node> NeighboursSelective(Tree_Node parent,int x, int y, Node[,] array, Destinations destination, Node finish,
-            StraightLinesFromNode linesFromFinish)
+        public static List<Tree_Node> NeighboursSelective(Tree_Node parent,int x, int y, Node[,] array, 
+            Destinations destination, Node finish)
         {
             var neighbours = new List<Tree_Node>();
             var parentNode = parent.Currentnode;
@@ -268,7 +277,8 @@ namespace Assets.Scripts.Core {
             }
             foreach (var node in neighbours)
             {
-                node.Currentnode.Distance = Metrics(node, finish);
+                if (finish != null) node.Currentnode.Distance = Metrics(node, finish);
+                else node.Currentnode.Distance =parentNode.Distance + Metrics(node, parentNode);
                 node.Currentnode.Visited = NodeState.Discovered;
             }
 
@@ -439,8 +449,7 @@ namespace Assets.Scripts.Core {
             var finishNode = new Node(finish, NodeState.Processed);
             var sraightLinesFromStart = new StraightLinesFromNode(startNode);
             var sraightLinesFromFinish = new StraightLinesFromNode(finishNode);
-            var neighbours = Neighbours(startTreeNode, nodesArray, finishNode, 
-                sraightLinesFromFinish);
+            var neighbours = Neighbours(startTreeNode, nodesArray, finishNode);
 
             var minMetrics = startNode.Distance;
             var tempList = new List<Node>();

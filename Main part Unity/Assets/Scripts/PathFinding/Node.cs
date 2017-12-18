@@ -34,6 +34,7 @@ namespace Assets.Scripts.PathFinding {
         public readonly Informer InformerNode;
         public NodeState Visited;
         public float Distance;
+        public Destinations DestinationFromStart;
         public Destinations DestinationFromPrevious;
         public Destinations DestinationToFinish;
         public int Iteration;
@@ -43,6 +44,7 @@ namespace Assets.Scripts.PathFinding {
             Visited = v;
             Distance = 0;
             Position = i.transform.position;
+            DestinationFromStart = Destinations.Default;
             DestinationFromPrevious = Destinations.Default;
             DestinationToFinish = Destinations.Default;
             Iteration = 0;
@@ -77,6 +79,7 @@ namespace Assets.Scripts.PathFinding {
                 Position = n.Position;
                 DestinationToFinish = n.DestinationToFinish;
                 DestinationFromPrevious = n.DestinationFromPrevious;
+                DestinationFromStart = n.DestinationFromStart;
 
                 NormMatrix = n.NormMatrix;
                 GoalBounds = n.GoalBounds;
