@@ -532,7 +532,10 @@ namespace Assets.Scripts.PathFinding {
 
         public void ComputeBoundingBoxes()
         {
-            
+            var dijkstra = new DijkstraFloodFill(NodesArray);
+
+
+            dijkstra.Flood();
         }
 
         public List<Informer> JPS(Informer from, Informer to)

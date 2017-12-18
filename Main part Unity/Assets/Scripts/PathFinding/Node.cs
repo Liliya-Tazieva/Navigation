@@ -36,6 +36,7 @@ namespace Assets.Scripts.PathFinding {
         public float Distance;
         public Destinations DestinationFromPrevious;
         public Destinations DestinationToFinish;
+        public int Iteration;
 
         public Node(Informer i, NodeState v) {
             InformerNode = i;
@@ -44,6 +45,7 @@ namespace Assets.Scripts.PathFinding {
             Position = i.transform.position;
             DestinationFromPrevious = Destinations.Default;
             DestinationToFinish = Destinations.Default;
+            Iteration = 0;
 
 
             for (var k = 0; k < 3; ++k)
@@ -80,6 +82,8 @@ namespace Assets.Scripts.PathFinding {
                 GoalBounds = n.GoalBounds;
                 IsJumpPoint = n.IsJumpPoint;
                 TargetJP = n.TargetJP;
+
+                Iteration = n.Iteration;
             }
         }
 
