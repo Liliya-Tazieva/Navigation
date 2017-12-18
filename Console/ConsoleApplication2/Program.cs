@@ -66,7 +66,7 @@ namespace ConsoleApplication2
 
             while (openSet.Count != 0)
             {
-                openSet.OrderBy(arg => arg.DistanceToGoal);
+                openSet = openSet.OrderBy(arg => arg.DistanceToGoal).ToList();
                 var current = openSet[0];
 
                 if (current.Position == goal.Position)
@@ -89,7 +89,8 @@ namespace ConsoleApplication2
                     if (tentativeDistance > neighbour.DistanceToStart) continue; // This is not a better path.
 
                     // This path is the best until now. Record it!
-                    cameFrom.Add(current);
+                    if (!cameFrom.Exists(arg => arg.Position == current.Position))
+                        cameFrom.Add(current);
                     neighbour.DistanceToStart = tentativeDistance;
                     neighbour.DistanceToGoal = neighbour.DistanceToStart + Node.MetricsAStar(neighbour, goal);
                 }

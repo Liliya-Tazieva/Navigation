@@ -530,6 +530,11 @@ namespace Assets.Scripts.PathFinding {
 		    IsPrecomputed = true;
 		}
 
+        public void ComputeBoundingBoxes()
+        {
+            
+        }
+
         public List<Informer> JPS(Informer from, Informer to)
         {
             DebugInformationAlgorithm debugInformation;
