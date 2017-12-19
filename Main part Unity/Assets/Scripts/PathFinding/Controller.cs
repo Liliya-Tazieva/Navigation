@@ -529,7 +529,7 @@ namespace Assets.Scripts.PathFinding {
                     renderer.material.SetColor("_Color", Color.magenta);}
                 }
 		    }*/
-
+            ComputeBoundingBoxes();
 		    IsPrecomputed = true;
 		}
 

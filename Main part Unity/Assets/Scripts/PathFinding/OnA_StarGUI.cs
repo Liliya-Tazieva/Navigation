@@ -186,7 +186,29 @@ public class OnA_StarGUI : MonoBehaviour {
     {
         var controller = GetComponentInChildren<Controller>();
         if (!controller.IsPrecomputed) controller.PrecomputeMap();
-        controller.ComputeBoundingBoxes();
+
+        if (StartInformer != null && FinishInformer != null)
+        {
+            var startNode = controller.NodesArray[(int) StartInformer.transform.position.x / 3,
+                (int) StartInformer.transform.position.z / 3];
+            var goalNode = controller.NodesArray[(int)FinishInformer.transform.position.x / 3,
+                (int)FinishInformer.transform.position.z / 3];
+            var destination = StraightLine.FindDestination(startNode, goalNode);
+            var minRow = startNode.GoalBounds[(int) destination, 0];
+            var maxRow = startNode.GoalBounds[(int) destination, 1];
+            var minCol = startNode.GoalBounds[(int) destination, 2];
+            var maxCol = startNode.GoalBounds[(int) destination, 3];
+
+            for(var i = minRow; i < maxRow; ++i)
+            {
+                for (var j = minCol; j < maxCol; ++j)
+                {
+                    var renderer = controller.NodesArray[i, j].InformerNode.GetComponent<Renderer>();
+                    renderer.material.SetColor("_Color", Color.green);
+                }
+            }
+        }
+        else Debug.LogError("Enter proper arguments");
     }
 
     public void ClearMap()
