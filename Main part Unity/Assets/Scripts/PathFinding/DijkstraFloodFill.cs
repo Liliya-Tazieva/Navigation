@@ -91,7 +91,6 @@ namespace Assets.Scripts.PathFinding
                 currentNode.Currentnode.Visited = NodeState.Processed;
                 NodesArray[rowIdx, colIdx] = currentNode;
             }
-            Debug.Log("Dijkstra Flood was successful\n");
         }
     }
 }

@@ -194,12 +194,15 @@ public class OnA_StarGUI : MonoBehaviour {
             var goalNode = controller.NodesArray[(int)FinishInformer.transform.position.x / 3,
                 (int)FinishInformer.transform.position.z / 3];
             var destination = StraightLine.FindDestination(startNode, goalNode);
-            var minRow = startNode.GoalBounds[(int) destination, 0];
-            var maxRow = startNode.GoalBounds[(int) destination, 1];
-            var minCol = startNode.GoalBounds[(int) destination, 2];
-            var maxCol = startNode.GoalBounds[(int) destination, 3];
+            var minRow = startNode.GoalBounds[(int) destination-1, 0];
+            var maxRow = startNode.GoalBounds[(int) destination-1, 1];
+            var minCol = startNode.GoalBounds[(int) destination-1, 2];
+            var maxCol = startNode.GoalBounds[(int) destination-1, 3];
+            Debug.Log("Bounding Box: Destination = " + destination + " MinRow = " + minRow + " MaxRow = " + maxRow +
+                      " MinCol = " + minCol
+                      + " MaxCol = " + maxCol);
 
-            for(var i = minRow; i < maxRow; ++i)
+            for (var i = minRow; i < maxRow; ++i)
             {
                 for (var j = minCol; j < maxCol; ++j)
                 {
