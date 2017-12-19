@@ -182,6 +182,13 @@ public class OnA_StarGUI : MonoBehaviour {
         if(!controller.IsPrecomputed) controller.PrecomputeMap();
     }
 
+    public void GoalBounding()
+    {
+        var controller = GetComponentInChildren<Controller>();
+        if (!controller.IsPrecomputed) controller.PrecomputeMap();
+        controller.ComputeBoundingBoxes();
+    }
+
     public void ClearMap()
     {
         var colorList = GetComponent<DefaultColours>();

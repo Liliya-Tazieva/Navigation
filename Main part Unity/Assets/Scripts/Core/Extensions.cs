@@ -10,6 +10,9 @@ using UnityEngine.Assertions.Must;
 namespace Assets.Scripts.Core {
 
     public static class Extensions {
+
+        public static readonly int ImgHeight = 34;
+        public static readonly int ImgWidth = 35;
         public static void ForEach<T>( this IEnumerable<T> from, Action<T> callback ) {
             foreach ( var element in from ) {
                 callback( element );
@@ -112,14 +115,168 @@ namespace Assets.Scripts.Core {
             else return Destinations.UpLeft;
         }
 
-        public static List<Tree_Node> Neighbours(Tree_Node node, Tree_Node[,] array, Node finish)
+        public static List<Tree_Node> NeighboursForGB(Tree_Node parent, Tree_Node[,] tree_array, Node finish)
         {
 
-            var nodesArray = new Node[array.Rows(), array.Columns()];
+            var array = new Node[tree_array.Rows(), tree_array.Columns()];
             for (var i =0; i<array.Rows(); ++i)
             for (var j = 0; j < array.Columns(); ++j)
-                nodesArray[i, j] = array[i, j].Currentnode;
-            return Neighbours(node, nodesArray, finish);
+                array[i, j] = tree_array[i, j].Currentnode;
+            var neighbours = new List<Tree_Node>();
+            var parentNode = parent.Currentnode;
+            var x = parent.Currentnode.X();
+            var y = parent.Currentnode.Y();
+            var destination = parent.Currentnode.DestinationFromPrevious;
+
+            //Left
+            if (!array[x - 1, y].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                    destination == Destinations.Up || destination == Destinations.Down ||
+                    destination == Destinations.UpLeft || destination == Destinations.DownLeft)
+                {
+                    var delta = parentNode.NormMatrix[1, 0];
+                    delta = Math.Abs(delta);
+                    var node = new Node(array[x - 1, y]);
+                    node.DestinationFromPrevious = Destinations.Left;
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
+                }
+            }
+            //Up-left
+            if (!array[x - 1, y + 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                    destination == Destinations.Up || destination == Destinations.UpLeft)
+                {
+                    var delta = parentNode.NormMatrix[0, 0];
+                    delta = Math.Abs(delta);
+                    var node = new Node(array[x - 1, y + 1]);
+                    node.DestinationFromPrevious = Destinations.UpLeft;
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
+                }
+            }
+            //Up
+            if (!array[x, y + 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                    destination == Destinations.Up || destination == Destinations.Right ||
+                    destination == Destinations.UpLeft || destination == Destinations.UpRight)
+                {
+                    var delta = parentNode.NormMatrix[0, 1];
+                    delta = Math.Abs(delta);
+                    var node = new Node(array[x, y + 1]);
+                    node.DestinationFromPrevious = Destinations.Up;
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
+                }
+            }
+            //Up-right
+            if (!array[x + 1, y + 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Right ||
+                    destination == Destinations.Up || destination == Destinations.UpRight)
+                {
+                    var delta = parentNode.NormMatrix[0, 2];
+                    delta = Math.Abs(delta);
+                    var node = new Node(array[x + 1, y + 1]);
+                    node.DestinationFromPrevious = Destinations.UpRight;
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
+                }
+            }
+            //Right
+            if (!array[x + 1, y].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Right ||
+                   destination == Destinations.Up || destination == Destinations.Down ||
+                   destination == Destinations.UpRight || destination == Destinations.DownRight)
+                {
+                    var delta = parentNode.NormMatrix[1, 2];
+                    delta = Math.Abs(delta);
+                    var node = new Node(array[x + 1, y]);
+                    node.DestinationFromPrevious = Destinations.Right;
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
+                }
+            }
+            //Down-right
+            if (!array[x + 1, y - 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Right ||
+                    destination == Destinations.Down || destination == Destinations.DownRight)
+                {
+                    var delta = parentNode.NormMatrix[2, 2];
+                    delta = Math.Abs(delta);
+                    var node = new Node(array[x + 1, y - 1]);
+                    node.DestinationFromPrevious = Destinations.DownRight;
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
+                }
+            }
+            //Down
+            if (!array[x, y - 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                   destination == Destinations.Right || destination == Destinations.Down ||
+                   destination == Destinations.DownLeft || destination == Destinations.DownRight)
+                {
+                    var delta = parentNode.NormMatrix[2, 1];
+                    delta = Math.Abs(delta);
+                    var node = new Node(array[x, y - 1]);
+                    node.DestinationFromPrevious = Destinations.Down;
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
+                }
+            }
+            //Down-left
+            if (!array[x - 1, y - 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left ||
+                    destination == Destinations.Down || destination == Destinations.DownLeft)
+                {
+                    var delta = parentNode.NormMatrix[2, 0];
+                    delta = Math.Abs(delta);
+                    var node = new Node(array[x - 1, y - 1]);
+                    node.DestinationFromPrevious = Destinations.DownLeft;
+                    if (delta != 0)
+                    {
+                        node.Visited = NodeState.Discovered;
+                        neighbours.Add(new Tree_Node(parent, node));
+                    }
+                }
+            }
+            foreach (var node in neighbours)
+            {
+                if (node.DistanceFromParent > 10)
+                    node.Currentnode.Distance = node.Parent.Distance + (float) Math.Sqrt(2);
+                else node.Currentnode.Distance = node.Parent.Distance + 1f;
+                node.Currentnode.Visited = NodeState.Discovered;
+            }
+
+            return neighbours;
         }
 
         public static List<Tree_Node> Neighbours(Tree_Node node, Node[,] array, Node finish)
@@ -508,9 +665,9 @@ namespace Assets.Scripts.Core {
         {
             var JumpPoints = new List<Node>();
             //finding jump points
-            for (var i = 0; i < 34; ++i)
+            for (var i = 0; i < ImgHeight; ++i)
             {
-                for (var j = 0; j < 35; ++j)
+                for (var j = 0; j < ImgWidth; ++j)
                 {
 
                     //obstacle-types
@@ -529,7 +686,7 @@ namespace Assets.Scripts.Core {
                         if (NodesArray[i, j - 1].InformerNode.IsObstacle)
                             dObstcle = true;
                     }
-                    if (j < 34)
+                    if (j < ImgWidth-1)
                     {
                         if (NodesArray[i, j + 1].InformerNode.IsObstacle)
                             uObstcle = true;
@@ -541,7 +698,7 @@ namespace Assets.Scripts.Core {
                             if (NodesArray[i - 1, j - 1].InformerNode.IsObstacle)
                                 l_d_obstcle = true;
                         }
-                        if (j < 34)
+                        if (j < ImgWidth-1)
                         {
                             if (NodesArray[i - 1, j + 1].InformerNode.IsObstacle)
                                 l_u_obstcle = true;
@@ -549,14 +706,14 @@ namespace Assets.Scripts.Core {
                         if (NodesArray[i - 1, j].InformerNode.IsObstacle)
                             lObstcle = true;
                     }
-                    if (i < 33)
+                    if (i < ImgHeight-1)
                     {
                         if (j > 0)
                         {
                             if (NodesArray[i + 1, j - 1].InformerNode.IsObstacle)
                                 r_d_obstcle = true;
                         }
-                        if (j < 34)
+                        if (j < ImgWidth - 1)
                         {
                             if (NodesArray[i + 1, j + 1].InformerNode.IsObstacle)
                                 r_u_obstcle = true;
@@ -601,15 +758,15 @@ namespace Assets.Scripts.Core {
         public static List<Node> FindPrimaryJPWithObstacles(Node[,] NodesArray)
         {
             var JumpPoints = new List<Node>();
-            for (var i = 0; i < 34; ++i)
+            for (var i = 0; i < ImgHeight; ++i)
             {
-                for (var j = 0; j < 35; ++j)
+                for (var j = 0; j < ImgWidth; ++j)
                 {
                     if (NodesArray[i, j].InformerNode.IsObstacle)
                     {
                         if (j > 0 && !NodesArray[i, j - 1].InformerNode.IsObstacle)
                         {
-                            if (i < 33 &&
+                            if (i < ImgHeight-1 &&
                                 !NodesArray[i + 1, j - 1].InformerNode.IsObstacle &&
                                 !NodesArray[i + 1, j].InformerNode.IsObstacle)
                             {
@@ -624,9 +781,9 @@ namespace Assets.Scripts.Core {
                                 JumpPoints.Add(NodesArray[i - 1, j - 1]);
                             }
                         }
-                        if (j < 34 && !NodesArray[i, j + 1].InformerNode.IsObstacle)
+                        if (j < ImgWidth-1 && !NodesArray[i, j + 1].InformerNode.IsObstacle)
                         {
-                            if (i < 33 &&
+                            if (i < ImgHeight-1 &&
                                 !NodesArray[i + 1, j + 1].InformerNode.IsObstacle &&
                                 !NodesArray[i + 1, j].InformerNode.IsObstacle)
                             {

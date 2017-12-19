@@ -60,9 +60,9 @@ namespace Assets.Scripts.PathFinding {
 
             for (var dir = 0; dir < 8; ++dir)
             {
-                GoalBounds[dir, (int) GoalBoundsEnum.MinRow] = sizeof(int);
+                GoalBounds[dir, (int) GoalBoundsEnum.MinRow] = 1000;
                 GoalBounds[dir, (int) GoalBoundsEnum.MaxRow] = 0;
-                GoalBounds[dir, (int) GoalBoundsEnum.MinCol] = sizeof(int);
+                GoalBounds[dir, (int) GoalBoundsEnum.MinCol] = 1000;
                 GoalBounds[dir, (int) GoalBoundsEnum.MaxCol] = 0;
             }
             IsJumpPoint = JPType.Default;

@@ -20,8 +20,11 @@ namespace Assets.Scripts.PathFinding {
         [UsedImplicitly]
         public float Radius;
 
+        public static readonly int ImgHeight = 34;
+        public static readonly int ImgWidth = 35;
+
         public KDTree<Informer> NodesTree = new KDTree<Informer>(3);
-		public Node [,] NodesArray = new Node [34,35];
+		public Node [,] NodesArray = new Node [ImgHeight, ImgWidth];
 		public bool IsPrecomputed;
         public List<Node> JumpPoints = new List<Node>();
 
@@ -240,12 +243,12 @@ namespace Assets.Scripts.PathFinding {
 		    JumpPoints = Extensions.FindPrimaryJPWithObstacles(NodesArray);
 
             //computing distances to jump points and obstacles
-            for (var i = 0; i < 34; ++i) {
-				for (var j = 0; j < 35; ++j) {
+            for (var i = 0; i < ImgHeight; ++i) {
+				for (var j = 0; j < ImgWidth; ++j) {
 				    if (NodesArray[i, j].InformerNode.IsObstacle) continue;
 				    //Checking up
 				    var k = 1;
-				    while (j + k < 35)
+				    while (j + k < ImgWidth)
 				    {
                         if (NodesArray[i, j + k].IsJumpPoint == JPType.Primary || NodesArray[i, j + k].InformerNode.IsObstacle)
 				        {
@@ -261,7 +264,7 @@ namespace Assets.Scripts.PathFinding {
 				            }
 				            break;
 				        }
-				        if (j + k == 34)
+				        if (j + k == ImgHeight)
 				        {
 				            NodesArray[i, j].NormMatrix[0, 1] = -k;
 				        }
@@ -293,7 +296,7 @@ namespace Assets.Scripts.PathFinding {
 				    }
 				    //Checking right
 				    k = 1;
-				    while (i + k < 34)
+				    while (i + k < ImgHeight)
 				    {
                         if (NodesArray[i + k, j].IsJumpPoint == JPType.Primary || NodesArray[i + k, j].InformerNode.IsObstacle)
 				        {
@@ -309,7 +312,7 @@ namespace Assets.Scripts.PathFinding {
 				            }
 				            break;
 				        }
-				        if (i + k == 33)
+				        if (i + k == ImgHeight-1)
 				        {
 				            NodesArray[i, j].NormMatrix[1, 2] = -k;
 				        }
@@ -343,16 +346,16 @@ namespace Assets.Scripts.PathFinding {
 			}
 
                 //Finding diagonal JP
-		    for (var i = 0; i < 34; ++i)
+		    for (var i = 0; i < ImgHeight; ++i)
 		    {
-		        for (var j = 0; j < 35; ++j)
+		        for (var j = 0; j < ImgWidth; ++j)
 		        {
                     if (NodesArray[i, j].InformerNode.IsObstacle) continue;
 		            //Checking up-right
 		            var k = 1;
 		            if (!NodesArray[i + 1, j].InformerNode.IsObstacle && !NodesArray[i, j + 1].InformerNode.IsObstacle)
 		            {
-		                while (i + k < 34 && j + k < 35)
+		                while (i + k < ImgHeight && j + k < ImgWidth)
 		                {
 		                    if (NodesArray[i + k, j + k].IsJumpPoint == JPType.Primary ||
 		                        NodesArray[i + k, j + k].InformerNode.IsObstacle
@@ -380,7 +383,7 @@ namespace Assets.Scripts.PathFinding {
 		                        }
 		                        break;
 		                    }
-		                    if (i + k == 33 || j + k == 34)
+		                    if (i + k == ImgHeight-1 || j + k == ImgWidth-1)
 		                    {
 		                        NodesArray[i, j].NormMatrix[0, 2] = -k;
 		                    }
@@ -391,7 +394,7 @@ namespace Assets.Scripts.PathFinding {
 		            k = 1;
                     if (!NodesArray[i + 1, j].InformerNode.IsObstacle && !NodesArray[i, j - 1].InformerNode.IsObstacle)
                     {
-                        while (i + k < 34 && j - k >= 0)
+                        while (i + k < ImgHeight && j - k >= 0)
                         {
                             if (NodesArray[i + k, j - k].IsJumpPoint == JPType.Primary ||
                                 NodesArray[i + k, j - k].InformerNode.IsObstacle
@@ -419,7 +422,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
                                 break;
                             }
-                            if (i + k == 33 || j - k == 0)
+                            if (i + k == ImgHeight-1 || j - k == 0)
                             {
                                 NodesArray[i, j].NormMatrix[2, 2] = -k;
                             }
@@ -430,7 +433,7 @@ namespace Assets.Scripts.PathFinding {
 		            k = 1;
                     if (!NodesArray[i - 1, j].InformerNode.IsObstacle && !NodesArray[i, j + 1].InformerNode.IsObstacle)
                     {
-                        while (i - k >= 0 && j + k < 35)
+                        while (i - k >= 0 && j + k < ImgWidth)
                         {
                             if (NodesArray[i - k, j + k].IsJumpPoint == JPType.Primary ||
                                 NodesArray[i - k, j + k].InformerNode.IsObstacle
@@ -458,7 +461,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
                                 break;
                             }
-                            if (i - k == 0 || j + k == 34)
+                            if (i - k == 0 || j + k == ImgWidth-1)
                             {
                                 NodesArray[i, j].NormMatrix[0, 0] = -k;
                             }
@@ -535,11 +538,11 @@ namespace Assets.Scripts.PathFinding {
             var dijkstra = new DijkstraFloodFill(NodesArray);
             Debug.Log("Goal Bounding Preprocessing\n");
 
-            for (var startRow = 0; startRow < 34; ++startRow)
+            for (var startRow = 0; startRow < ImgHeight; ++startRow)
             {
                 Debug.Log("Startrow = "+startRow+"\n");
 
-                for (var startCol = 0; startCol < 35; ++startCol)
+                for (var startCol = 0; startCol < ImgWidth; ++startCol)
                 {
                     if (NodesArray[startRow, startCol].InformerNode.IsObstacle)
                     {
@@ -549,9 +552,9 @@ namespace Assets.Scripts.PathFinding {
                     dijkstra.Flood(startRow, startCol);
                     var currentIteration = dijkstra.GetCurrentIteration();
 
-                    for (var r = 0; r < 34; ++r)
+                    for (var r = 0; r < ImgHeight; ++r)
                     {
-                        for (var c = 0; c < 35; ++c)
+                        for (var c = 0; c < ImgWidth; ++c)
                         {
                             if (NodesArray[r,c].InformerNode.IsObstacle)
                             {

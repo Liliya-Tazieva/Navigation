@@ -5,6 +5,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using Accord.Math;
 using Assets.Scripts.Core;
+using UnityEngine;
 
 
 namespace Assets.Scripts.PathFinding
@@ -37,11 +38,6 @@ namespace Assets.Scripts.PathFinding
             return CurrentIteration;
         }
 
-        public bool IsEmpty(int r, int c)
-        {
-            throw new NotImplementedException();
-        }
-
         public void Flood(int startRow, int startCol)
         {
             CurrentIteration++;
@@ -49,19 +45,21 @@ namespace Assets.Scripts.PathFinding
             NodesArray[startRow, startCol].Currentnode.Iteration = CurrentIteration;
             NodesArray[startRow, startCol].Currentnode.Visited = NodeState.Discovered;
             OpenList.Add(NodesArray[startRow, startCol]);
-
+            
             while (OpenList.Count != 0)
             {
+
                 var currentNode = OpenList[0];
 
                 // Explore nodes based on the parent and surrounding walls.
                 // This must be in the search style of JPS+ in order to produce
                 // the correct data for JPS+. If goal bounding is used for regular
                 // A*, then this search would need to mimic regular A*.
-                var newSuccessors = Extensions.Neighbours(currentNode, NodesArray, null);
+                var newSuccessors = Extensions.NeighboursForGB(currentNode, NodesArray, null);
                 foreach (var successor in newSuccessors)
                 {
-                    if (!OpenList.Exists(arg => arg.Currentnode.Position == successor.Currentnode.Position))
+                    if (!OpenList.Exists(arg => arg.Currentnode.Position == successor.Currentnode.Position)
+                        &&successor.Currentnode.Iteration != CurrentIteration)
                     {
                         // Place node on the Open list (we've never seen it before)
                         successor.Currentnode.DestinationFromStart =
@@ -74,12 +72,14 @@ namespace Assets.Scripts.PathFinding
                     else
                     {
                         // We found a cheaper way to this node - update it
-                        var idx = OpenList.FindIndex(arg => arg.Currentnode.Position == successor.Currentnode.Position);
-                        if (OpenList[idx].Currentnode.Distance > successor.Currentnode.Distance)
+                        var row = (int)successor.Currentnode.Position.x / 3;
+                        var col = (int)successor.Currentnode.Position.z / 3;
+                        if (NodesArray[row,col].Currentnode.Distance > successor.Currentnode.Distance)
                         {
-                            OpenList.RemoveAt(idx);
+                            OpenList.Remove(successor);
                             successor.Currentnode.DestinationFromStart = currentNode.Currentnode.DestinationFromStart;
                             successor.Currentnode.Iteration = CurrentIteration;
+                            NodesArray[row, col] = successor;
                             OpenList.Add(successor);
                         }
                     }
@@ -91,6 +91,7 @@ namespace Assets.Scripts.PathFinding
                 currentNode.Currentnode.Visited = NodeState.Processed;
                 NodesArray[rowIdx, colIdx] = currentNode;
             }
+            Debug.Log("Dijkstra Flood was successful\n");
         }
     }
 }
