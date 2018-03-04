@@ -21,10 +21,12 @@ namespace Assets.Scripts.PathFinding {
         public float Radius;
 
         public KDTree<Informer> NodesTree = new KDTree<Informer>(3);
-		public Node [,] NodesArray = new Node [34,35];
+        public static int height = 34;
+        public static int width = 35;
+        public Node[,] NodesArray = new Node [height,width];
 		public bool IsPrecomputed;
         public List<Node> JumpPoints = new List<Node>();
-
+        
         public void RegisterInformer(Informer informer) {
             var position = informer.transform.position;
             NodesTree.Add(position.ToArray(), informer);
@@ -237,15 +239,15 @@ namespace Assets.Scripts.PathFinding {
 		public void PrecomputeMap()
 		{
             JumpPoints.Clear();
-		    JumpPoints = Extensions.FindPrimaryJPWithObstacles(NodesArray);
+		    JumpPoints = Extensions.FindPrimaryJPWithObstacles(NodesArray, height, width);
 
             //computing distances to jump points and obstacles
-            for (var i = 0; i < 34; ++i) {
-				for (var j = 0; j < 35; ++j) {
+            for (var i = 0; i < height; ++i) {
+				for (var j = 0; j < width; ++j) {
 				    if (NodesArray[i, j].InformerNode.IsObstacle) continue;
 				    //Checking up
 				    var k = 1;
-				    while (j + k < 35)
+				    while (j + k < width)
 				    {
                         if (NodesArray[i, j + k].IsJumpPoint == JPType.Primary || NodesArray[i, j + k].InformerNode.IsObstacle)
 				        {
@@ -261,7 +263,7 @@ namespace Assets.Scripts.PathFinding {
 				            }
 				            break;
 				        }
-				        if (j + k == 34)
+				        if (j + k == width - 1)
 				        {
 				            NodesArray[i, j].NormMatrix[0, 1] = -k;
 				        }
@@ -293,7 +295,7 @@ namespace Assets.Scripts.PathFinding {
 				    }
 				    //Checking right
 				    k = 1;
-				    while (i + k < 34)
+				    while (i + k < height)
 				    {
                         if (NodesArray[i + k, j].IsJumpPoint == JPType.Primary || NodesArray[i + k, j].InformerNode.IsObstacle)
 				        {
@@ -309,7 +311,7 @@ namespace Assets.Scripts.PathFinding {
 				            }
 				            break;
 				        }
-				        if (i + k == 33)
+				        if (i + k == height - 1)
 				        {
 				            NodesArray[i, j].NormMatrix[1, 2] = -k;
 				        }
@@ -343,16 +345,16 @@ namespace Assets.Scripts.PathFinding {
 			}
 
                 //Finding diagonal JP
-		    for (var i = 0; i < 34; ++i)
+		    for (var i = 0; i < height; ++i)
 		    {
-		        for (var j = 0; j < 35; ++j)
+		        for (var j = 0; j < width; ++j)
 		        {
                     if (NodesArray[i, j].InformerNode.IsObstacle) continue;
 		            //Checking up-right
 		            var k = 1;
 		            if (!NodesArray[i + 1, j].InformerNode.IsObstacle && !NodesArray[i, j + 1].InformerNode.IsObstacle)
 		            {
-		                while (i + k < 34 && j + k < 35)
+		                while (i + k < height && j + k < width)
 		                {
 		                    if (NodesArray[i + k, j + k].IsJumpPoint == JPType.Primary ||
 		                        NodesArray[i + k, j + k].InformerNode.IsObstacle
@@ -380,7 +382,7 @@ namespace Assets.Scripts.PathFinding {
 		                        }
 		                        break;
 		                    }
-		                    if (i + k == 33 || j + k == 34)
+		                    if (i + k == height - 1 || j + k == width -1 )
 		                    {
 		                        NodesArray[i, j].NormMatrix[0, 2] = -k;
 		                    }
@@ -391,7 +393,7 @@ namespace Assets.Scripts.PathFinding {
 		            k = 1;
                     if (!NodesArray[i + 1, j].InformerNode.IsObstacle && !NodesArray[i, j - 1].InformerNode.IsObstacle)
                     {
-                        while (i + k < 34 && j - k >= 0)
+                        while (i + k < height && j - k >= 0)
                         {
                             if (NodesArray[i + k, j - k].IsJumpPoint == JPType.Primary ||
                                 NodesArray[i + k, j - k].InformerNode.IsObstacle
@@ -419,7 +421,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
                                 break;
                             }
-                            if (i + k == 33 || j - k == 0)
+                            if (i + k == width - 1 || j - k == 0)
                             {
                                 NodesArray[i, j].NormMatrix[2, 2] = -k;
                             }
@@ -430,7 +432,7 @@ namespace Assets.Scripts.PathFinding {
 		            k = 1;
                     if (!NodesArray[i - 1, j].InformerNode.IsObstacle && !NodesArray[i, j + 1].InformerNode.IsObstacle)
                     {
-                        while (i - k >= 0 && j + k < 35)
+                        while (i - k >= 0 && j + k < width)
                         {
                             if (NodesArray[i - k, j + k].IsJumpPoint == JPType.Primary ||
                                 NodesArray[i - k, j + k].InformerNode.IsObstacle
@@ -458,7 +460,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
                                 break;
                             }
-                            if (i - k == 0 || j + k == 34)
+                            if (i - k == 0 || j + k == width - 1)
                             {
                                 NodesArray[i, j].NormMatrix[0, 0] = -k;
                             }
@@ -517,9 +519,9 @@ namespace Assets.Scripts.PathFinding {
 		        }
 		    }
             //Show DiagonalJP
-		    /*for (var i = 0; i < 34; ++i)
+            /*for (var i = 0; i < height; ++i)
 		    {
-		        for (var j = 0; j < 35; ++j)
+		        for (var j = 0; j < width; ++j)
 		        {
                     if(NodesArray[i, j].IsJumpPoint == JPType.Diagonal)
                     { var renderer = NodesArray[i,j].InformerNode.GetComponent<Renderer>();
@@ -527,7 +529,7 @@ namespace Assets.Scripts.PathFinding {
                 }
 		    }*/
 
-		    IsPrecomputed = true;
+            IsPrecomputed = true;
 		}
 
         public void ComputeBoundingBoxes()

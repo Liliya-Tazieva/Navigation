@@ -5,7 +5,6 @@ using Accord.MachineLearning.Structures;
 using Accord.Math;
 using Assets.Scripts.PathFinding;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 
 namespace Assets.Scripts.Core {
 
@@ -495,118 +494,36 @@ namespace Assets.Scripts.Core {
             }
         }
 
-        public static List<Node> FindPrimaryJP(Node[,] NodesArray)
+        public static List<Node> FindPrimaryJPWithObstacles(Node[,] NodesArray, int height, int width)
         {
             var JumpPoints = new List<Node>();
-            //finding jump points
-            for (var i = 0; i < 34; ++i)
+            for (var i = 0; i < height; ++i)
             {
-                for (var j = 0; j < 35; ++j)
-                {
-
-                    //obstacle-types
-                    var r_u_obstcle = false;
-                    var l_u_obstcle = false;
-                    var r_d_obstcle = false;
-                    var l_d_obstcle = false;
-                    var uObstcle = false;
-                    var dObstcle = false;
-                    var rObstcle = false;
-                    var lObstcle = false;
-
-
-                    if (j > 0)
-                    {
-                        if (NodesArray[i, j - 1].InformerNode.IsObstacle)
-                            dObstcle = true;
-                    }
-                    if (j < 34)
-                    {
-                        if (NodesArray[i, j + 1].InformerNode.IsObstacle)
-                            uObstcle = true;
-                    }
-                    if (i > 0)
-                    {
-                        if (j > 0)
-                        {
-                            if (NodesArray[i - 1, j - 1].InformerNode.IsObstacle)
-                                l_d_obstcle = true;
-                        }
-                        if (j < 34)
-                        {
-                            if (NodesArray[i - 1, j + 1].InformerNode.IsObstacle)
-                                l_u_obstcle = true;
-                        }
-                        if (NodesArray[i - 1, j].InformerNode.IsObstacle)
-                            lObstcle = true;
-                    }
-                    if (i < 33)
-                    {
-                        if (j > 0)
-                        {
-                            if (NodesArray[i + 1, j - 1].InformerNode.IsObstacle)
-                                r_d_obstcle = true;
-                        }
-                        if (j < 34)
-                        {
-                            if (NodesArray[i + 1, j + 1].InformerNode.IsObstacle)
-                                r_u_obstcle = true;
-                        }
-                        if (NodesArray[i + 1, j].InformerNode.IsObstacle)
-                            rObstcle = true;
-                    }
-
-
-                    if (!NodesArray[i, j].InformerNode.IsObstacle
-                        && !rObstcle && !dObstcle && !lObstcle && !uObstcle
-                        && (r_u_obstcle || l_u_obstcle || r_d_obstcle || l_d_obstcle))
-                    {
-                        NodesArray[i, j].IsJumpPoint = JPType.Primary;
-                    }
-                    /*if (!NodesArray[i, j].InformerNode.IsObstacle
-				        && (Convert.ToInt32(r_u_obstcle) + Convert.ToInt32(l_u_obstcle)
-				            + Convert.ToInt32(r_d_obstcle) + Convert.ToInt32(l_d_obstcle)) == 4
-				        && (Convert.ToInt32(!rObstcle) + Convert.ToInt32(!uObstcle) == 2 ||
-                        Convert.ToInt32(!lObstcle) + Convert.ToInt32(!uObstcle) == 2 ||
-                            Convert.ToInt32(!rObstcle) + Convert.ToInt32(!dObstcle) == 2||
-                            Convert.ToInt32(!lObstcle) + Convert.ToInt32(!dObstcle) == 2))
-				    {
-                        NodesArray[i, j].IsJumpPoint = JPType.Primary;
-				    }*/
-                    var obstacleAmount = Convert.ToInt32(r_u_obstcle) + Convert.ToInt32(l_u_obstcle)
-                                         + Convert.ToInt32(r_d_obstcle) + Convert.ToInt32(l_d_obstcle) +
-                                         Convert.ToInt32(rObstcle) + Convert.ToInt32(dObstcle) +
-                                         Convert.ToInt32(lObstcle) + Convert.ToInt32(uObstcle);
-                    if (!NodesArray[i, j].InformerNode.IsObstacle &&
-                        obstacleAmount == 4) NodesArray[i, j].IsJumpPoint = JPType.Primary;
-
-                    if (NodesArray[i, j].IsJumpPoint != JPType.Primary) continue;
-                    JumpPoints.Add(NodesArray[i, j]);
-                }
-            }
-            ShowJP(JumpPoints);
-
-            return JumpPoints;
-        }
-
-        public static List<Node> FindPrimaryJPWithObstacles(Node[,] NodesArray)
-        {
-            var JumpPoints = new List<Node>();
-            for (var i = 0; i < 34; ++i)
-            {
-                for (var j = 0; j < 35; ++j)
+                for (var j = 0; j < width; ++j)
                 {
                     if (NodesArray[i, j].InformerNode.IsObstacle)
                     {
+                        //Don't create JP on each step of ledders, just on the ends
+                        if (j > 0 && i < height - 1 && i > 0 && j < width - 1
+                            && (NodesArray[i + 1, j + 1].InformerNode.IsObstacle // Up-Right 
+                                && NodesArray[i - 1, j - 1].InformerNode.IsObstacle // Down-Left 
+                                || NodesArray[i + 1, j - 1].InformerNode.IsObstacle // Down-Right 
+                                && NodesArray[i - 1, j + 1].InformerNode.IsObstacle)) //Up-Left 
+                        {
+                            continue;
+                        }
+                        //DOWN - according to map
                         if (j > 0 && !NodesArray[i, j - 1].InformerNode.IsObstacle)
                         {
-                            if (i < 33 &&
+                            //RIGHT - according to map
+                            if (i < height - 1 &&
                                 !NodesArray[i + 1, j - 1].InformerNode.IsObstacle &&
                                 !NodesArray[i + 1, j].InformerNode.IsObstacle)
                             {
                                 NodesArray[i + 1, j - 1].IsJumpPoint = JPType.Primary;
                                 JumpPoints.Add(NodesArray[i + 1, j - 1]);
                             }
+                            //LEFT - according to map
                             if (i > 0 &&
                                 !NodesArray[i - 1, j - 1].InformerNode.IsObstacle &&
                                 !NodesArray[i - 1, j].InformerNode.IsObstacle)
@@ -615,15 +532,18 @@ namespace Assets.Scripts.Core {
                                 JumpPoints.Add(NodesArray[i - 1, j - 1]);
                             }
                         }
-                        if (j < 34 && !NodesArray[i, j + 1].InformerNode.IsObstacle)
+                        //UP - according to map
+                        if (j < width - 1 && !NodesArray[i, j + 1].InformerNode.IsObstacle)
                         {
-                            if (i < 33 &&
+                            //RIGHT - according to map
+                            if (i < height - 1 &&
                                 !NodesArray[i + 1, j + 1].InformerNode.IsObstacle &&
                                 !NodesArray[i + 1, j].InformerNode.IsObstacle)
                             {
                                 NodesArray[i + 1, j + 1].IsJumpPoint = JPType.Primary;
                                 JumpPoints.Add(NodesArray[i + 1, j + 1]);
                             }
+                            //LEFT - according to map
                             if (i > 0 &&
                                 !NodesArray[i - 1, j + 1].InformerNode.IsObstacle &&
                                 !NodesArray[i - 1, j].InformerNode.IsObstacle)

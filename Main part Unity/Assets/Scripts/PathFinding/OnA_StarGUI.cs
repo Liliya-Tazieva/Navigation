@@ -200,8 +200,8 @@ public class OnA_StarGUI : MonoBehaviour {
             }
         }
         Extensions.ShowJP(controller.JumpPoints);
-        _startRenderer.material.SetColor("_Color", Color.cyan);
-        _finishRenderer.material.SetColor("_Color", Color.magenta);
+        if(_startRenderer != null) _startRenderer.material.SetColor("_Color", Color.cyan);
+        if(_finishRenderer != null) _finishRenderer.material.SetColor("_Color", Color.magenta);
     }
 
     public void ShowFinalPathAStar()

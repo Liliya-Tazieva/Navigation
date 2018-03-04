@@ -11,7 +11,8 @@ namespace Assets.Scripts.Map {
         [UsedImplicitly]
         public TilesManager TilesM;
 
-        public IEnumerator InitializeMap() {
+        public IEnumerator InitializeMap()
+        {
             for (var i = 0; i < Map.height; ++i) {
                 for (var j = 0; j < Map.width; ++j) {
                     var color = Map.GetPixel(i, j);
@@ -33,7 +34,8 @@ namespace Assets.Scripts.Map {
         }
 
         [UsedImplicitly]
-        IEnumerator Start() {
+        IEnumerator Start()
+        {
 #if UNITY_EDITOR
             if (Application.isPlaying) {
                 yield return StartCoroutine("InitializeMap");

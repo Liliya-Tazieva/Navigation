@@ -15,18 +15,9 @@ namespace Assets.Scripts.PathFinding {
         Primary = 0
     }
 
-    public enum GoalBoundsEnum
-    {
-        MinRow = 0,
-        MaxRow = 1,
-        MinCol = 2,
-        MaxCol = 3
-    };
-
     public class Node {
 
         public int[,] NormMatrix = new int[3, 3];
-        public int[,] GoalBounds = new int[8, 4];
         public JPType IsJumpPoint;
         public bool TargetJP;
         public Vector3 Position;
@@ -53,14 +44,7 @@ namespace Assets.Scripts.PathFinding {
                     NormMatrix[k, j] = 0;
                 }
             }
-
-            for (var dir = 0; dir < 8; ++dir)
-            {
-                GoalBounds[dir, (int) GoalBoundsEnum.MinRow] = sizeof(int);
-                GoalBounds[dir, (int) GoalBoundsEnum.MaxRow] = 0;
-                GoalBounds[dir, (int) GoalBoundsEnum.MinCol] = sizeof(int);
-                GoalBounds[dir, (int) GoalBoundsEnum.MaxCol] = 0;
-            }
+            
             IsJumpPoint = JPType.Default;
             TargetJP = false;
         }
@@ -77,7 +61,6 @@ namespace Assets.Scripts.PathFinding {
                 DestinationFromPrevious = n.DestinationFromPrevious;
 
                 NormMatrix = n.NormMatrix;
-                GoalBounds = n.GoalBounds;
                 IsJumpPoint = n.IsJumpPoint;
                 TargetJP = n.TargetJP;
             }
