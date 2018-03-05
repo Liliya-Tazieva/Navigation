@@ -26,6 +26,7 @@ namespace Assets.Scripts.PathFinding {
         public Node[,] NodesArray = new Node [height,width];
 		public bool IsPrecomputed;
         public List<Node> JumpPoints = new List<Node>();
+        public List<BoundingBoxes> Boxes;
         
         public void RegisterInformer(Informer informer) {
             var position = informer.transform.position;
@@ -529,13 +530,11 @@ namespace Assets.Scripts.PathFinding {
                 }
 		    }*/
 
+            //Prepare for Goal bounding
+		    Boxes = BoundingBoxes.FindBoxes(NodesArray, height, width, JumpPoints);
+
             IsPrecomputed = true;
 		}
-
-        public void ComputeBoundingBoxes()
-        {
-            
-        }
 
         public List<Informer> JPS(Informer from, Informer to)
         {
