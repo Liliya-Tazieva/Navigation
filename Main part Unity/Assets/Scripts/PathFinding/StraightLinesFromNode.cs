@@ -60,6 +60,14 @@ namespace Assets.Scripts.PathFinding
             return list;
         }
 
+        public void ReduceLines(Node [,] nodesArray)
+        {
+            foreach (var line in Lines)
+            {
+                line.ReduceLine(nodesArray);
+            }
+        }
+
         public static List<Node> ToList(StraightLinesFromNode lines, Node[,] nodesArray)
         {
             var list = new List<Node>();

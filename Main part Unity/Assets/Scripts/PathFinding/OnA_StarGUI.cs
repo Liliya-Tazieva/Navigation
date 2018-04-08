@@ -19,6 +19,7 @@ public class OnA_StarGUI : MonoBehaviour {
     private Renderer _finishRenderer;
     private Color _finishColor;
     private bool _startChanged;
+    private bool _selectNodeForBB;
 
     public void RunJPS()
     {
@@ -244,29 +245,87 @@ public class OnA_StarGUI : MonoBehaviour {
 
     public void ShowNeighboursAndTJP()
     {
+        var controller = GetComponentInChildren<Controller>();
+        if (!controller.IsPrecomputed) controller.PrecomputeMap();
         if (StartInformer != null && FinishInformer != null)
         {
-            var controller = GetComponentInChildren<Controller>();
-            if(!controller.IsPrecomputed) controller.PrecomputeMap();
             DebugInformationAlgorithm debugInformation;
             controller.InitializeDebugInfo();
-            Extensions.NeighboursAndTJP(StartInformer,FinishInformer,controller.NodesArray,out debugInformation);
+            Extensions.NeighboursAndTJP(StartInformer, FinishInformer, controller.NodesArray, out debugInformation);
             controller.DebugManagerAStar.AddPath(debugInformation);
 
         }
-        else Debug.LogError("Enter proper arguments");
+        else
+        {
+            Debug.LogError("Enter input arguments");
+            Extensions.ShowJP(controller.JumpPoints);
+        }
+    }
+
+    public void ShowRectangles()
+    {
+        var controller = GetComponentInChildren<Controller>();
+        if (!controller.IsPrecomputed) controller.PrecomputeMap();
+        DebugInformationAlgorithm debugInformation;
+        controller.InitializeDebugInfo();
+        Extensions.ShowJPandLinesFromThem(controller.JumpPoints, controller.NodesArray, out debugInformation);
+        controller.DebugManagerAStar.AddPath(debugInformation);
+    }
+
+    public IEnumerator ShowBoundCoroutine()
+    {
+        var controller = GetComponentInChildren<Controller>();
+        if (!controller.IsPrecomputed) controller.PrecomputeMap();
+
+        Debug.LogWarning("Select Primary JP to continue from "+controller.JumpPoints.Count);
+        
+        while (true)
+        {
+            if (Input.GetButtonDown("Fire1"))
+            {
+                RaycastHit hit;
+                var cam = FindObjectOfType<Camera>();
+                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out hit))
+                {
+                    var tile = hit.collider.gameObject;
+
+                    var selectedNode = tile.GetComponent<Informer>();
+                    var x = (int) selectedNode.transform.position.x / 3;
+                    var y = (int) selectedNode.transform.position.z / 3;
+                    
+                    //Debug
+                    Debug.Log("Selected point ("+x+", "+y+") JP type = "+controller.NodesArray[x, y].IsJumpPoint
+                        +" visibleJP = "+ controller.NodesArray[x, y].VisibleJP.Count);
+
+                    Extensions.ShowBound(controller.NodesArray[x,y]);
+
+                    _selectNodeForBB = false;
+
+                    yield break;
+                }
+            }
+            yield return null;
+        }
+    }
+
+    public void ShowBoundForSelectedNodeWrapper()
+    {
+        _selectNodeForBB = true;
+        StartCoroutine(ShowBoundCoroutine());
     }
 
     // Use this for initialization
-	void Start () {
+    void Start () {
 	    _currentMap = 0;
 	    _startChanged = false;
+        _selectNodeForBB = false;
     }
 
     void Update()
     {
         
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetButtonDown("Fire1") && !_selectNodeForBB)
         {
             RaycastHit hit;
             var cam = FindObjectOfType<Camera>();

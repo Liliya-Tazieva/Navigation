@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
+using Accord.MachineLearning.DecisionTrees.Pruning;
 using Assets.Scripts.Core;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -237,6 +238,19 @@ namespace Assets.Scripts.PathFinding
             }
 
             return isCrossing ? crossPoint : null;
+        }
+
+        public void ReduceLine(Node[,] nodesArray)
+        {
+            foreach (var point in Points)
+            {
+                if (nodesArray[point.X, point.Y].InformerNode.IsObstacle)
+                {
+                    Finish = point;
+                    Points = FindMiddlePoints(Start, Finish, Destination);
+                    break;
+                }
+            }
         }
     }
 }

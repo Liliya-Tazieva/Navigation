@@ -118,6 +118,7 @@ namespace Assets.Scripts.Core {
                 node.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
             return neighbours;
         }
+
         public static List<Tree_Node> NeighboursSelective(Tree_Node parent,int x, int y, Node[,] array, Destinations destination, Node finish,
             StraightLinesFromNode linesFromFinish)
         {
@@ -418,6 +419,12 @@ namespace Assets.Scripts.Core {
             return true;
         }
 
+        public static bool Reachable(List<Point> line, Node[,] nodesArray)
+        {
+            //TODO: make reachable condition more complicated to elliminate more points
+            return line.All(point => !nodesArray[point.X, point.Y].InformerNode.IsObstacle);
+        }
+
         public static List<Destinations> GetDestinationsFromNeighbours(List<Tree_Node> neighbours)
         {
             var destinations = new List<Destinations>();
@@ -485,6 +492,30 @@ namespace Assets.Scripts.Core {
             };
         }
 
+        public static void ShowJPandLinesFromThem(List<Node> jumpPoints, Node[,] nodesArray,
+            out DebugInformationAlgorithm debugInfo)
+        {
+            var straightLines = new StraightLinesFromNode();
+            foreach (var jp in jumpPoints)
+            {
+                var destinations = new List<Destinations> { Destinations.Down, Destinations.Up,
+                Destinations.Right, Destinations.Left};
+                var straightLinesFromJP = new StraightLinesFromNode(jp, destinations);
+                straightLinesFromJP.ReduceLines(nodesArray);
+                straightLines.Lines.AddRange(straightLinesFromJP.Lines);
+            }
+
+            debugInfo = new DebugInformationAlgorithm
+            {
+                From = null,
+                To = null,
+                Observed = new List<Node>(),
+                LinesFromFinish = StraightLinesFromNode.ToList(straightLines, nodesArray),
+                CrossPoints = new List<Node>(),
+                Destroy = false
+            };
+        }
+
         public static void ShowJP(List<Node> jumpPoits)
         {
             foreach (var jp in jumpPoits)
@@ -503,15 +534,6 @@ namespace Assets.Scripts.Core {
                 {
                     if (NodesArray[i, j].InformerNode.IsObstacle)
                     {
-                        //Don't create JP on each step of ledders, just on the ends
-                        if (j > 0 && i < height - 1 && i > 0 && j < width - 1
-                            && (NodesArray[i + 1, j + 1].InformerNode.IsObstacle // Up-Right 
-                                && NodesArray[i - 1, j - 1].InformerNode.IsObstacle // Down-Left 
-                                || NodesArray[i + 1, j - 1].InformerNode.IsObstacle // Down-Right 
-                                && NodesArray[i - 1, j + 1].InformerNode.IsObstacle)) //Up-Left 
-                        {
-                            continue;
-                        }
                         //DOWN - according to map
                         if (j > 0 && !NodesArray[i, j - 1].InformerNode.IsObstacle)
                         {
@@ -557,6 +579,23 @@ namespace Assets.Scripts.Core {
             }
             ShowJP(JumpPoints);
             return JumpPoints;
+        }
+
+        public static void ShowBound(Node jumpPoint)
+        {
+            if (jumpPoint.IsJumpPoint != JPType.Primary)
+            {
+                Debug.LogError("Selected point isn't Primary JP!");
+                return;
+            }
+
+            var renderer  = jumpPoint.InformerNode.GetComponent<Renderer>();
+            renderer.material.SetColor("_Color", Color.cyan);
+            foreach (var jp in jumpPoint.VisibleJP)
+            {
+                renderer = jp.InformerNode.GetComponent<Renderer>();
+                renderer.material.SetColor("_Color", Color.magenta);
+            }
         }
     }
 }

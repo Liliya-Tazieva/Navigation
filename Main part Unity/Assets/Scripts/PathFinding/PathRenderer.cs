@@ -99,33 +99,49 @@ namespace Assets.Scripts.PathFinding {
             Destroy(this);
         }
 
-        private IEnumerator AStarDebug( Component informer, Show show ) {
+        private IEnumerator AStarDebug(Component informer, Show show)
+        {
+            if (informer == null) yield break;
             var component = informer.GetComponent<Renderer>();
+
 
             RendererUseInformer rendererInformer;
 
-            if ( !_defaultColors.TryGetValue( component, out rendererInformer ) ) {
-                var color = component.material.GetColor( "_Color" );
+            if (!_defaultColors.TryGetValue(component, out rendererInformer))
+            {
+                var color = component.material.GetColor("_Color");
 
-                rendererInformer = new RendererUseInformer() {
+                rendererInformer = new RendererUseInformer()
+                {
                     DefaultColor = color,
                     UseCount = 1
                 };
-                _usedRenderers.Add( component );
-                _defaultColors.Add( component, rendererInformer );
-            } else if ( _usedRenderers.Add( component ) ) {
+                _usedRenderers.Add(component);
+                _defaultColors.Add(component, rendererInformer);
+            }
+            else if (_usedRenderers.Add(component))
+            {
                 rendererInformer.UseCount++;
             }
 
-            if ( show == Show.Observed ) {
-                component.material.SetColor( "_Color", Color.green );
-            } else if ( show == Show.Path ) {
-                component.material.SetColor( "_Color", Color.red );
-            } else if ( show == Show.From ) {
-                component.material.SetColor( "_Color", Color.cyan );
-            } else if ( show == Show.To) {
-                component.material.SetColor( "_Color", Color.magenta );
-            } else if (show == Show.Line) {
+            if (show == Show.Observed)
+            {
+                component.material.SetColor("_Color", Color.green);
+            }
+            else if (show == Show.Path)
+            {
+                component.material.SetColor("_Color", Color.yellow);
+            }
+            else if (show == Show.From)
+            {
+                component.material.SetColor("_Color", Color.cyan);
+            }
+            else if (show == Show.To)
+            {
+                component.material.SetColor("_Color", Color.magenta);
+            }
+            else if (show == Show.Line)
+            {
                 component.material.SetColor("_Color", Color.gray);
             }
             else if (show == Show.CrossPoint)
@@ -134,9 +150,9 @@ namespace Assets.Scripts.PathFinding {
             }
             else
             {
-                component.material.SetColor("_Color", Color.yellow);
+                component.material.SetColor("_Color", Color.red);
             }
-            yield return new WaitForSeconds( .01f );
+            yield return new WaitForSeconds(.01f);
         }
     }
 }

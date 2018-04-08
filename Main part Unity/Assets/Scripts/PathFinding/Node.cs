@@ -1,4 +1,5 @@
-﻿using AForge.Math;
+﻿using System.Collections.Generic;
+using AForge.Math;
 using Vector3 = UnityEngine.Vector3;
 
 namespace Assets.Scripts.PathFinding {
@@ -28,6 +29,8 @@ namespace Assets.Scripts.PathFinding {
         public Destinations DestinationFromPrevious;
         public Destinations DestinationToFinish;
 
+        public List<Node> VisibleJP;
+
         public Node(Informer i, NodeState v) {
             InformerNode = i;
             Visited = v;
@@ -47,6 +50,8 @@ namespace Assets.Scripts.PathFinding {
             
             IsJumpPoint = JPType.Default;
             TargetJP = false;
+
+            VisibleJP = new List<Node>();
         }
 
         public Node(Node n)
@@ -63,6 +68,8 @@ namespace Assets.Scripts.PathFinding {
                 NormMatrix = n.NormMatrix;
                 IsJumpPoint = n.IsJumpPoint;
                 TargetJP = n.TargetJP;
+
+                VisibleJP = n.VisibleJP;
             }
         }
 

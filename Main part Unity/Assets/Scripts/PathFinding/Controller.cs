@@ -229,6 +229,7 @@ namespace Assets.Scripts.PathFinding {
                 }*/
             if (debugInformation != null) {
                 debugInformation.FinalPath = finalPath;
+                Debug.Log("Processed " + debugInformation.Observed.Count);
             }
                 /*Debug.Log("Final Path:");
                 foreach (var informer in finalPath) {
@@ -236,16 +237,70 @@ namespace Assets.Scripts.PathFinding {
                 }*/
             return finalPath;
         }
-    
-		public void PrecomputeMap()
+
+        public List<Point> BresenhamLineAlgorithm(Node p1, Node p2)
+        {
+            var line = new List<Point>();
+            var lineWidth = p2.X() - p1.X();
+            var lineHeight = p2.Y() - p1.Y();
+            int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+            if (lineWidth < 0) dx1 = -1; else if (lineWidth > 0) dx1 = 1;
+            if (lineHeight < 0) dy1 = -1; else if (lineHeight > 0) dy1 = 1;
+            if (lineWidth < 0) dx2 = -1; else if (lineWidth > 0) dx2 = 1;
+            var longest = Math.Abs(lineWidth);
+            var shortest = Math.Abs(lineHeight);
+            if (!(longest > shortest))
+            {
+                longest = Math.Abs(lineHeight);
+                shortest = Math.Abs(lineWidth);
+                if (lineHeight < 0) dy2 = -1; else if (lineHeight > 0) dy2 = 1;
+                dx2 = 0;
+            }
+            var numerator = longest >> 1;
+            var currentPoint = new Point(p1.X(), p1.Y());
+            for (var i = 0; i <= longest; i++)
+            {
+                line.Add(new Point(currentPoint.X, currentPoint.Y));
+                numerator += shortest;
+                if (!(numerator < longest))
+                {
+                    numerator -= longest;
+                    currentPoint.X += dx1;
+                    currentPoint.Y += dy1;
+                }
+                else
+                {
+                    currentPoint.X += dx2;
+                    currentPoint.Y += dy2;
+                }
+            }
+            return line;
+        }
+
+
+        public void CreateVisibilityGraph()
+        {
+            for(var  i = 0; i < JumpPoints.Count - 1; ++i)
+            for (var j = i + 1; j < JumpPoints.Count; ++j)
+            {
+                var line = BresenhamLineAlgorithm(JumpPoints[i], JumpPoints[j]);
+                if (Extensions.Reachable(line, NodesArray))
+                {
+                    JumpPoints[i].VisibleJP.Add(JumpPoints[j]);
+                    JumpPoints[j].VisibleJP.Add(JumpPoints[i]);
+                }
+            }
+        }
+
+        public void PrecomputeMap()
 		{
             JumpPoints.Clear();
 		    JumpPoints = Extensions.FindPrimaryJPWithObstacles(NodesArray, height, width);
-
+            
             //computing distances to jump points and obstacles
             for (var i = 0; i < height; ++i) {
 				for (var j = 0; j < width; ++j) {
-				    if (NodesArray[i, j].InformerNode.IsObstacle) continue;
+                    if (NodesArray[i, j].InformerNode.IsObstacle) continue;
 				    //Checking up
 				    var k = 1;
 				    while (j + k < width)
@@ -345,7 +400,7 @@ namespace Assets.Scripts.PathFinding {
 				}
 			}
 
-                //Finding diagonal JP
+            //Finding diagonal JP
 		    for (var i = 0; i < height; ++i)
 		    {
 		        for (var j = 0; j < width; ++j)
@@ -369,8 +424,8 @@ namespace Assets.Scripts.PathFinding {
 		                            || NodesArray[i + k, j + k].NormMatrix[1, 2] > 0)
 		                        {
 		                            NodesArray[i, j].NormMatrix[0, 2] = k;
-		                            //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
-		                                //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
+		                            /*if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
+		                                NodesArray[i, j].IsJumpPoint = JPType.Diagonal;*/
 		                        }
                                 else if (NodesArray[i + k + 1, j + k].InformerNode.IsObstacle
                                         || NodesArray[i + k, j + k + 1].InformerNode.IsObstacle)
@@ -408,8 +463,8 @@ namespace Assets.Scripts.PathFinding {
                                 || NodesArray[i + k, j - k].NormMatrix[2, 1] > 0)
                                 {
                                     NodesArray[i, j].NormMatrix[2, 2] = k;
-                                    //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
-                                    //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
+                                    /*if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
+                                    NodesArray[i, j].IsJumpPoint = JPType.Diagonal;*/
                                 }
                                 else if (NodesArray[i + k, j - k - 1].InformerNode.IsObstacle
                                          || NodesArray[i + k + 1, j - k].InformerNode.IsObstacle)
@@ -447,8 +502,8 @@ namespace Assets.Scripts.PathFinding {
                                     || NodesArray[i - k, j + k].NormMatrix[1, 0] > 0)
                                 {
                                     NodesArray[i, j].NormMatrix[0, 0] = k;
-                                    //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
-                                    //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
+                                    /*if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
+                                    NodesArray[i, j].IsJumpPoint = JPType.Diagonal;*/
                                 }
                                 else if (NodesArray[i - k - 1, j + k].InformerNode.IsObstacle
                                         || NodesArray[i - k, j + k + 1].InformerNode.IsObstacle)
@@ -486,8 +541,8 @@ namespace Assets.Scripts.PathFinding {
                                     || NodesArray[i - k, j - k].NormMatrix[2, 1] > 0)
                                 {
                                     NodesArray[i, j].NormMatrix[2, 0] = k;
-                                    //if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
-                                        //NodesArray[i, j].IsJumpPoint = JPType.Diagonal;
+                                    /*if (NodesArray[i, j].IsJumpPoint != JPType.Primary)
+                                        NodesArray[i, j].IsJumpPoint = JPType.Diagonal;*/
                                 }
                                 else if (NodesArray[i - k - 1, j - k].InformerNode.IsObstacle
                                          || NodesArray[i - k, j - k - 1].InformerNode.IsObstacle)
@@ -519,19 +574,11 @@ namespace Assets.Scripts.PathFinding {
                     tileText.text = text;
 		        }
 		    }
-            //Show DiagonalJP
-            /*for (var i = 0; i < height; ++i)
-		    {
-		        for (var j = 0; j < width; ++j)
-		        {
-                    if(NodesArray[i, j].IsJumpPoint == JPType.Diagonal)
-                    { var renderer = NodesArray[i,j].InformerNode.GetComponent<Renderer>();
-                    renderer.material.SetColor("_Color", Color.magenta);}
-                }
-		    }*/
+            //Create graph
+            CreateVisibilityGraph();
 
             //Prepare for Goal bounding
-		    Boxes = BoundingBoxes.FindBoxes(NodesArray, height, width, JumpPoints);
+            Boxes = BoundingBoxes.FindBoxes(NodesArray, height, width, JumpPoints);
 
             IsPrecomputed = true;
 		}
@@ -585,7 +632,6 @@ namespace Assets.Scripts.PathFinding {
 
 		    while (current.Currentnode != finish)
 		    {
-                
                 if (!observed.Exists(arg => arg.Currentnode.Visited!=NodeState.Processed))
 		        {
                     Debug.Log("No path was found");
@@ -684,6 +730,10 @@ namespace Assets.Scripts.PathFinding {
                             observed[index].Currentnode.Distance = tempTargetJP.Currentnode.Distance;
                     }
                 }
+
+                //Debug
+                Debug.Log("current = (" + current.Currentnode.X() + " " + current.Currentnode.Y() + ") neighbours = " + neighbours.Count);
+
                 if (neighbours.Count != 0)
                 {
                     foreach(var neighbour in neighbours)
@@ -691,6 +741,11 @@ namespace Assets.Scripts.PathFinding {
                         if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
                         {
                             if (Extensions.SelectJPFromNeighbours(current,neighbour)) observed.Add(neighbour);
+
+                            /*//Debug
+                            if (Extensions.SelectJPFromNeighbours(current, neighbour))
+                                Debug.Log("neighbour = (" + neighbour.Currentnode.X() + " " + neighbour.Currentnode.Y() + ") JP of type "
+                                + neighbour.Currentnode.IsJumpPoint+" metrics = "+neighbour.Currentnode.Distance +" added");*/
                         }
                         else
                         {
@@ -698,6 +753,8 @@ namespace Assets.Scripts.PathFinding {
                                 observed.FindIndex(arg => arg.Currentnode.Position == neighbour.Currentnode.Position);
                             if (observed[index].Currentnode.Visited == NodeState.Discovered)
                                 observed[index].Currentnode.Distance = neighbour.Currentnode.Distance;
+                            /*//Debug
+                            Debug.Log("neighbour = (" + neighbour.Currentnode.X() + " " + neighbour.Currentnode.Y() + ") already existed");*/
                         }
                     }
                 }
@@ -711,9 +768,8 @@ namespace Assets.Scripts.PathFinding {
 		        }
 		        else current = observed[0];
 
-
-		    }
-            Debug.Log("Path: "+path.Count);
+            }
+            //Debug.Log("Path: "+path.Count);
             if(path.Count>1)
             {
                 var finalPath = new List<Node>();
@@ -732,9 +788,9 @@ namespace Assets.Scripts.PathFinding {
                         observed.Where(arg => arg.Currentnode.Visited==NodeState.Processed).
                         OrderBy(arg => arg.Level).ToList());
                     debugInformation.FinalPath = Extensions.ToInformers(finalPath);
+                    //Debug.Log("Processed " + debugInformation.Observed.Count);
                 }
-                Debug.Log("Final path: " + finalPath.Count);
-
+                //Debug.Log("Final path: " + finalPath.Count);
                 return finalPath;
 		    }
             else return null;
