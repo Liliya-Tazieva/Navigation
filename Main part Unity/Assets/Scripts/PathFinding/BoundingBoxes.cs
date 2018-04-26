@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Assets.Scripts.Core;
 using UnityEngine;
 
 namespace Assets.Scripts.PathFinding
@@ -10,79 +12,23 @@ namespace Assets.Scripts.PathFinding
         public int MinY;
         public int MaxY;
 
+        public List<Node> BoundJP;
+        public Node StartJP;
+
+        public int BoxID;
+
+        public BoundingBoxes(Node start, int id)
+        {
+            StartJP = start;
+            BoxID = id;
+
+            BoundJP = new List<Node>();
+        }
+
         public static List<BoundingBoxes> FindBoxes(Node[,] nodesArray, int height, int width, List<Node> jumpPoints)
         {
             var boxes = new List<BoundingBoxes>();
             
-            /*var histogramX = new int[width];
-            var histogramY = new int[height];
-            var histogramJpX = new int[width];
-            var histogramJpY = new int[height];
-
-
-            for (var i = 0; i < height; ++i)
-            {
-                for (var j = 0; j < width; ++j)
-                {
-                    if (nodesArray[i, j].InformerNode.IsObstacle)
-                    {
-                        histogramX[j]++;
-                        histogramY[i]++;
-                    }
-                    if (nodesArray[i, j].IsJumpPoint == JPType.Primary)
-                    {
-                        histogramJpX[j]++;
-                        histogramJpY[i]++;
-                    }
-                }
-            }
-            
-            //Debug
-            Debug.Log("HISTOGRAM OBSTACLES X:");
-            for (var i = 0; i < width; ++i)
-            {
-                Debug.Log("bin[" + i + "] " + histogramX[i]);
-            }
-            Debug.Log("HISTOGRAM OBSTACLES Y:");
-            for (var i = 0; i < height; ++i)
-            {
-                Debug.Log("bin[" + i + "] " + histogramY[i]);
-            }
-            Debug.Log("HISTOGRAM JP X:");
-            for (var i = 0; i < width; ++i)
-            {
-                Debug.Log("bin[" + i + "] " + histogramJpX[i]);
-            }
-            Debug.Log("HISTOGRAM JP Y:");
-            for (var i = 0; i < height; ++i)
-            {
-                Debug.Log("bin[" + i + "] " + histogramJpY[i]);
-            }
-
-            //Find all local maximums
-            for (var i = 1; i < width - 1; ++i)
-            {
-                if (histogramX[i] > histogramX[i - 1] && histogramX[i] > histogramX[i + 1])
-                {
-                    Debug.Log("histogramX[" + i + "] " + histogramX[i]+" is a local max");
-                }
-                if (histogramJpX[i] > histogramJpX[i - 1] && histogramJpX[i] > histogramJpX[i + 1])
-                {
-                    Debug.Log("histogramJpX[" + i + "] " + histogramJpX[i] + " is a local max");
-                }
-            }
-            for (var i = 1; i < height - 1; ++i)
-            {
-                if (histogramY[i] > histogramY[i - 1] && histogramY[i] > histogramY[i + 1])
-                {
-                    Debug.Log("histogramY[" + i + "] " + histogramY[i] + " is a local max");
-                }
-                if (histogramJpY[i] > histogramJpY[i - 1] && histogramJpY[i] > histogramJpY[i + 1])
-                {
-                    Debug.Log("histogramJpY[" + i + "] " + histogramJpY[i] + " is a local max");
-                }
-            }*/
-
             return boxes;
         }
 
@@ -104,6 +50,19 @@ namespace Assets.Scripts.PathFinding
             var path = new List<BoundingBoxes>();
 
             return path;
+        }
+
+        public void EliminateJPFromBound()
+        {
+            var mean = BoundJP.Sum(jumpPoint => StartJP.InformerNode.MetricsAStar(jumpPoint.InformerNode));
+
+            mean /= (BoundJP.Count - 1);
+
+            foreach (var jumpPoint in BoundJP)
+            {
+                if (StartJP.InformerNode.MetricsAStar(jumpPoint.InformerNode) > mean * 2)
+                    BoundJP.Remove(jumpPoint);
+            }
         }
     }
 }

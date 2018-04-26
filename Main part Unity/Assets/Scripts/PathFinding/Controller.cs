@@ -21,8 +21,8 @@ namespace Assets.Scripts.PathFinding {
         public float Radius;
 
         public KDTree<Informer> NodesTree = new KDTree<Informer>(3);
-        public static int height = 34;
-        public static int width = 35;
+        public const int height = 34;
+        public const int width = 35;
         public Node[,] NodesArray = new Node [height,width];
 		public bool IsPrecomputed;
         public List<Node> JumpPoints = new List<Node>();
@@ -237,58 +237,45 @@ namespace Assets.Scripts.PathFinding {
                 }*/
             return finalPath;
         }
-
-        public List<Point> BresenhamLineAlgorithm(Node p1, Node p2)
-        {
-            var line = new List<Point>();
-            var lineWidth = p2.X() - p1.X();
-            var lineHeight = p2.Y() - p1.Y();
-            int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
-            if (lineWidth < 0) dx1 = -1; else if (lineWidth > 0) dx1 = 1;
-            if (lineHeight < 0) dy1 = -1; else if (lineHeight > 0) dy1 = 1;
-            if (lineWidth < 0) dx2 = -1; else if (lineWidth > 0) dx2 = 1;
-            var longest = Math.Abs(lineWidth);
-            var shortest = Math.Abs(lineHeight);
-            if (!(longest > shortest))
-            {
-                longest = Math.Abs(lineHeight);
-                shortest = Math.Abs(lineWidth);
-                if (lineHeight < 0) dy2 = -1; else if (lineHeight > 0) dy2 = 1;
-                dx2 = 0;
-            }
-            var numerator = longest >> 1;
-            var currentPoint = new Point(p1.X(), p1.Y());
-            for (var i = 0; i <= longest; i++)
-            {
-                line.Add(new Point(currentPoint.X, currentPoint.Y));
-                numerator += shortest;
-                if (!(numerator < longest))
-                {
-                    numerator -= longest;
-                    currentPoint.X += dx1;
-                    currentPoint.Y += dy1;
-                }
-                else
-                {
-                    currentPoint.X += dx2;
-                    currentPoint.Y += dy2;
-                }
-            }
-            return line;
-        }
-
-
+        
         public void CreateVisibilityGraph()
         {
             for(var  i = 0; i < JumpPoints.Count - 1; ++i)
             for (var j = i + 1; j < JumpPoints.Count; ++j)
             {
-                var line = BresenhamLineAlgorithm(JumpPoints[i], JumpPoints[j]);
+                var line = Extensions.BresenhamLineAlgorithm(JumpPoints[i], JumpPoints[j]);
                 if (Extensions.Reachable(line, NodesArray))
                 {
                     JumpPoints[i].VisibleJP.Add(JumpPoints[j]);
                     JumpPoints[j].VisibleJP.Add(JumpPoints[i]);
                 }
+            }
+        }
+
+        public void CreateBounds()
+        {
+            int currentBB = 0;
+            for (var i = 0; i < JumpPoints.Count - 1; ++i)
+            {
+                if (JumpPoints[i].BoundingBox != -1) continue;
+                JumpPoints[i].BoundingBox = currentBB;
+
+                Boxes.Add(new BoundingBoxes(JumpPoints[i], currentBB));
+                Boxes[currentBB].BoundJP.Add(JumpPoints[i]);
+
+                for (var j = i + 1; j < JumpPoints.Count; ++j)
+                {
+                    if (JumpPoints[i].BoundingBox != -1) continue;
+
+                    var line = Extensions.BresenhamLineAlgorithm(JumpPoints[i], JumpPoints[j]);
+
+                    if (Extensions.Reachable(line, NodesArray))
+                    {
+                        JumpPoints[j].BoundingBox = currentBB;
+                        Boxes[currentBB].BoundJP.Add(JumpPoints[j]);
+                    }
+                }
+                ++currentBB;
             }
         }
 

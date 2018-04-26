@@ -20,6 +20,7 @@ public class OnA_StarGUI : MonoBehaviour {
     private Color _finishColor;
     private bool _startChanged;
     private bool _selectNodeForBB;
+    private bool _changeMapDown;
 
     public void RunJPS()
     {
@@ -272,12 +273,65 @@ public class OnA_StarGUI : MonoBehaviour {
         controller.DebugManagerAStar.AddPath(debugInformation);
     }
 
+    public void ChangeMap()
+    {
+        var mapManager = GetComponentInChildren<MapManager>();
+        var controller = GetComponentInChildren<Controller>();
+
+        controller.IsPrecomputed = false;
+
+        RaycastHit hit;
+        var cam = FindObjectOfType<Camera>();
+        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hit))
+        {
+            var tile = hit.collider.gameObject;
+
+            var selectedNode = tile.GetComponent<Informer>();
+            var x = (int) selectedNode.transform.position.x / 3;
+            var y = (int) selectedNode.transform.position.z / 3;
+
+            //Changing borders not allowed
+            if (x == 0 || y == 0 || x == mapManager.Map.height - 1 || y == mapManager.Map.width - 1)
+            {
+                Debug.LogWarning("Changing borders of the map not allowed");
+                return;
+            }
+
+            var informer = controller.NodesArray[x, y].InformerNode;
+            informer.IsObstacle = !informer.IsObstacle;
+
+            controller.NodesArray[x, y] = new Node(informer, NodeState.Undiscovered);
+
+            Destroy(informer.gameObject);
+
+            var prefab = mapManager.TilesM.GetPrefab(informer.IsObstacle);
+            if (prefab == null)
+            {
+                Debug.LogError("No such tile!");
+                return;
+            }
+
+            var position = new Vector3(x * 3.0f, 0.0f, y * 3.0f);
+            var temp = Instantiate(prefab, position, Quaternion.identity) as GameObject;
+            if (temp != null)
+            {
+                temp.transform.parent = mapManager.gameObject.transform;
+            }
+        }
+    }
+
+    public void ChangeMapWrapper()
+    {
+        _changeMapDown = !_changeMapDown;
+    }
+
     public IEnumerator ShowBoundCoroutine()
     {
         var controller = GetComponentInChildren<Controller>();
         if (!controller.IsPrecomputed) controller.PrecomputeMap();
 
-        Debug.LogWarning("Select Primary JP to continue from "+controller.JumpPoints.Count);
+        Debug.LogWarning("Select Primary JP"+controller.JumpPoints.Count);
         
         while (true)
         {
@@ -320,12 +374,12 @@ public class OnA_StarGUI : MonoBehaviour {
 	    _currentMap = 0;
 	    _startChanged = false;
         _selectNodeForBB = false;
+        _changeMapDown = false;
     }
 
     void Update()
     {
-        
-        if (Input.GetButtonDown("Fire1") && !_selectNodeForBB)
+        if (Input.GetButtonDown("Fire1") && !_selectNodeForBB && !_changeMapDown)
         {
             RaycastHit hit;
             var cam = FindObjectOfType<Camera>();
@@ -365,5 +419,6 @@ public class OnA_StarGUI : MonoBehaviour {
                 }
             }
         }
+        if (Input.GetButtonDown("Fire1") && _changeMapDown) ChangeMap();
     }
 }

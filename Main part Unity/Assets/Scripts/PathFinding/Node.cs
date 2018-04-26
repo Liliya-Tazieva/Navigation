@@ -30,6 +30,7 @@ namespace Assets.Scripts.PathFinding {
         public Destinations DestinationToFinish;
 
         public List<Node> VisibleJP;
+        public int BoundingBox;
 
         public Node(Informer i, NodeState v) {
             InformerNode = i;
@@ -52,6 +53,7 @@ namespace Assets.Scripts.PathFinding {
             TargetJP = false;
 
             VisibleJP = new List<Node>();
+            BoundingBox = -1;
         }
 
         public Node(Node n)
@@ -70,6 +72,7 @@ namespace Assets.Scripts.PathFinding {
                 TargetJP = n.TargetJP;
 
                 VisibleJP = n.VisibleJP;
+                BoundingBox = n.BoundingBox;
             }
         }
 

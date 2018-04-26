@@ -15,5 +15,10 @@ namespace Assets.Scripts.Map {
             var index = Colors.IndexOf(color);
             return index == -1 ? null : Prefabs[index];
         }
+
+        public GameObject GetPrefab(bool obstacle)
+        {
+            return obstacle ? Prefabs[1] : Prefabs[0];
+        }
     }
 }

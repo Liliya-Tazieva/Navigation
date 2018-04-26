@@ -418,11 +418,64 @@ namespace Assets.Scripts.Core {
             }
             return true;
         }
+        
+        public static List<Point> BresenhamLineAlgorithm(Node p1, Node p2)
+        {
+            var line = new List<Point>();
+            var lineWidth = p2.X() - p1.X();
+            var lineHeight = p2.Y() - p1.Y();
+            int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+            if (lineWidth < 0) dx1 = -1; else if (lineWidth > 0) dx1 = 1;
+            if (lineHeight < 0) dy1 = -1; else if (lineHeight > 0) dy1 = 1;
+            if (lineWidth < 0) dx2 = -1; else if (lineWidth > 0) dx2 = 1;
+            var longest = Math.Abs(lineWidth);
+            var shortest = Math.Abs(lineHeight);
+            if (!(longest > shortest))
+            {
+                longest = Math.Abs(lineHeight);
+                shortest = Math.Abs(lineWidth);
+                if (lineHeight < 0) dy2 = -1; else if (lineHeight > 0) dy2 = 1;
+                dx2 = 0;
+            }
+            var numerator = longest >> 1;
+            var currentPoint = new Point(p1.X(), p1.Y());
+            for (var i = 0; i <= longest; i++)
+            {
+                line.Add(new Point(currentPoint.X, currentPoint.Y));
+                numerator += shortest;
+                if (!(numerator < longest))
+                {
+                    numerator -= longest;
+                    currentPoint.X += dx1;
+                    currentPoint.Y += dy1;
+                }
+                else
+                {
+                    currentPoint.X += dx2;
+                    currentPoint.Y += dy2;
+                }
+            }
+            return line;
+        }
 
         public static bool Reachable(List<Point> line, Node[,] nodesArray)
         {
-            //TODO: make reachable condition more complicated to elliminate more points
-            return line.All(point => !nodesArray[point.X, point.Y].InformerNode.IsObstacle);
+            for (int i = 0; i < line.Count - 1; ++i)
+            {
+                if (nodesArray[line[i].X, line[i].Y].InformerNode.IsObstacle) return false;
+
+                var destination = StraightLine.FindDestination(line[i], line[i + 1]);
+
+                if (destination == Destinations.UpRight
+                    && nodesArray[line[i].X, line[i].Y].NormMatrix[0, 2] == 0) return false;
+                if (destination == Destinations.UpLeft
+                    && nodesArray[line[i].X, line[i].Y].NormMatrix[0, 0] == 0) return false;
+                if (destination == Destinations.DownRight
+                    && nodesArray[line[i].X, line[i].Y].NormMatrix[2, 2] == 0) return false;
+                if (destination == Destinations.DownLeft
+                    && nodesArray[line[i].X, line[i].Y].NormMatrix[2, 0] == 0) return false;
+            }
+            return true;
         }
 
         public static List<Destinations> GetDestinationsFromNeighbours(List<Tree_Node> neighbours)
