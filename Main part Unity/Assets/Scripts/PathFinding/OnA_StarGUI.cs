@@ -345,7 +345,7 @@ public class OnA_StarGUI : MonoBehaviour {
         var controller = GetComponentInChildren<Controller>();
         if (!controller.IsPrecomputed) controller.PrecomputeMap();
 
-        Debug.LogWarning("Select Primary JP"+controller.JumpPoints.Count);
+        Debug.LogWarning("Select Primary JP from avalable "+controller.JumpPoints.Count);
         
         while (true)
         {

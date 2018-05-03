@@ -7,15 +7,12 @@ namespace Assets.Scripts.PathFinding
 {
     public class BoundingBoxes
     {
-        public int MinX;
-        public int MaxX;
-        public int MinY;
-        public int MaxY;
-
         public List<Node> BoundJP;
         public Node StartJP;
 
         public int BoxID;
+
+        public Dictionary<int, List<int>> RoutesToOtherBB = new Dictionary<int, List<int>>();
 
         public BoundingBoxes(Node start, int id)
         {
@@ -23,6 +20,7 @@ namespace Assets.Scripts.PathFinding
             BoxID = id;
 
             BoundJP = new List<Node>();
+            RoutesToOtherBB.Add(id, new List<int> {id});
         }
 
         public static List<BoundingBoxes> FindBoxes(Node[,] nodesArray, int height, int width, List<Node> jumpPoints)
@@ -31,19 +29,7 @@ namespace Assets.Scripts.PathFinding
             
             return boxes;
         }
-
-        public static bool InBox(Node node, BoundingBoxes box)
-        {
-            return box.MinX > node.X() && box.MaxX < node.X()
-                   && box.MinY > node.Y() && box.MaxY > node.Y();
-        }
-
-        public static BoundingBoxes BelongToBox(Node node, List<BoundingBoxes> boxes)
-        {
-            return boxes.Find(arg => arg.MinX > node.X() && arg.MaxX < node.X()
-                                     && arg.MinY > node.Y() && arg.MaxY > node.Y());
-        }
-
+        
         public static List<BoundingBoxes> FindPathThroughBoxes(BoundingBoxes startBox,
             BoundingBoxes goalBox, List<BoundingBoxes> boxes)
         {

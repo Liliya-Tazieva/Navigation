@@ -254,6 +254,8 @@ namespace Assets.Scripts.PathFinding {
 
         public void CreateBounds()
         {
+            Boxes.Clear(); 
+
             var currentBB = 0;
             while(JumpPoints.Exists(arg => arg.BoundingBox == -1))
             {
@@ -552,7 +554,7 @@ namespace Assets.Scripts.PathFinding {
                             k++;
                         }
                     }
-                    var tileText = NodesArray[i, j].InformerNode.GetComponentInChildren<TextMesh>();
+                    /*var tileText = NodesArray[i, j].InformerNode.GetComponentInChildren<TextMesh>();
                     string text = "";
                     for (int m = 0; m < 3; ++m)
                     {
@@ -561,7 +563,7 @@ namespace Assets.Scripts.PathFinding {
                         text = text + "\n";
                     }
 
-                    tileText.text = text;
+                    tileText.text = text;*/
 		        }
 		    }
 
@@ -730,10 +732,10 @@ namespace Assets.Scripts.PathFinding {
                         {
                             if (Extensions.SelectJPFromNeighbours(current,neighbour)) observed.Add(neighbour);
 
-                            //Debug
+                            /*//Debug
                             if (Extensions.SelectJPFromNeighbours(current, neighbour))
                                 Debug.Log("neighbour = (" + neighbour.Currentnode.X() + " " + neighbour.Currentnode.Y() + ") JP of type "
-                                + neighbour.Currentnode.IsJumpPoint+" metrics = "+neighbour.Currentnode.Distance +" added");
+                                + neighbour.Currentnode.IsJumpPoint+" metrics = "+neighbour.Currentnode.Distance +" added");*/
                         }
                         else
                         {
