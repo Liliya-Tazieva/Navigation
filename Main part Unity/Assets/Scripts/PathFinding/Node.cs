@@ -76,6 +76,24 @@ namespace Assets.Scripts.PathFinding {
             }
         }
 
+
+        public void RestartNode()
+        {
+            for (var k = 0; k < 3; ++k)
+            {
+                for (var j = 0; j < 3; ++j)
+                {
+                    NormMatrix[k, j] = 0;
+                }
+            }
+
+            IsJumpPoint = JPType.Default;
+            TargetJP = false;
+
+            VisibleJP.Clear();
+            BoundingBox = -1;
+        }
+
         public int X()
         {
             return (int)InformerNode.transform.position.x/3;

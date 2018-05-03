@@ -340,47 +340,49 @@ public class OnA_StarGUI : MonoBehaviour {
         PrecomputeMap();
     }
 
-    public IEnumerator ShowBoundCoroutine()
+    public void ShowBound()
     {
         var controller = GetComponentInChildren<Controller>();
-        if (!controller.IsPrecomputed) controller.PrecomputeMap();
 
-        Debug.LogWarning("Select Primary JP from avalable "+controller.JumpPoints.Count);
-        
-        while (true)
+        RaycastHit hit;
+        var cam = FindObjectOfType<Camera>();
+        Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+        if (Physics.Raycast(ray, out hit))
         {
-            if (Input.GetButtonDown("Fire1"))
+            var tile = hit.collider.gameObject;
+
+            var selectedNode = tile.GetComponent<Informer>();
+            var x = (int) selectedNode.transform.position.x / 3;
+            var y = (int) selectedNode.transform.position.z / 3;
+
+            Debug.Log("Selected " + selectedNode.transform.position + " JP type = " +
+                      controller.NodesArray[x, y].IsJumpPoint);
+
+            if (controller.NodesArray[x, y].IsJumpPoint != JPType.Primary)
             {
-                RaycastHit hit;
-                var cam = FindObjectOfType<Camera>();
-                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out hit))
-                {
-                    var tile = hit.collider.gameObject;
-
-                    var selectedNode = tile.GetComponent<Informer>();
-                    var x = (int) selectedNode.transform.position.x / 3;
-                    var y = (int) selectedNode.transform.position.z / 3;
-                    
-                    //Debug
-                    Debug.Log("Selected point ("+x+", "+y+") JP type = "+controller.NodesArray[x, y].IsJumpPoint
-                        +" visibleJP = "+ controller.NodesArray[x, y].VisibleJP.Count);
-
-                    Extensions.ShowBound(controller.NodesArray[x,y]);
-
-                    _selectNodeForBB = false;
-
-                    yield break;
-                }
+                Debug.LogWarning("You need to select Primary JP");
+                return;
             }
-            yield return null;
+
+            var box = controller.Boxes.Find(arg => arg.BoxID == controller.NodesArray[x, y].BoundingBox);
+
+            foreach (var jp in box.BoundJP)
+            {
+                var renderer = jp.InformerNode.GetComponent<Renderer>();
+                renderer.material.SetColor("_Color", jp != box.StartJP ? Color.yellow : Color.red);
+
+                var tileText = jp.InformerNode.GetComponentInChildren<TextMesh>();
+                var text = "\n\t" + box.BoxID;
+                tileText.text = text;
+            }
         }
     }
 
-    public void ShowBoundForSelectedNodeWrapper()
+    public void ShowBoundWrapper(bool toggleVal)
     {
-        _selectNodeForBB = true;
-        StartCoroutine(ShowBoundCoroutine());
+        PrecomputeMap();
+
+        _selectNodeForBB = !_selectNodeForBB;
     }
 
     // Use this for initialization
@@ -433,6 +435,7 @@ public class OnA_StarGUI : MonoBehaviour {
                 }
             }
         }
-        if (Input.GetButtonDown("Fire1") && _changeMapDown) ChangeMap();
+        if (Input.GetButtonDown("Fire1") && _changeMapDown && !_selectNodeForBB) ChangeMap();
+        if (Input.GetButtonDown("Fire1") && !_changeMapDown && _selectNodeForBB) ShowBound();
     }
 }

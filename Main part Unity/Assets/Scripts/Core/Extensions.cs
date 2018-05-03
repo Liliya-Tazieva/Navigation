@@ -585,10 +585,6 @@ namespace Assets.Scripts.Core {
             {
                 for (var j = 0; j < width; ++j)
                 {
-                    //CleanUp
-                    var informer = NodesArray[i, j].InformerNode;
-                    NodesArray[i, j] = new Node(informer, NodeState.Undiscovered);
-                    
                     if (NodesArray[i, j].InformerNode.IsObstacle)
                     {
                         //DOWN - according to map
