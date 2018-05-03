@@ -26,7 +26,7 @@ namespace Assets.Scripts.PathFinding {
         public Node[,] NodesArray = new Node [height,width];
 		public bool IsPrecomputed;
         public List<Node> JumpPoints = new List<Node>();
-        public List<BoundingBoxes> Boxes;
+        public List<BoundingBoxes> Boxes = new List<BoundingBoxes>();
         
         public void RegisterInformer(Informer informer) {
             var position = informer.transform.position;
@@ -254,27 +254,30 @@ namespace Assets.Scripts.PathFinding {
 
         public void CreateBounds()
         {
-            int currentBB = 0;
-            for (var i = 0; i < JumpPoints.Count - 1; ++i)
+            var currentBB = 0;
+            while(JumpPoints.Exists(arg => arg.BoundingBox == -1))
             {
-                if (JumpPoints[i].BoundingBox != -1) continue;
-                JumpPoints[i].BoundingBox = currentBB;
+                var currJp = JumpPoints.Find(arg => arg.BoundingBox == -1);
+                currJp.BoundingBox = currentBB;
+                
+                var currentBbObject = new BoundingBoxes(currJp, currentBB);
+                currentBbObject.BoundJP.Add(currJp);
 
-                Boxes.Add(new BoundingBoxes(JumpPoints[i], currentBB));
-                Boxes[currentBB].BoundJP.Add(JumpPoints[i]);
+                var tempJpList = JumpPoints.FindAll(arg => arg.BoundingBox == -1);
 
-                for (var j = i + 1; j < JumpPoints.Count; ++j)
+                foreach (var jp in tempJpList)
                 {
-                    if (JumpPoints[i].BoundingBox != -1) continue;
-
-                    var line = Extensions.BresenhamLineAlgorithm(JumpPoints[i], JumpPoints[j]);
+                    var line = Extensions.BresenhamLineAlgorithm(currJp, jp);
 
                     if (Extensions.Reachable(line, NodesArray))
                     {
-                        JumpPoints[j].BoundingBox = currentBB;
-                        Boxes[currentBB].BoundJP.Add(JumpPoints[j]);
+                        jp.BoundingBox = currentBB;
+                        currentBbObject.BoundJP.Add(jp);
                     }
                 }
+
+
+                Boxes.Add(currentBbObject);
                 ++currentBB;
             }
         }
@@ -561,11 +564,9 @@ namespace Assets.Scripts.PathFinding {
                     tileText.text = text;
 		        }
 		    }
-            //Create graph
-            CreateVisibilityGraph();
 
             //Prepare for Goal bounding
-            Boxes = BoundingBoxes.FindBoxes(NodesArray, height, width, JumpPoints);
+            CreateBounds();
 
             IsPrecomputed = true;
 		}
@@ -729,10 +730,10 @@ namespace Assets.Scripts.PathFinding {
                         {
                             if (Extensions.SelectJPFromNeighbours(current,neighbour)) observed.Add(neighbour);
 
-                            /*//Debug
+                            //Debug
                             if (Extensions.SelectJPFromNeighbours(current, neighbour))
                                 Debug.Log("neighbour = (" + neighbour.Currentnode.X() + " " + neighbour.Currentnode.Y() + ") JP of type "
-                                + neighbour.Currentnode.IsJumpPoint+" metrics = "+neighbour.Currentnode.Distance +" added");*/
+                                + neighbour.Currentnode.IsJumpPoint+" metrics = "+neighbour.Currentnode.Distance +" added");
                         }
                         else
                         {
@@ -746,8 +747,10 @@ namespace Assets.Scripts.PathFinding {
                     }
                 }
                 observed = observed.OrderBy(arg => arg.Currentnode.Visited).
-                    ThenBy(arg => arg.Currentnode.Distance).ToList();
+                    ThenBy(arg => arg.Currentnode.Distance).ThenBy(arg => arg.DistanceFromParent).ToList();
                 path.Add(current);
+
+		        if (tempTargetJP != null && tempTargetJP.Currentnode.Distance > observed[0].Currentnode.Distance) tempTargetJP = null;
 
 		        if (!observed[0].Currentnode.TargetJP && tempTargetJP != null)
 		        {

@@ -267,10 +267,19 @@ public class OnA_StarGUI : MonoBehaviour {
     {
         var controller = GetComponentInChildren<Controller>();
         if (!controller.IsPrecomputed) controller.PrecomputeMap();
-        DebugInformationAlgorithm debugInformation;
-        controller.InitializeDebugInfo();
-        Extensions.ShowJPandLinesFromThem(controller.JumpPoints, controller.NodesArray, out debugInformation);
-        controller.DebugManagerAStar.AddPath(debugInformation);
+
+        foreach (var box in controller.Boxes)
+        {
+            foreach (var jp in box.BoundJP)
+            {
+                var renderer = jp.InformerNode.GetComponent<Renderer>();
+                if(jp != box.StartJP) renderer.material.SetColor("_Color", Color.white);
+
+                var tileText = jp.InformerNode.GetComponentInChildren<TextMesh>();
+                var text = "\n\t" + box.BoxID;
+                tileText.text = text;
+            }
+        }
     }
 
     public void ChangeMap()
@@ -303,8 +312,6 @@ public class OnA_StarGUI : MonoBehaviour {
 
             controller.NodesArray[x, y] = new Node(informer, NodeState.Undiscovered);
 
-            Destroy(informer.gameObject);
-
             var prefab = mapManager.TilesM.GetPrefab(informer.IsObstacle);
             if (prefab == null)
             {
@@ -312,18 +319,25 @@ public class OnA_StarGUI : MonoBehaviour {
                 return;
             }
 
+            Destroy(informer.gameObject);
+
             var position = new Vector3(x * 3.0f, 0.0f, y * 3.0f);
             var temp = Instantiate(prefab, position, Quaternion.identity) as GameObject;
             if (temp != null)
             {
                 temp.transform.parent = mapManager.gameObject.transform;
+                informer = temp.GetComponent<Informer>();
+                controller.RegisterInformer(informer);
             }
+
         }
     }
 
-    public void ChangeMapWrapper()
+    public void ChangeMapWrapper(bool toggleVal)
     {
         _changeMapDown = !_changeMapDown;
+
+        PrecomputeMap();
     }
 
     public IEnumerator ShowBoundCoroutine()
