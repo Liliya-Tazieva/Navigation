@@ -267,24 +267,43 @@ namespace Assets.Scripts.PathFinding {
 
                 var tempJpList = JumpPoints.FindAll(arg => arg.BoundingBox == -1);
 
+                var meanDistance = 0f;
+
                 foreach (var jp in tempJpList)
                 {
                     var line = Extensions.BresenhamLineAlgorithm(currJp, jp);
 
                     if (Extensions.Reachable(line, NodesArray))
                     {
-                        jp.BoundingBox = currentBB;
+                        meanDistance += currentBbObject.StartJP.InformerNode.MetricsAStar(jp.InformerNode);
                         currentBbObject.BoundJP.Add(jp);
                     }
                 }
 
+                //Eliminate some of the points
+                meanDistance /= (currentBbObject.BoundJP.Count - 1);
+
+                //Debug.Log("Bound = "+ currentBB+" mean = "+meanDistance + " jp in bound before removal = "+currentBbObject.BoundJP.Count);
+
+                currentBbObject.BoundJP
+                    .RemoveAll(
+                        arg => currentBbObject.StartJP.InformerNode.MetricsAStar(arg.InformerNode) > meanDistance + 4.5);
+
+                //Debug.Log("Bound = " + currentBB + " jp in bound  after removal = " + currentBbObject.BoundJP.Count);
 
                 Boxes.Add(currentBbObject);
+                
+                //Mark Jump Points, that belong to new bound
+                foreach (var jumpPoint in currentBbObject.BoundJP)
+                {
+                    JumpPoints.Find(arg => arg == jumpPoint).BoundingBox = currentBB;
+                }
+
                 ++currentBB;
             }
         }
 
-        public void PrecomputeMap()
+        public void PrecomputeJP()
 		{
             JumpPoints.Clear();
 		    JumpPoints = Extensions.FindPrimaryJPWithObstacles(NodesArray, height, width);
@@ -566,12 +585,19 @@ namespace Assets.Scripts.PathFinding {
                     tileText.text = text;*/
 		        }
 		    }
+		}
+
+        public void PrecomputeMap()
+        {
+            PrecomputeJP();
 
             //Prepare for Goal bounding
             CreateBounds();
 
+            //TODO:Implement function, that finds routes between bounds
+
             IsPrecomputed = true;
-		}
+        }
 
         public List<Informer> JPS(Informer from, Informer to)
         {
