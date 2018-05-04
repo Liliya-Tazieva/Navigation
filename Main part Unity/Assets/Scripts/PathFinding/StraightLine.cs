@@ -206,8 +206,6 @@ namespace Assets.Scripts.PathFinding
             }
 
             return isCrossing ? crossPoint : null;
-            /*return Crossing(line1.Start.X, line1.Start.Y, line1.Finish.X, line1.Finish.Y,
-                line2.Start.X, line2.Start.Y, line2.Finish.X, line2.Finish.Y);*/
         }
 
         public static Point Crossing(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)

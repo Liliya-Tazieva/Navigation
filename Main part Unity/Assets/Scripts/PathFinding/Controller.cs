@@ -651,7 +651,11 @@ namespace Assets.Scripts.PathFinding {
             
             //Find closest bounds to start and finish
             var finishBound = -1;
-            if (useGB) finishBound = BoundingBoxes.FindClosestBound(JumpPoints, finish, NodesArray);
+            if (useGB)
+            {
+                Debug.Log("finishBound = " + finishBound);
+                finishBound = BoundingBoxes.FindClosestBound(JumpPoints, finish, NodesArray, false);
+            }
             
 		    var path = new List<Tree_Node>();
 		    var observed = new List<Tree_Node> {current};
@@ -776,16 +780,22 @@ namespace Assets.Scripts.PathFinding {
                 //Debug
                 if(useGB)
                     Debug.Log("current = (" + current.Currentnode.X() + " " + current.Currentnode.Y()
-                        + ") neighbours = " + neighbours.Count);
+                        + ") neighbours = " + neighbours.Count + " parentJP Bound "+ parentJp.BoundingBox);
 
                 if (neighbours.Count != 0)
                 {
                     foreach(var neighbour in neighbours)
                     {
                         //Use Goal bounding to eliminate neighbours
-                        if(useGB && neighbour.Currentnode.IsJumpPoint == JPType.Primary && parentJp.IsJumpPoint == JPType.Primary
+                        if (useGB && neighbour.Currentnode.IsJumpPoint == JPType.Primary &&
+                            parentJp.IsJumpPoint == JPType.Primary
                             && !Boxes.Find(arg => arg.BoxID == parentJp.BoundingBox).RoutesToOtherBB[finishBound]
-                            .Exists(arg => arg == neighbour.Currentnode.BoundingBox)) continue;
+                                .Exists(arg => arg == neighbour.Currentnode.BoundingBox))
+                        {
+                            Debug.Log("Eliminate neighbour Primary JP Bound "+neighbour.Currentnode.BoundingBox);
+
+                            continue;
+                        }
 
                         if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
                         {

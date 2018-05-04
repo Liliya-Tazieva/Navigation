@@ -28,19 +28,27 @@ namespace Assets.Scripts.PathFinding
             AllPoints = new List<Node>();
         }
 
-        public static int FindClosestBound(List<Node> jpList, Node node, Node[,] nodesArray)
+        public static int FindClosestBound(List<Node> jpList, Node node, Node[,] nodesArray, bool forPrimaryJP)
         {
-            var closestJp = jpList[0];
-            var minDist = 100000;
+            var closestBound = -1;
+            var minDist = 100000f;
 
             foreach (var jp in jpList)
             {
                 var dist = jp.InformerNode.MetricsAStar(node.InformerNode);
 
-                if (dist < minDist && Extensions.Reachable(node, jp, nodesArray)) closestJp = jp;
+                var line = Extensions.BresenhamLineAlgorithm(node, jp);
+                
+                if (dist < minDist && Extensions.Reachable(line, nodesArray))
+                {
+                    if(forPrimaryJP && jp.BoundingBox == node.BoundingBox) continue;
+
+                    closestBound = jp.BoundingBox;
+                    minDist = dist;
+                }
             }
 
-            return closestJp.BoundingBox;
+            return closestBound;
         }
 
         private static double Cross(Node O, Node A, Node B)
@@ -49,43 +57,35 @@ namespace Assets.Scripts.PathFinding
         }
 
         //Monotone Chain algorithm, a.k.a. Andrew's Algorithm
-        public void FindConvexHull()
+        public static List<Node> FindConvexHull (List<Node> pointsList)
         {
-            if (AllPoints == null)
-            {
-                Debug.LogWarning("Convex Hull can't be found with no points");
-                return;
-            }
+            int n = pointsList.Count, k = 0;
+            var convexHull = new List<Node>(new Node[2 * n]);
+            
+            if (pointsList.Count <= 1)
+                convexHull = pointsList;
 
-            if (AllPoints.Count() <= 1)
-                ConvexHull = AllPoints;
-
-            int n = AllPoints.Count(), k = 0;
-
-            ConvexHull = new List<Node>(new Node[2 * n]);
-
-            AllPoints.Sort((a, b) =>
+            
+            pointsList.Sort((a, b) =>
                 a.X() == b.X() ? a.Y().CompareTo(b.Y()) : a.X().CompareTo(b.X()));
 
             // Build lower hull
             for (var i = 0; i < n; ++i)
             {
-                while (k >= 2 && Cross(ConvexHull[k - 2], ConvexHull[k - 1], AllPoints[i]) <= 0)
+                while (k >= 2 && Cross(convexHull[k - 2], convexHull[k - 1], pointsList[i]) <= 0)
                     k--;
-                ConvexHull[k++] = AllPoints[i];
+                convexHull[k++] = pointsList[i];
             }
 
             // Build upper hull
             for (int i = n - 2, t = k + 1; i >= 0; i--)
             {
-                while (k >= t && Cross(ConvexHull[k - 2], ConvexHull[k - 1], AllPoints[i]) <= 0)
+                while (k >= t && Cross(convexHull[k - 2], convexHull[k - 1], pointsList[i]) <= 0)
                     k--;
-                ConvexHull[k++] = AllPoints[i];
+                convexHull[k++] = pointsList[i];
             }
 
-            ConvexHull = ConvexHull.Take(k - 1).ToList();
-
-            AllPoints.Clear();
+            return convexHull.Take(k - 1).ToList();
         }
 
         public static bool IsInsideBb(List<Node> convexHull, Node point)
@@ -95,7 +95,7 @@ namespace Assets.Scripts.PathFinding
             if (convexHull.Count < 3)
             {
                 Debug.LogError("Convex hull contains less than 3 points");
-                return inside;
+                return false;
             }
             
             var oldPoint = new Node(convexHull[convexHull.Count - 1]);
@@ -126,6 +126,11 @@ namespace Assets.Scripts.PathFinding
             }
             
             return inside;
+        }
+
+        public void FindPointsForConvexHull(List<BoundingBoxes> bbList, List<Node> jpList)
+        {
+            
         }
     }
 }
