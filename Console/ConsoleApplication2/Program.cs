@@ -45,7 +45,7 @@ namespace ConsoleApplication2
             NodesArray = new NodeArray(height, widght, nodesArray);
         }
 
-        public static List<Node> AStarBuTheBook(Node start, Node goal)
+        public static List<Node> AStarByTheBook(Node start, Node goal)
         {;
             if (start.IsObstacle || goal.IsObstacle)
             {
@@ -213,7 +213,7 @@ namespace ConsoleApplication2
                 //var path = AStar(from, to);
 
                 //Find path using A* by the book
-                var path = AStarBuTheBook(from, to);
+                var path = AStarByTheBook(from, to);
                 var length = 0f;
                 if (path != null)
                 {
