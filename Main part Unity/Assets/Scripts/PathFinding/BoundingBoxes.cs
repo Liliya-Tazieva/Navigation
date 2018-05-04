@@ -21,5 +21,20 @@ namespace Assets.Scripts.PathFinding
             BoundJP = new List<Node>();
             RoutesToOtherBB.Add(id, new List<int> {id});
         }
+
+        public static int FindClosestBound(List<Node> jpList, Node node, Node[,] nodesArray)
+        {
+            var closestJp = jpList[0];
+            var minDist = 100000;
+
+            foreach (var jp in jpList)
+            {
+                var dist = jp.InformerNode.MetricsAStar(node.InformerNode);
+
+                if (dist < minDist && Extensions.Reachable(node, jp, nodesArray)) closestJp = jp;
+            }
+
+            return closestJp.BoundingBox;
+        }
     }
 }

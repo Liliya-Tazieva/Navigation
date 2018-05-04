@@ -579,6 +579,28 @@ namespace Assets.Scripts.PathFinding {
 		    }
 		}
 
+        public void PrecomputeRoutesBetweenBb()
+        {
+            for (var i = 0; i < Boxes.Count - 1; ++i)
+            {
+                for (var j = i + 1; j < Boxes.Count; ++j)
+                {
+                    DebugInformationAlgorithm debugInformation;
+                    var path = JPS(Boxes[i].StartJP.InformerNode, Boxes[j].StartJP.InformerNode, false, out debugInformation, false);
+
+                    var boundsList = new List<int>();
+
+                    if (path != null)
+                        foreach (var node in path)
+                            if (node.BoundingBox != -1 && !boundsList.Contains(node.BoundingBox))
+                                boundsList.Add(node.BoundingBox);
+                    
+                    Boxes[i].RoutesToOtherBB.Add(Boxes[j].BoxID, boundsList);
+                    Boxes[j].RoutesToOtherBB.Add(Boxes[i].BoxID, boundsList);
+                }
+            }
+        }
+
         public void PrecomputeMap()
         {
             //CleanUp
@@ -591,7 +613,8 @@ namespace Assets.Scripts.PathFinding {
             //Prepare for Goal bounding
             CreateBounds();
 
-            //TODO:Implement function, that finds routes between bounds
+            //Save routes between bounds
+            PrecomputeRoutesBetweenBb();
 
             IsPrecomputed = true;
         }
@@ -599,12 +622,12 @@ namespace Assets.Scripts.PathFinding {
         public List<Informer> JPS(Informer from, Informer to)
         {
             DebugInformationAlgorithm debugInformation;
-            var finalPath = JPS(from, to, false, out debugInformation);
+            var finalPath = JPS(from, to, false, out debugInformation, true);
             return Extensions.ToInformers(finalPath);
 
         }
 
-        public List<Node> JPS(Informer from, Informer to, bool debugFlag, out DebugInformationAlgorithm debugInformation)
+        public List<Node> JPS(Informer from, Informer to, bool debugFlag, out DebugInformationAlgorithm debugInformation, bool useGB)
         { 
             if (from == null || to == null)
             {
@@ -613,7 +636,7 @@ namespace Assets.Scripts.PathFinding {
                 return null;
             }
 
-			if (!IsPrecomputed) {
+			if (!IsPrecomputed && useGB) {
 				Debug.Log ("Precomputing...");
 				PrecomputeMap ();
                 Debug.Log("Done!");
@@ -624,6 +647,12 @@ namespace Assets.Scripts.PathFinding {
             var start = new Tree_Node(null,NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3]);
 		    start.Currentnode.Distance = Extensions.Metrics(start,finish);
 		    var current = start;
+            var parentJp = start.Currentnode;
+            
+            //Find closest bounds to start and finish
+            var finishBound = -1;
+            if (useGB) finishBound = BoundingBoxes.FindClosestBound(JumpPoints, finish, NodesArray);
+            
 		    var path = new List<Tree_Node>();
 		    var observed = new List<Tree_Node> {current};
 
@@ -745,12 +774,19 @@ namespace Assets.Scripts.PathFinding {
                 }
 
                 //Debug
-                Debug.Log("current = (" + current.Currentnode.X() + " " + current.Currentnode.Y() + ") neighbours = " + neighbours.Count);
+                if(useGB)
+                    Debug.Log("current = (" + current.Currentnode.X() + " " + current.Currentnode.Y()
+                        + ") neighbours = " + neighbours.Count);
 
                 if (neighbours.Count != 0)
                 {
                     foreach(var neighbour in neighbours)
                     {
+                        //Use Goal bounding to eliminate neighbours
+                        if(useGB && neighbour.Currentnode.IsJumpPoint == JPType.Primary && parentJp.IsJumpPoint == JPType.Primary
+                            && !Boxes.Find(arg => arg.BoxID == parentJp.BoundingBox).RoutesToOtherBB[finishBound]
+                            .Exists(arg => arg == neighbour.Currentnode.BoundingBox)) continue;
+
                         if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
                         {
                             if (Extensions.SelectJPFromNeighbours(current,neighbour)) observed.Add(neighbour);
@@ -783,7 +819,9 @@ namespace Assets.Scripts.PathFinding {
 		        }
 		        else current = observed[0];
 
-            }
+		        if (current.Currentnode.IsJumpPoint == JPType.Primary) parentJp = current.Currentnode;
+
+		    }
             //Debug.Log("Path: "+path.Count);
             if(path.Count>1)
             {

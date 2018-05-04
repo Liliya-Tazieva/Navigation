@@ -28,7 +28,7 @@ public class OnA_StarGUI : MonoBehaviour {
         var controller = GetComponentInChildren<Controller>();
 
         DebugInformationAlgorithm debugInformation;
-        controller.JPS(StartInformer, FinishInformer, true, out debugInformation);
+        controller.JPS(StartInformer, FinishInformer, true, out debugInformation, true);
         controller.InitializeDebugInfo();
         controller.DebugManagerAStar.AddPath(debugInformation);
 
@@ -111,7 +111,7 @@ public class OnA_StarGUI : MonoBehaviour {
         ColorStartAndFinish(nodes[index1], nodes[index2]);
 
         DebugInformationAlgorithm debugInformation;
-        controller.JPS(StartInformer, FinishInformer, true, out debugInformation);
+        controller.JPS(StartInformer, FinishInformer, true, out debugInformation, true);
         controller.InitializeDebugInfo();
         controller.DebugManagerAStar.AddPath(debugInformation);
 
