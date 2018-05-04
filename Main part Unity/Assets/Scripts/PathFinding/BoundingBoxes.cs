@@ -87,5 +87,45 @@ namespace Assets.Scripts.PathFinding
 
             AllPoints.Clear();
         }
+
+        public static bool IsInsideBb(List<Node> convexHull, Node point)
+        {
+            var inside = false;
+            
+            if (convexHull.Count < 3)
+            {
+                Debug.LogError("Convex hull contains less than 3 points");
+                return inside;
+            }
+            
+            var oldPoint = new Node(convexHull[convexHull.Count - 1]);
+            
+            foreach (var pointInHull in convexHull)
+            {
+                var newPoint = new Node(pointInHull);
+
+                Node point1;
+                Node point2;
+                if (newPoint.X() > oldPoint.X())
+                {
+                    point1 = oldPoint;
+                    point2 = newPoint;
+                }
+                else
+                {
+                    point1 = newPoint;
+                    point2 = oldPoint;
+                }
+
+
+                if (newPoint.X() < point.X() == point.X() <= oldPoint.X()
+                    && (point.Y() - point1.Y()) * (point2.X() - point1.X()) < (point2.Y() - point1.Y()) * (point.X() - point1.X()))
+                    inside = !inside;
+                
+                oldPoint = newPoint;
+            }
+            
+            return inside;
+        }
     }
 }
