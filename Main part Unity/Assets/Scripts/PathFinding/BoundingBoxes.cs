@@ -56,6 +56,15 @@ namespace Assets.Scripts.PathFinding
             return (A.X() - O.X()) * (B.Y() - O.Y()) - (A.Y() - O.Y()) * (B.X() - O.X());
         }
 
+        public void LeaveOnlyIntervisible(Node[,] nodesArray)
+        {
+            foreach (var jp in BoundJP)
+            {
+                //TODO: Change condition, this one lead to fatal exception - collection was modified
+                //if (BoundJP.Exists(arg => !jp.VisibleJP.Contains(arg))) BoundJP.Remove(jp);
+            }
+        }
+
         //Monotone Chain algorithm, a.k.a. Andrew's Algorithm
         public static List<Node> FindConvexHull (List<Node> pointsList)
         {
@@ -126,11 +135,6 @@ namespace Assets.Scripts.PathFinding
             }
             
             return inside;
-        }
-
-        public void FindPointsForConvexHull(List<BoundingBoxes> bbList, List<Node> jpList)
-        {
-            
         }
     }
 }

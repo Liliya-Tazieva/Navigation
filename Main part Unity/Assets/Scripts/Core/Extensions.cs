@@ -466,6 +466,7 @@ namespace Assets.Scripts.Core {
 
                 var destination = StraightLine.FindDestination(line[i], line[i + 1]);
 
+                //Reachable in JPS style - no obstacle edges traversal
                 if (destination == Destinations.UpRight
                     && nodesArray[line[i].X, line[i].Y].NormMatrix[0, 2] == 0) return false;
                 if (destination == Destinations.UpLeft

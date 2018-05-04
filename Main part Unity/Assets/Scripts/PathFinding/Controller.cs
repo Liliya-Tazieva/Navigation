@@ -266,29 +266,15 @@ namespace Assets.Scripts.PathFinding {
                 currentBbObject.BoundJP.Add(currJp);
 
                 var tempJpList = JumpPoints.FindAll(arg => arg.BoundingBox == -1);
-
-                var meanDistance = 0f;
-
+                
                 foreach (var jp in tempJpList)
                 {
                     var line = Extensions.BresenhamLineAlgorithm(currJp, jp);
 
-                    if (Extensions.Reachable(line, NodesArray))
-                    {
-                        meanDistance += currentBbObject.StartJP.InformerNode.MetricsAStar(jp.InformerNode);
-                        currentBbObject.BoundJP.Add(jp);
-                    }
+                    if (Extensions.Reachable(line, NodesArray)) currentBbObject.BoundJP.Add(jp);
                 }
-
-                //Eliminate some of the points
-                meanDistance /= (currentBbObject.BoundJP.Count - 1);
-
-                //Debug.Log("Bound = "+ currentBB+" mean = "+meanDistance + " jp in bound before removal = "+currentBbObject.BoundJP.Count);
-
-                currentBbObject.BoundJP
-                    .RemoveAll(
-                        arg => currentBbObject.StartJP.InformerNode.MetricsAStar(arg.InformerNode) > meanDistance + 4.5);
-
+                
+                currentBbObject.LeaveOnlyIntervisible(NodesArray);
                 //Debug.Log("Bound = " + currentBB + " jp in bound  after removal = " + currentBbObject.BoundJP.Count);
 
                 Boxes.Add(currentBbObject);
