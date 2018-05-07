@@ -14,8 +14,7 @@ namespace Assets.Scripts.PathFinding
         public int BoxID;
 
         public Dictionary<int, List<int>> RoutesToOtherBB = new Dictionary<int, List<int>>();
-
-        public List<Node> AllPoints;
+        
         public List<Node> ConvexHull;
 
         public BoundingBoxes(Node start, int id)
@@ -25,8 +24,6 @@ namespace Assets.Scripts.PathFinding
 
             BoundJP = new List<Node>();
             RoutesToOtherBB.Add(id, new List<int> {id});
-
-            AllPoints = new List<Node>();
         }
 
         public static int FindClosestBound(List<Node> jpList, Node node, Node[,] nodesArray, bool forPrimaryJP)
@@ -57,74 +54,69 @@ namespace Assets.Scripts.PathFinding
             return (A.X() - O.X()) * (B.Y() - O.Y()) - (A.Y() - O.Y()) * (B.X() - O.X());
         }
 
-        public void LeaveOnlyIntervisible(Node[,] nodesArray)
+        public void FilterPointsInBound(Node[,] nodesArray)
         {
             var intersection = new Dictionary<Vector3, int>();
+            var mean = 0f;
             foreach (var jp in BoundJP)
             {
-                if(jp == StartJP) continue;
-
-                Debug.Log("current point " + jp.Position);
-                if (intersection.ContainsKey(jp.Position)) continue;
-                intersection.Add(jp.Position, 0);
-                foreach (var visibleJp in jp.VisibleJP)
-                {
-                    if (BoundJP.Exists(arg => arg.Position == visibleJp.Position)) ++intersection[jp.Position];
-                }
+                intersection.Add(jp.Position, jp.VisibleJP.Intersect(BoundJP).Count());
+                mean += intersection[jp.Position];
             }
 
-            var max = intersection.Max();
-            for(var i = BoundJP.Count - 1; i > 0; --i)
-            {
-                if(intersection[BoundJP[i].Position] < max.Value) BoundJP.RemoveAt(i);
-            }
+            mean /= intersection.Count;
+
+            BoundJP.RemoveAll(arg => intersection[arg.Position] < mean);
         }
 
         //Monotone Chain algorithm, a.k.a. Andrew's Algorithm
-        public static List<Node> FindConvexHull (List<Node> pointsList)
+        public void FindConvexHull ()
         {
-            int n = pointsList.Count, k = 0;
-            var convexHull = new List<Node>(new Node[2 * n]);
-            
-            if (pointsList.Count <= 1)
-                convexHull = pointsList;
+            int n = BoundJP.Count, k = 0;
+            ConvexHull = new List<Node>(new Node[2 * n]);
+
+            if (BoundJP.Count <= 3)
+            {
+                ConvexHull = BoundJP;
+                return;
+            }
 
             
-            pointsList.Sort((a, b) =>
+            BoundJP.Sort((a, b) =>
                 a.X() == b.X() ? a.Y().CompareTo(b.Y()) : a.X().CompareTo(b.X()));
 
             // Build lower hull
             for (var i = 0; i < n; ++i)
             {
-                while (k >= 2 && Cross(convexHull[k - 2], convexHull[k - 1], pointsList[i]) <= 0)
+                while (k >= 2 && Cross(ConvexHull[k - 2], ConvexHull[k - 1], BoundJP[i]) <= 0)
                     k--;
-                convexHull[k++] = pointsList[i];
+                ConvexHull[k++] = BoundJP[i];
             }
 
             // Build upper hull
             for (int i = n - 2, t = k + 1; i >= 0; i--)
             {
-                while (k >= t && Cross(convexHull[k - 2], convexHull[k - 1], pointsList[i]) <= 0)
+                while (k >= t && Cross(ConvexHull[k - 2], ConvexHull[k - 1], BoundJP[i]) <= 0)
                     k--;
-                convexHull[k++] = pointsList[i];
+                ConvexHull[k++] = BoundJP[i];
             }
 
-            return convexHull.Take(k - 1).ToList();
+            ConvexHull = ConvexHull.Take(k - 1).ToList();
         }
 
-        public static bool IsInsideBb(List<Node> convexHull, Node point)
+        public bool IsInsideBb(Node point)
         {
             var inside = false;
             
-            if (convexHull.Count < 3)
+            if (ConvexHull.Count < 3)
             {
-                Debug.LogError("Convex hull contains less than 3 points");
+                Debug.LogWarning("Convex hull contains less than 3 points");
                 return false;
             }
             
-            var oldPoint = new Node(convexHull[convexHull.Count - 1]);
+            var oldPoint = new Node(ConvexHull[ConvexHull.Count - 1]);
             
-            foreach (var pointInHull in convexHull)
+            foreach (var pointInHull in ConvexHull)
             {
                 var newPoint = new Node(pointInHull);
 

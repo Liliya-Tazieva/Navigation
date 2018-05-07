@@ -277,18 +277,32 @@ namespace Assets.Scripts.PathFinding {
 
                     if (Extensions.Reachable(line, NodesArray, currentBB)) currentBbObject.BoundJP.Add(jp);
                 }
-                
-                //currentBbObject.LeaveOnlyIntervisible(NodesArray);
-                //Debug.Log("Bound = " + currentBB + " jp in bound  after removal = " + currentBbObject.BoundJP.Count);
 
-                Boxes.Add(currentBbObject);
+                //Filter points in bound
+                currentBbObject.FilterPointsInBound(NodesArray);
+                currentBbObject.FindConvexHull();
+                //Find rectangle, that contains current bound
+                int left = width, right = 0, top = height, bottom = 0;
+                foreach (var point in currentBbObject.ConvexHull)
+                {
+                    if (point.X() < left) left = point.X();
+                    if (point.X() > right) right = point.X();
+                    if (point.Y() < top) top = point.Y();
+                    if (point.Y() > bottom) bottom = point.Y();
+                }
+                //Mark all points inside convex hull of the bound
+                for(var i = left; i<=right; ++i)
+                    for(var j = top; j<=bottom; ++j)
+                        if (currentBbObject.IsInsideBb(NodesArray[i, j]) && NodesArray[i, j].BoundingBox == -1)
+                            NodesArray[i, j].BoundingBox = currentBB;
                 
                 //Mark Jump Points, that belong to new bound
-                foreach (var jumpPoint in currentBbObject.BoundJP)
+                for (var i = currentBbObject.BoundJP.Count - 1; i >= 0; --i)
                 {
-                    JumpPoints.Find(arg => arg.Position == jumpPoint.Position).BoundingBox = currentBB;
+                    JumpPoints.Find(arg => arg.Position == currentBbObject.BoundJP[i].Position).BoundingBox = currentBB;
                 }
 
+                Boxes.Add(currentBbObject);
                 ++currentBB;
             }
         }
