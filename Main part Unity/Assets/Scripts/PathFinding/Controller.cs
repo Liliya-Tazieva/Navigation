@@ -599,7 +599,7 @@ namespace Assets.Scripts.PathFinding {
                     NodesArray[i, j].RestartNode();
 
             PrecomputeJP();
-
+            
             //Create visibility graph
             CreateVisibilityGraph();
 

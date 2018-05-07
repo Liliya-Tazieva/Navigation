@@ -598,7 +598,8 @@ namespace Assets.Scripts.Core {
                             //RIGHT - according to map
                             if (i < height - 1 &&
                                 !NodesArray[i + 1, j - 1].InformerNode.IsObstacle &&
-                                !NodesArray[i + 1, j].InformerNode.IsObstacle)
+                                !NodesArray[i + 1, j].InformerNode.IsObstacle &&
+                                !JumpPoints.Contains(NodesArray[i + 1, j - 1]))
                             {
                                 NodesArray[i + 1, j - 1].IsJumpPoint = JPType.Primary;
                                 JumpPoints.Add(NodesArray[i + 1, j - 1]);
@@ -606,7 +607,8 @@ namespace Assets.Scripts.Core {
                             //LEFT - according to map
                             if (i > 0 &&
                                 !NodesArray[i - 1, j - 1].InformerNode.IsObstacle &&
-                                !NodesArray[i - 1, j].InformerNode.IsObstacle)
+                                !NodesArray[i - 1, j].InformerNode.IsObstacle &&
+                                !JumpPoints.Contains(NodesArray[i - 1, j - 1]))
                             {
                                 NodesArray[i - 1, j - 1].IsJumpPoint = JPType.Primary;
                                 JumpPoints.Add(NodesArray[i - 1, j - 1]);
@@ -618,7 +620,8 @@ namespace Assets.Scripts.Core {
                             //RIGHT - according to map
                             if (i < height - 1 &&
                                 !NodesArray[i + 1, j + 1].InformerNode.IsObstacle &&
-                                !NodesArray[i + 1, j].InformerNode.IsObstacle)
+                                !NodesArray[i + 1, j].InformerNode.IsObstacle &&
+                                !JumpPoints.Contains(NodesArray[i + 1, j + 1]))
                             {
                                 NodesArray[i + 1, j + 1].IsJumpPoint = JPType.Primary;
                                 JumpPoints.Add(NodesArray[i + 1, j + 1]);
@@ -626,7 +629,8 @@ namespace Assets.Scripts.Core {
                             //LEFT - according to map
                             if (i > 0 &&
                                 !NodesArray[i - 1, j + 1].InformerNode.IsObstacle &&
-                                !NodesArray[i - 1, j].InformerNode.IsObstacle)
+                                !NodesArray[i - 1, j].InformerNode.IsObstacle &&
+                                !JumpPoints.Contains(NodesArray[i - 1, j + 1]))
                             {
                                 NodesArray[i - 1, j + 1].IsJumpPoint = JPType.Primary;
                                 JumpPoints.Add(NodesArray[i - 1, j + 1]);
