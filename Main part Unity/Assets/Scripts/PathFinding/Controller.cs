@@ -240,14 +240,17 @@ namespace Assets.Scripts.PathFinding {
         
         public void CreateVisibilityGraph()
         {
-            for(var  i = 0; i < JumpPoints.Count - 1; ++i)
-            for (var j = i + 1; j < JumpPoints.Count; ++j)
+            for (var i = 0; i < JumpPoints.Count - 1; ++i)
             {
-                var line = Extensions.BresenhamLineAlgorithm(JumpPoints[i], JumpPoints[j]);
-                if (Extensions.Reachable(line, NodesArray))
+                JumpPoints[i].VisibleJP.Add(JumpPoints[i]);
+                for (var j = i + 1; j < JumpPoints.Count; ++j)
                 {
-                    JumpPoints[i].VisibleJP.Add(JumpPoints[j]);
-                    JumpPoints[j].VisibleJP.Add(JumpPoints[i]);
+                    var line = Extensions.BresenhamLineAlgorithm(JumpPoints[i], JumpPoints[j]);
+                    if (Extensions.Reachable(line, NodesArray, -1))
+                    {
+                        JumpPoints[i].VisibleJP.Add(JumpPoints[j]);
+                        JumpPoints[j].VisibleJP.Add(JumpPoints[i]);
+                    }
                 }
             }
         }
@@ -265,16 +268,17 @@ namespace Assets.Scripts.PathFinding {
                 var currentBbObject = new BoundingBoxes(currJp, currentBB);
                 currentBbObject.BoundJP.Add(currJp);
 
+                JumpPoints.Find(arg => arg.Position == currJp.Position).BoundingBox = currentBB;
                 var tempJpList = JumpPoints.FindAll(arg => arg.BoundingBox == -1);
                 
                 foreach (var jp in tempJpList)
                 {
                     var line = Extensions.BresenhamLineAlgorithm(currJp, jp);
 
-                    if (Extensions.Reachable(line, NodesArray)) currentBbObject.BoundJP.Add(jp);
+                    if (Extensions.Reachable(line, NodesArray, currentBB)) currentBbObject.BoundJP.Add(jp);
                 }
                 
-                currentBbObject.LeaveOnlyIntervisible(NodesArray);
+                //currentBbObject.LeaveOnlyIntervisible(NodesArray);
                 //Debug.Log("Bound = " + currentBB + " jp in bound  after removal = " + currentBbObject.BoundJP.Count);
 
                 Boxes.Add(currentBbObject);
@@ -282,7 +286,7 @@ namespace Assets.Scripts.PathFinding {
                 //Mark Jump Points, that belong to new bound
                 foreach (var jumpPoint in currentBbObject.BoundJP)
                 {
-                    JumpPoints.Find(arg => arg == jumpPoint).BoundingBox = currentBB;
+                    JumpPoints.Find(arg => arg.Position == jumpPoint.Position).BoundingBox = currentBB;
                 }
 
                 ++currentBB;
@@ -595,6 +599,9 @@ namespace Assets.Scripts.PathFinding {
                     NodesArray[i, j].RestartNode();
 
             PrecomputeJP();
+
+            //Create visibility graph
+            CreateVisibilityGraph();
 
             //Prepare for Goal bounding
             CreateBounds();

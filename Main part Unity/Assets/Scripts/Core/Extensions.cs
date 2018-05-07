@@ -458,8 +458,9 @@ namespace Assets.Scripts.Core {
             return line;
         }
 
-        public static bool Reachable(List<Point> line, Node[,] nodesArray)
+        public static bool Reachable(List<Point> line, Node[,] nodesArray, int currentBB)
         {
+            Debug.Log("currentBB "+currentBB);
             for (int i = 0; i < line.Count - 1; ++i)
             {
                 if (nodesArray[line[i].X, line[i].Y].InformerNode.IsObstacle) return false;
@@ -475,6 +476,14 @@ namespace Assets.Scripts.Core {
                     && nodesArray[line[i].X, line[i].Y].NormMatrix[2, 2] == 0) return false;
                 if (destination == Destinations.DownLeft
                     && nodesArray[line[i].X, line[i].Y].NormMatrix[2, 0] == 0) return false;
+
+                //Not reachable if traverse another bound
+                if (nodesArray[line[i].X, line[i].Y].BoundingBox != -1
+                    && nodesArray[line[i].X, line[i].Y].BoundingBox != currentBB)
+                {
+                    Debug.Log("nodesArray[line[" + i + "].X, line[" + i + "].Y].BoundingBox " + nodesArray[line[i].X, line[i].Y].BoundingBox);
+                    return false;
+                }
             }
             return true;
         }

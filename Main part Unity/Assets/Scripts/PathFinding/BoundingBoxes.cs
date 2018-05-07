@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Core;
 using UnityEngine;
@@ -39,7 +40,7 @@ namespace Assets.Scripts.PathFinding
 
                 var line = Extensions.BresenhamLineAlgorithm(node, jp);
                 
-                if (dist < minDist && Extensions.Reachable(line, nodesArray))
+                if (dist < minDist && Extensions.Reachable(line, nodesArray, node.BoundingBox))
                 {
                     if(forPrimaryJP && jp.BoundingBox == node.BoundingBox) continue;
 
@@ -58,10 +59,24 @@ namespace Assets.Scripts.PathFinding
 
         public void LeaveOnlyIntervisible(Node[,] nodesArray)
         {
+            var intersection = new Dictionary<Vector3, int>();
             foreach (var jp in BoundJP)
             {
-                //TODO: Change condition, this one lead to fatal exception - collection was modified
-                //if (BoundJP.Exists(arg => !jp.VisibleJP.Contains(arg))) BoundJP.Remove(jp);
+                if(jp == StartJP) continue;
+
+                Debug.Log("current point " + jp.Position);
+                if (intersection.ContainsKey(jp.Position)) continue;
+                intersection.Add(jp.Position, 0);
+                foreach (var visibleJp in jp.VisibleJP)
+                {
+                    if (BoundJP.Exists(arg => arg.Position == visibleJp.Position)) ++intersection[jp.Position];
+                }
+            }
+
+            var max = intersection.Max();
+            for(var i = BoundJP.Count - 1; i > 0; --i)
+            {
+                if(intersection[BoundJP[i].Position] < max.Value) BoundJP.RemoveAt(i);
             }
         }
 
