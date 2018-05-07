@@ -91,10 +91,16 @@ namespace Assets.Scripts.Core {
             neighbours.Add(array[x - 1, y]); //left
             neighbours.Add(array[x, y + 1]); //down
             neighbours.Add(array[x, y - 1]); //up
-            neighbours.Add(array[x + 1, y + 1]); //down-right
-            neighbours.Add(array[x - 1, y - 1]); //up-left
-            neighbours.Add(array[x - 1, y + 1]); //down-left
-            neighbours.Add(array[x + 1, y - 1]); //up-right
+
+            //Don't traverce obstacles' edges
+            if (!array[x + 1, y].InformerNode.IsObstacle &&
+                !array[x, y - 1].InformerNode.IsObstacle) neighbours.Add(array[x + 1, y - 1]); //down-right
+            if (!array[x - 1, y].InformerNode.IsObstacle &&
+                !array[x, y + 1].InformerNode.IsObstacle) neighbours.Add(array[x - 1, y + 1]); //up-left
+            if (!array[x - 1, y].InformerNode.IsObstacle &&
+                !array[x, y - 1].InformerNode.IsObstacle) neighbours.Add(array[x - 1, y - 1]); //down-left
+            if (!array[x + 1, y].InformerNode.IsObstacle &&
+                !array[x, y + 1].InformerNode.IsObstacle) neighbours.Add(array[x + 1, y + 1]); //up-right
 
             return neighbours;
         }

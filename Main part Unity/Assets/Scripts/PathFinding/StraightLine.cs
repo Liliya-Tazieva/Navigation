@@ -20,15 +20,27 @@ namespace Assets.Scripts.PathFinding
             var destination = FindDestination(sNode, fNode);
             var line = new StraightLine(sNode.X(),sNode.Y(),destination);
             var obstacleIndex = -1;
-            for(var i = 0; i<line.Points.Count; ++i)
+            for(var i = 0; i < line.Points.Count; ++i)
             {
-                if (array[line.Points[i].X, line.Points[i].Y].InformerNode.IsObstacle)
+                if (array[line.Points[i].X, line.Points[i].Y].InformerNode.IsObstacle
+                    || destination == Destinations.UpRight &&
+                    (array[line.Points[i].X + 1, line.Points[i].Y].InformerNode.IsObstacle
+                    || array[line.Points[i].X, line.Points[i].Y + 1].InformerNode.IsObstacle)
+                    || destination == Destinations.UpLeft &&
+                    (array[line.Points[i].X + 1, line.Points[i].Y].InformerNode.IsObstacle
+                     || array[line.Points[i].X, line.Points[i].Y + 1].InformerNode.IsObstacle)
+                    || destination == Destinations.DownRight &&
+                    (array[line.Points[i].X + 1, line.Points[i].Y].InformerNode.IsObstacle
+                     || array[line.Points[i].X, line.Points[i].Y - 1].InformerNode.IsObstacle)
+                    || destination == Destinations.DownLeft &&
+                    (array[line.Points[i].X - 1, line.Points[i].Y].InformerNode.IsObstacle
+                     || array[line.Points[i].X, line.Points[i].Y - 1].InformerNode.IsObstacle))
                 {
                     obstacleIndex = i;
                     break;
                 }
             }
-            if(obstacleIndex!=-1) line.Points.RemoveRange(obstacleIndex,line.Points.Count-obstacleIndex-1);
+            if (obstacleIndex!=-1) line.Points.RemoveRange(obstacleIndex,line.Points.Count-obstacleIndex-1);
             return line.Points.Exists(arg => arg.X == fNode.X() && arg.Y == fNode.Y());
         }
 

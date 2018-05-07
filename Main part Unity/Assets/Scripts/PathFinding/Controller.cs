@@ -72,6 +72,8 @@ namespace Assets.Scripts.PathFinding {
             var observed = new List<Node> {current};
             // ReSharper disable once PossibleNullReferenceException
 
+            var path = new List<Node> { current };
+
             while (current.InformerNode != to)
             {
                 var query = Extensions.Neighbours(current, NodesArray);
@@ -93,6 +95,7 @@ namespace Assets.Scripts.PathFinding {
                 if ( observed[0].Visited != NodeState.Processed ) {
                     current = observed[0];
                     observed[0].Visited = NodeState.Processed;
+                    path.Add(current);
                     if (debugInformation != null) {
                         debugInformation.Observed.Add(observed[0]);
                     }
@@ -102,42 +105,14 @@ namespace Assets.Scripts.PathFinding {
                     return null;
                 }
             }
-            observed = observed.Where( informer => informer.Visited == NodeState.Processed ).ToList();
             var finalPath = new List<Informer>();
-                var path = new List<Node> {current};
-                while (current.InformerNode != from) {
-                    var temp = current;
-                    var tempFrom = temp.InformerNode.MetricsAStar(from);
-                    var flag = false;
-                    foreach (var informer in  observed) {
-                        if (informer.InformerNode.MetricsAStar(current.InformerNode) < 18.1 &&
-                            informer.Visited == NodeState.Processed) {
-                                var informerFrom = informer.InformerNode.MetricsAStar(from);
-                            if (tempFrom > informerFrom
-                                || tempFrom <= informerFrom && flag == false) {
-                                if (flag) {
-                                    observed.Find(arg => arg.InformerNode.transform.position
-                                                         == temp.InformerNode.transform.position).Visited =
-                                        NodeState.Processed;
-                                }
-                                informer.Visited = NodeState.Undiscovered;
-                                temp = informer;
-                                tempFrom = temp.InformerNode.MetricsAStar(from);
-                                flag = true;
-                            }
-                        }
-                    }
-                    if (!flag) {
-                        path.RemoveAt(path.Count - 1);
-                        current = path[path.Count - 1];
-                    } else {
-                        path.Add(temp);
-                        current = temp;
-                    }
-                }
-
 
             Debug.Log("Path: " + path.Count);
+            foreach (var node in path)
+            {
+                Debug.Log(node.Position);
+            }
+
             finalPath.Add(path[0].InformerNode);
             for (var i = 1; i < path.Count; ++i)
             {
@@ -156,7 +131,7 @@ namespace Assets.Scripts.PathFinding {
                     i = maxIndex;
                 }
             }
-            finalPath.Reverse();
+
             Debug.Log("Final path: " +finalPath.Count);
             
             if (debugInformation != null) {
