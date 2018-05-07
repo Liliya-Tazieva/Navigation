@@ -17,6 +17,8 @@ namespace Assets.Scripts.PathFinding
         
         public List<Node> ConvexHull;
 
+        public List<Node> BoundNodes;
+
         public BoundingBoxes(Node start, int id)
         {
             StartJP = start;
@@ -24,29 +26,31 @@ namespace Assets.Scripts.PathFinding
 
             BoundJP = new List<Node>();
             RoutesToOtherBB.Add(id, new List<int> {id});
+            BoundNodes = new List<Node>();
         }
 
-        public static int FindClosestBound(List<Node> jpList, Node node, Node[,] nodesArray, bool forPrimaryJP)
+        public static Node FindClosestBound(List<Node> jpList, Node node, Node[,] nodesArray, bool forPrimaryJP)
         {
-            var closestBound = -1;
+            var closestJp = node;
             var minDist = 100000f;
 
             foreach (var jp in jpList)
             {
                 var dist = jp.InformerNode.MetricsAStar(node.InformerNode);
-
-                var line = Extensions.BresenhamLineAlgorithm(node, jp);
                 
-                if (dist < minDist && Extensions.Reachable(line, nodesArray, node.BoundingBox))
+                if (dist < minDist)
                 {
-                    if(forPrimaryJP && jp.BoundingBox == node.BoundingBox) continue;
+                    var line = Extensions.BresenhamLineAlgorithm(node, jp);
 
-                    closestBound = jp.BoundingBox;
+                    if(!Extensions.Reachable(line, nodesArray, node.BoundingBox, false)
+                    || forPrimaryJP && jp.BoundingBox == node.BoundingBox) continue;
+
+                    closestJp = jp;
                     minDist = dist;
                 }
             }
 
-            return closestBound;
+            return closestJp;
         }
 
         private static double Cross(Node O, Node A, Node B)
@@ -110,7 +114,7 @@ namespace Assets.Scripts.PathFinding
             
             if (ConvexHull.Count < 3)
             {
-                Debug.LogWarning("Convex hull contains less than 3 points");
+                //Debug.LogWarning("Convex hull contains less than 3 points");
                 return false;
             }
             

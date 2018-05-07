@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Accord.MachineLearning.Structures;
-using Accord.Math;
 using Assets.Scripts.PathFinding;
 using UnityEngine;
 
@@ -40,12 +38,6 @@ namespace Assets.Scripts.Core {
             else return metricAStar;
         }
 
-        public static List<Node> ToList( this KDTreeNodeList<Informer> tree ) {
-            return tree
-                .Select( node => new Node( node.Node.Value, NodeState.Undiscovered ) )
-                .ToList();
-        }
-
         public static List<Node> ToNodes(List<Point> points, Node [,] nodesArray)
         {
             var list = new List<Node>();
@@ -75,29 +67,7 @@ namespace Assets.Scripts.Core {
             }
             return list;
         }
-        
-        public static List<Informer> LoopEscape( Node from, Node to, KDTree<Informer> nodesTree, float radius ) {
-            var current = from;
-            current.Distance = current.InformerNode.MetricsAStar( to.InformerNode );
-            var path = new List<Informer> { current.InformerNode };
-            while ( current.InformerNode != to.InformerNode ) {
-                var query = nodesTree.Nearest( current.InformerNode.transform.position.ToArray(), radius ).ToList();
-                query =
-                    query.Where(
-                        informer => informer.InformerNode != current.InformerNode
-                            && informer.InformerNode.IsObstacle != true )
-                        .ToList();
-                foreach ( var informer in query ) {
-                    informer.Distance = informer.InformerNode.MetricsAStar( to.InformerNode );
-                }
-                query = query.Where( informer => informer.Distance < current.Distance )
-                .ToList().OrderBy( informer => informer.Distance ).ToList();
-                current = query[0];
-                path.Add( current.InformerNode );
-            }
-            return path;
-        }
-
+      
         public static Destinations DestinationInverse(Destinations destination)
         {
             if (destination == Destinations.Default) return Destinations.Default;
@@ -109,6 +79,24 @@ namespace Assets.Scripts.Core {
             else if (destination == Destinations.DownLeft) return Destinations.UpRight;
             else if (destination == Destinations.UpLeft) return Destinations.DownRight;
             else return Destinations.UpLeft;
+        }
+
+        public static List<Node> Neighbours(Node current, Node[,] array)
+        {
+            var neighbours = new List<Node>();
+
+            var x = current.X();
+            var y = current.Y();
+            neighbours.Add(array[x + 1, y]); //right
+            neighbours.Add(array[x - 1, y]); //left
+            neighbours.Add(array[x, y + 1]); //down
+            neighbours.Add(array[x, y - 1]); //up
+            neighbours.Add(array[x + 1, y + 1]); //down-right
+            neighbours.Add(array[x - 1, y - 1]); //up-left
+            neighbours.Add(array[x - 1, y + 1]); //down-left
+            neighbours.Add(array[x + 1, y - 1]); //up-right
+
+            return neighbours;
         }
 
         public static List<Tree_Node> Neighbours(Tree_Node node, Node[,] array, Node finish, 
@@ -458,7 +446,7 @@ namespace Assets.Scripts.Core {
             return line;
         }
 
-        public static bool Reachable(List<Point> line, Node[,] nodesArray, int currentBB)
+        public static bool Reachable(List<Point> line, Node[,] nodesArray, int currentBB, bool forJp)
         {
             for (int i = 0; i < line.Count - 1; ++i)
             {
@@ -477,7 +465,7 @@ namespace Assets.Scripts.Core {
                     && nodesArray[line[i].X, line[i].Y].NormMatrix[2, 0] == 0) return false;
 
                 //Not reachable if traverse another bound
-                if (nodesArray[line[i].X, line[i].Y].BoundingBox != -1
+                if (forJp && nodesArray[line[i].X, line[i].Y].BoundingBox != -1
                     && nodesArray[line[i].X, line[i].Y].BoundingBox != currentBB) return false;
             }
             return true;

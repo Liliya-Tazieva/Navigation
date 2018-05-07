@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Accord.MachineLearning.Structures;
 using Assets.Scripts.Core;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -19,8 +18,7 @@ namespace Assets.Scripts.PathFinding {
 
         [UsedImplicitly]
         public float Radius;
-
-        public KDTree<Informer> NodesTree = new KDTree<Informer>(3);
+        
         public const int height = 34;
         public const int width = 35;
         public Node[,] NodesArray = new Node [height,width];
@@ -30,21 +28,9 @@ namespace Assets.Scripts.PathFinding {
         
         public void RegisterInformer(Informer informer) {
             var position = informer.transform.position;
-            NodesTree.Add(position.ToArray(), informer);
 			NodesArray [(int)position.x / 3, (int)position.z / 3] = new Node (informer,NodeState.Undiscovered);
         }
-
-        //Avoid at all costs!
-        public void RemoveEmpty() {
-            var newNodesTree = new KDTree<Informer>(3);
-            foreach (var kdTreeNode in NodesTree) {
-                if (kdTreeNode.Value != null && kdTreeNode.Value) {
-                    newNodesTree.Add(kdTreeNode.Position, kdTreeNode.Value);
-                }
-            }
-            NodesTree = newNodesTree;
-        }
-
+        
         public void InitializeDebugInfo() {
             if (DebugManagerAStar == null) {
                 DebugManagerAStar = GetComponent<DebugManager>();
@@ -86,8 +72,9 @@ namespace Assets.Scripts.PathFinding {
             var observed = new List<Node> {current};
             // ReSharper disable once PossibleNullReferenceException
 
-            while (current.InformerNode != to) {
-                var query = NodesTree.Nearest(current.InformerNode.transform.position.ToArray(), radius).ToList();
+            while (current.InformerNode != to)
+            {
+                var query = Extensions.Neighbours(current, NodesArray);
                 query =
                     query.Where(
                         informer => informer.InformerNode.transform.position != current.InformerNode.transform.position
@@ -171,62 +158,7 @@ namespace Assets.Scripts.PathFinding {
             }
             finalPath.Reverse();
             Debug.Log("Final path: " +finalPath.Count);
-
-            /*var loopflag = false;
-                Node loopstart = null;
-                for (var i = path.Count - 1; i >= 0; --i) {
-                    var neighbours = NodesTree.Nearest(path[i].InformerNode.transform.position.ToArray(), radius).ToList();
-                    var intersection = 0;
-                    foreach (var informer in neighbours) {
-                        if (
-                            path.Exists(
-                                arg => arg.InformerNode.transform.position == informer.InformerNode.transform.position))
-                            ++intersection;
-                    }
-                    if (intersection > 3) {
-                        if (!loopflag) {
-                            loopflag = true;
-                            int index;
-                            if (i < path.Count - 1) {
-                                index = i + 1;
-                            } else {
-                                index = i;
-                            }
-                            loopstart = path[index];
-                            finalPath.Remove( loopstart.InformerNode );
-                            //Debug.Log("Loopstart: " + loopstart.InformerNode.transform.position);
-                        }
-                    } else {
-                        int index;
-                        if (i > 0) {
-                            index = i - 1;
-                        } else {
-                            index = i;
-                        }
-                        intersection = 0;
-                        neighbours = NodesTree.Nearest(path[index].InformerNode.transform.position.ToArray(), radius).ToList();
-                        foreach (var informer in neighbours) {
-                            if (
-                                path.Exists(
-                                    arg => arg.InformerNode.transform.position == informer.InformerNode.transform.position))
-                                ++intersection;
-                        }
-                        if (intersection <= 3) {
-                            if (loopflag) {
-                                loopflag = false;
-                                var loopend = path[i];
-                                //Debug.Log("Loopend: " + loopend.InformerNode.transform.position);
-                                var loopescape = Extensions.LoopEscape( loopstart, loopend, NodesTree, radius);
-                                if (loopescape != null) {
-                                    finalPath.AddRange(loopescape);
-                                }
-                                loopstart = null;
-                            } else {
-                                finalPath.Add(path[i].InformerNode);
-                            }
-                        }
-                    }
-                }*/
+            
             if (debugInformation != null) {
                 debugInformation.FinalPath = finalPath;
                 Debug.Log("Processed " + debugInformation.Observed.Count);
@@ -246,7 +178,7 @@ namespace Assets.Scripts.PathFinding {
                 for (var j = i + 1; j < JumpPoints.Count; ++j)
                 {
                     var line = Extensions.BresenhamLineAlgorithm(JumpPoints[i], JumpPoints[j]);
-                    if (Extensions.Reachable(line, NodesArray, -1))
+                    if (Extensions.Reachable(line, NodesArray, -1, false))
                     {
                         JumpPoints[i].VisibleJP.Add(JumpPoints[j]);
                         JumpPoints[j].VisibleJP.Add(JumpPoints[i]);
@@ -270,15 +202,24 @@ namespace Assets.Scripts.PathFinding {
 
                 JumpPoints.Find(arg => arg.Position == currJp.Position).BoundingBox = currentBB;
                 var tempJpList = JumpPoints.FindAll(arg => arg.BoundingBox == -1);
-                
+
+                var mean = 0f;
+
                 foreach (var jp in tempJpList)
                 {
                     var line = Extensions.BresenhamLineAlgorithm(currJp, jp);
 
-                    if (Extensions.Reachable(line, NodesArray, currentBB)) currentBbObject.BoundJP.Add(jp);
+                    if (Extensions.Reachable(line, NodesArray, currentBB, true))
+                    {
+                        mean += currJp.InformerNode.MetricsAStar(jp.InformerNode);
+                        currentBbObject.BoundJP.Add(jp);
+                    }
                 }
 
                 //Filter points in bound
+                mean /= currentBbObject.BoundJP.Count - 1;
+                currentBbObject.BoundJP.RemoveAll(arg =>
+                    currJp.InformerNode.MetricsAStar(arg.InformerNode) > mean);
                 currentBbObject.FilterPointsInBound(NodesArray);
                 currentBbObject.FindConvexHull();
                 //Find rectangle, that contains current bound
@@ -294,7 +235,10 @@ namespace Assets.Scripts.PathFinding {
                 for(var i = left; i<=right; ++i)
                     for(var j = top; j<=bottom; ++j)
                         if (currentBbObject.IsInsideBb(NodesArray[i, j]) && NodesArray[i, j].BoundingBox == -1)
+                        {
                             NodesArray[i, j].BoundingBox = currentBB;
+                            currentBbObject.BoundNodes.Add(NodesArray[i, j]);
+                        }
                 
                 //Mark Jump Points, that belong to new bound
                 for (var i = currentBbObject.BoundJP.Count - 1; i >= 0; --i)
@@ -596,7 +540,7 @@ namespace Assets.Scripts.PathFinding {
 
                     if (path != null)
                         foreach (var node in path)
-                            if (node.BoundingBox != -1 && !boundsList.Contains(node.BoundingBox))
+                            if (node.IsJumpPoint == JPType.Primary && !boundsList.Contains(node.BoundingBox))
                                 boundsList.Add(node.BoundingBox);
                     
                     Boxes[i].RoutesToOtherBB.Add(Boxes[j].BoxID, boundsList);
@@ -656,12 +600,14 @@ namespace Assets.Scripts.PathFinding {
 		    var current = start;
             var parentJp = start.Currentnode;
             
-            //Find closest bounds to start and finish
+            //Find closest bound to finish
             var finishBound = -1;
             if (useGB)
             {
+                parentJp = BoundingBoxes.FindClosestBound(JumpPoints,start.Currentnode,NodesArray, false);
+                Debug.Log("startBound = " + parentJp.BoundingBox);
+                finishBound = BoundingBoxes.FindClosestBound(JumpPoints, finish, NodesArray, false).BoundingBox;
                 Debug.Log("finishBound = " + finishBound);
-                finishBound = BoundingBoxes.FindClosestBound(JumpPoints, finish, NodesArray, false);
             }
             
 		    var path = new List<Tree_Node>();
@@ -687,7 +633,10 @@ namespace Assets.Scripts.PathFinding {
 		    {
                 if (!observed.Exists(arg => arg.Currentnode.Visited!=NodeState.Processed))
 		        {
-                    Debug.Log("No path was found");
+		            if (!useGB)
+		            {
+		                Debug.Log("No path was found between bb "+start.Currentnode.BoundingBox+" "+finish.BoundingBox);
+		            }
                     if (debugFlag)
                     {
                         debugInformation.Observed = Extensions.ToNodes(
@@ -785,9 +734,9 @@ namespace Assets.Scripts.PathFinding {
                 }
 
                 //Debug
-                if(useGB)
-                    Debug.Log("current = (" + current.Currentnode.X() + " " + current.Currentnode.Y()
-                        + ") neighbours = " + neighbours.Count + " parentJP Bound "+ parentJp.BoundingBox);
+               if(useGB)
+                    Debug.Log("current = "+current.Currentnode.Position+
+                        " neighbours = " + neighbours.Count + " parentJP Bound "+ parentJp.BoundingBox);
 
                 if (neighbours.Count != 0)
                 {
@@ -806,12 +755,13 @@ namespace Assets.Scripts.PathFinding {
 
                         if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
                         {
-                            if (Extensions.SelectJPFromNeighbours(current,neighbour)) observed.Add(neighbour);
+                            if (Extensions.SelectJPFromNeighbours(current, neighbour)) observed.Add(neighbour);
 
                             /*//Debug
                             if (Extensions.SelectJPFromNeighbours(current, neighbour))
-                                Debug.Log("neighbour = (" + neighbour.Currentnode.X() + " " + neighbour.Currentnode.Y() + ") JP of type "
-                                + neighbour.Currentnode.IsJumpPoint+" metrics = "+neighbour.Currentnode.Distance +" added");*/
+                                Debug.Log("neighbour = "+neighbour.Currentnode.Position+" JP of type "
+                                + neighbour.Currentnode.IsJumpPoint+" metrics = "+neighbour.Currentnode.Distance +" added");
+                            else Debug.Log("neighbour = " + neighbour.Currentnode.Position + " not a JP");*/
                         }
                         else
                         {
@@ -820,7 +770,7 @@ namespace Assets.Scripts.PathFinding {
                             if (observed[index].Currentnode.Visited == NodeState.Discovered)
                                 observed[index].Currentnode.Distance = neighbour.Currentnode.Distance;
                             /*//Debug
-                            Debug.Log("neighbour = (" + neighbour.Currentnode.X() + " " + neighbour.Currentnode.Y() + ") already existed");*/
+                            Debug.Log("neighbour = " + neighbour.Currentnode.Position + " already existed");*/
                         }
                     }
                 }

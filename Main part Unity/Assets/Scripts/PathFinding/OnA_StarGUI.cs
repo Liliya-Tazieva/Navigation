@@ -58,7 +58,6 @@ public class OnA_StarGUI : MonoBehaviour {
     {
         var mapManager = GetComponentInChildren<MapManager>();
         var controller = mapManager.GetComponent<Controller>();
-        controller.NodesTree.Clear();
         if (_currentMap == Maps.Count - 1) _currentMap = 0;
         else ++_currentMap;
         mapManager.Map = Maps[_currentMap];
@@ -89,26 +88,41 @@ public class OnA_StarGUI : MonoBehaviour {
         controller.IsPrecomputed = false;
     }
 
+    public void ChooseNodesRandomly()
+    {
+        var controller = GetComponentInChildren<Controller>();
+        var mapManager = GetComponentInChildren<MapManager>();
+
+        var rnd = new Random();
+        var index1 = Vector2.zero;
+        var index2 = Vector2.zero;
+        while (index1 ==  index2 || index1 == Vector2.zero || index2 == Vector2.zero)
+        {
+            var x = rnd.Next(0, mapManager.Map.height - 1);
+            var y = rnd.Next(0, mapManager.Map.width - 1);
+
+            if (index1 == Vector2.zero)
+            {
+                if (!controller.NodesArray[x, y].InformerNode.IsObstacle) index1 = new Vector2(x, y);
+                continue;
+            }
+
+            if (index2 == Vector2.zero)
+            {
+                if (!controller.NodesArray[x, y].InformerNode.IsObstacle) index2 = new Vector2(x, y);
+            }
+        }
+
+        ColorStartAndFinish(controller.NodesArray[(int)index1.x, (int)index1.y].InformerNode,
+            controller.NodesArray[(int)index2.x, (int)index2.y].InformerNode);
+
+    }
+
     public void JPSTest()
     {
         var controller = GetComponentInChildren<Controller>();
-        var nodes = controller.NodesTree
-            .Select(kdTreeNode => kdTreeNode.Value)
-            .ToList();
-
-        nodes = nodes
-            .Where(arg => arg.IsObstacle != true)
-            .ToList();
-
-        var rnd = new Random();
-        int index1 = 0, index2 = 0;
-        while (index1 == index2)
-        {
-            index1 = rnd.Next(0, nodes.Count - 1);
-            index2 = rnd.Next(0, nodes.Count - 1);
-        }
-
-        ColorStartAndFinish(nodes[index1], nodes[index2]);
+        
+        ChooseNodesRandomly();
 
         DebugInformationAlgorithm debugInformation;
         controller.JPS(StartInformer, FinishInformer, true, out debugInformation, true);
@@ -123,23 +137,8 @@ public class OnA_StarGUI : MonoBehaviour {
     public void AStarTest()
     {
         var controller = GetComponentInChildren<Controller>();
-        var nodes = controller.NodesTree
-            .Select(kdTreeNode => kdTreeNode.Value)
-            .ToList();
 
-        nodes = nodes
-            .Where(arg => arg.IsObstacle != true)
-            .ToList();
-
-        var rnd = new Random();
-        int index1 = 0, index2 = 0;
-        while (index1 == index2)
-        {
-            index1 = rnd.Next(0, nodes.Count - 1);
-            index2 = rnd.Next(0, nodes.Count - 1);
-        }
-
-        ColorStartAndFinish(nodes[index1], nodes[index2]);
+        ChooseNodesRandomly();
 
         DebugInformationAlgorithm debugInformation;
         controller.AStar(StartInformer, FinishInformer, controller.Radius, true, out debugInformation);
