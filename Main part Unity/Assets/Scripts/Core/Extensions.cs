@@ -87,7 +87,7 @@ namespace Assets.Scripts.Core {
             
             var x = current.Currentnode.X();
             var y = current.Currentnode.Y();
-
+            
             //Right
             if (!array[x + 1, y].InformerNode.IsObstacle)
             {
@@ -344,7 +344,7 @@ namespace Assets.Scripts.Core {
             }
             foreach (var node in neighbours)
             {
-                node.Currentnode.Distance = Metrics(node, finish);
+                node.Currentnode.DistanceToFinish = Metrics(node, finish);
                 node.Currentnode.Visited = NodeState.Discovered;
             }
 
@@ -574,7 +574,7 @@ namespace Assets.Scripts.Core {
         {
             var startNode = new Node(start,NodeState.Processed);
             startNode.NormMatrix = nodesArray[startNode.X(), startNode.Y()].NormMatrix;
-            startNode.Distance = MetricsAStar(start, finish);
+            startNode.DistanceToFinish = MetricsAStar(start, finish);
             var startTreeNode = new Tree_Node(null, startNode);
             var finishNode = new Node(finish, NodeState.Processed);
             var sraightLinesFromStart = new StraightLinesFromNode(startNode);
@@ -582,7 +582,7 @@ namespace Assets.Scripts.Core {
             var neighbours = Neighbours(startTreeNode, nodesArray, finishNode, 
                 sraightLinesFromFinish);
 
-            var minMetrics = startNode.Distance;
+            var minMetrics = startNode.DistanceToFinish;
             var tempList = new List<Node>();
             if (sraightLinesFromStart.Lines != null)
             {
@@ -595,17 +595,17 @@ namespace Assets.Scripts.Core {
                             && Reachable(startNode, nodesArray[coordinates.X, coordinates.Y], nodesArray))
                         {
                             var tempNode = new Node(nodesArray[coordinates.X, coordinates.Y]);
-                            tempNode.Distance = Metrics(new Tree_Node(startTreeNode, tempNode), finishNode);
+                            tempNode.DistanceToFinish = Metrics(new Tree_Node(startTreeNode, tempNode), finishNode);
                             tempNode.TargetJP = true;
                             tempNode.DestinationToFinish = DestinationInverse(lineFromFinish.Destination);
                             tempNode.Visited = NodeState.Discovered;
-                            if (tempNode.Distance < minMetrics)
+                            if (tempNode.DistanceToFinish < minMetrics)
                             {
-                                minMetrics = tempNode.Distance;
+                                minMetrics = tempNode.DistanceToFinish;
                                 tempList.Clear();
                                 tempList.Add(tempNode);
                             }
-                            else if (Math.Abs(tempNode.Distance - minMetrics) < 0.00000000001)
+                            else if (Math.Abs(tempNode.DistanceToFinish - minMetrics) < 0.00000000001)
                             {
                                 tempList.Add(tempNode);
                             }

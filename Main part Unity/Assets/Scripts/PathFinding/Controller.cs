@@ -18,7 +18,9 @@ namespace Assets.Scripts.PathFinding {
 
         [UsedImplicitly]
         public float Radius;
-        
+
+        public const float distanceStraight = 3f;
+        public const float distanceDiagonal = 4.2426406871f;
         public const int height = 34;
         public const int width = 35;
         public Node[,] NodesArray = new Node [height,width];
@@ -77,71 +79,57 @@ namespace Assets.Scripts.PathFinding {
             var finish = NodesArray[(int)to.transform.position.x / 3, (int)to.transform.position.z / 3];
 
             var start = new Tree_Node(null, NodesArray[(int)from.transform.position.x / 3, (int)from.transform.position.z / 3]);
-            start.Currentnode.Distance = Extensions.Metrics(start, finish);
-            var current = start;
-
-            var observed = new List<Tree_Node> {current};
-
-            var path = new List<Tree_Node>();
-
-            while (current.Currentnode.Position != finish.Position)
-            {
-                if (!observed.Exists(arg => arg.Currentnode.Visited != NodeState.Processed))
-                {
-                    if (debugFlag)
-                    {
-                        debugInformation.Observed = Extensions.ToNodes(
-                            observed.Where(arg => arg.Currentnode.Visited == NodeState.Processed).
-                            OrderBy(arg => arg.Level).ToList());
-                    }
-
-                    Debug.Log("No path was found");
-                    return null;
-                }
-
-                observed[0].Currentnode.Visited = NodeState.Processed;
-                
-                /*//Debug
-                Debug.Log("current "+current.Currentnode.Position);*/
-
-                //Neighbours
-                var neighbours = Extensions.NeighboursAStar(current, NodesArray);
-                
-                if (neighbours.Count != 0)
-                {
-                    foreach (var neighbour in neighbours)
-                    {
-                        if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
-                        {
-                            neighbour.Currentnode.Distance =
-                            neighbour.Currentnode.InformerNode.MetricsAStar(finish.InformerNode);
-
-                            observed.Add(neighbour);
-
-                            /*//Debug
-                            Debug.Log("neighbour = "+neighbour.Currentnode.Position
-                            +" metrics = "+neighbour.Currentnode.Distance +" added");*/
-                        }
-                    }
-                }
-                observed = observed.OrderBy(arg => arg.Currentnode.Visited).
-                    ThenBy(arg => arg.Currentnode.Distance).ToList();
-
-                path.Add(current);
+            start.Currentnode.DistanceToFinish = Extensions.Metrics(start, finish);
+            start.Currentnode.DistanceToStart = 0;
+            start.DistanceFromParent = 0;
             
-                current = observed[0];
-            }
-
-            //Debug.Log("Path: "+path.Count);
-            if (path.Count > 1)
+            var observed = new List<Tree_Node> {start};
+            Tree_Node node;
+            do
             {
-                var finalPath = new List<Node>();
-                while (current != start)
-                {
-                    finalPath.Add(current.Currentnode);
+                observed = observed.OrderBy(x => x.Currentnode.DistanceToStart + x.Currentnode.DistanceToFinish).ToList();
 
-                    current = path.Find(arg => arg.Currentnode.Position == current.Parent.Position &&
-                                               arg.Level == current.Level - 1);
+                node = observed.First();
+                observed.First().Currentnode.Visited = NodeState.Processed;
+
+                Debug.Log("current "+node.Currentnode.Position);
+
+                var neighbours = Extensions.NeighboursAStar(node, NodesArray);
+
+                foreach (var neighbour in neighbours)
+                {
+                    if (observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position
+                                               && arg.Currentnode.Visited == NodeState.Processed)) continue;
+                    if (neighbour.Currentnode.DestinationFromPrevious == Destinations.Left
+                        || neighbour.Currentnode.DestinationFromPrevious == Destinations.Right
+                        || neighbour.Currentnode.DestinationFromPrevious == Destinations.Up
+                        || neighbour.Currentnode.DestinationFromPrevious == Destinations.Down)
+                        neighbour.DistanceFromParent = distanceStraight;
+                    else neighbour.DistanceFromParent = distanceDiagonal;
+                    
+                    if (neighbour.Currentnode.DistanceToStart < distanceStraight ||
+                        node.Currentnode.DistanceToStart + neighbour.DistanceFromParent < neighbour.Currentnode.DistanceToStart)
+                    {
+                        neighbour.Currentnode.DistanceToStart = node.Currentnode.DistanceToStart + neighbour.DistanceFromParent;
+                        neighbour.Parent = node.Currentnode;
+                        
+                        if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
+                            observed.Add(neighbour);
+                    }
+                }
+
+                if (node.Currentnode.Position == finish.Position) break;
+            } while (observed.Exists(arg => arg.Currentnode.Visited!=NodeState.Processed));
+
+            //Build shortest path
+            var finalPath = new List<Node>();
+            if (node.Currentnode.Position == finish.Position)
+            {
+                while (node.Currentnode.Position != start.Currentnode.Position)
+                {
+                    finalPath.Add(node.Currentnode);
+
+                    node = observed.Find(arg=>arg.Currentnode.Position == node.Parent.Position);
                 }
                 finalPath.Reverse();
 
@@ -153,11 +141,9 @@ namespace Assets.Scripts.PathFinding {
                     debugInformation.FinalPath = Extensions.ToInformers(finalPath);
                     //Debug.Log("Processed " + debugInformation.Observed.Count);
                 }
-
-                //Debug.Log("Final path: " + finalPath.Count);
-                return Extensions.ToInformers(finalPath);
             }
-            else return null;
+
+            return Extensions.ToInformers(finalPath);
         }
         
         public void CreateVisibilityGraph()
@@ -586,7 +572,7 @@ namespace Assets.Scripts.PathFinding {
             var linesFromFinish = new StraightLinesFromNode(finish);
 
             var start = new Tree_Node(null,NodesArray[(int)from.transform.position.x/3, (int)from.transform.position.z/3]);
-		    start.Currentnode.Distance = Extensions.Metrics(start,finish);
+		    start.Currentnode.DistanceToFinish = Extensions.Metrics(start,finish);
 		    var current = start;
             var parentJp = start.Currentnode;
             
@@ -657,7 +643,7 @@ namespace Assets.Scripts.PathFinding {
                 //Target JP
                 var lines = new StraightLinesFromNode(current.Currentnode,Extensions.GetDestinationsFromNeighbours(neighbours));
 
-                var minMetrics = current.Currentnode.Distance;
+                var minMetrics = current.Currentnode.DistanceToFinish;
                 var tempList = new List<Node>();
                 if (lines.Lines != null)
                 {
@@ -672,19 +658,19 @@ namespace Assets.Scripts.PathFinding {
                                 && Extensions.Reachable(current.Currentnode,NodesArray[coordinates.X,coordinates.Y],NodesArray))
                             {
                                 var tempNode = new Node(NodesArray[coordinates.X, coordinates.Y]);
-                                tempNode.Distance = Extensions.Metrics(new Tree_Node(current, tempNode), finish);
+                                tempNode.DistanceToFinish = Extensions.Metrics(new Tree_Node(current, tempNode), finish);
                                 tempNode.TargetJP = true;
                                 tempNode.DestinationToFinish = Extensions.DestinationInverse(lineFromFinish.Destination);
                                 tempNode.Visited = NodeState.Discovered;
-                                if (tempNode.Distance < minMetrics)
+                                if (tempNode.DistanceToFinish < minMetrics)
                                 {
-                                    minMetrics = tempNode.Distance;
+                                    minMetrics = tempNode.DistanceToFinish;
                                     tempList.Clear();
                                     tempList.Add(tempNode);
                                 }
-                                else if (Math.Abs(tempNode.Distance - minMetrics) < 0.00000000001)
+                                else if (Math.Abs(tempNode.DistanceToFinish - minMetrics) < 0.00000000001)
                                 {
-                                    tempNode.Distance = Extensions.Metrics(new Tree_Node(current, tempNode), finish);
+                                    tempNode.DistanceToFinish = Extensions.Metrics(new Tree_Node(current, tempNode), finish);
                                     tempList.Add(tempNode);
                                 }
                             }
@@ -719,7 +705,7 @@ namespace Assets.Scripts.PathFinding {
                         var index =
                             observed.FindIndex(arg => arg.Currentnode.Position == tempTargetJP.Currentnode.Position);
                         if (observed[index].Currentnode.Visited == NodeState.Discovered)
-                            observed[index].Currentnode.Distance = tempTargetJP.Currentnode.Distance;
+                            observed[index].Currentnode.DistanceToFinish = tempTargetJP.Currentnode.DistanceToFinish;
                     }
                 }
 
@@ -758,17 +744,17 @@ namespace Assets.Scripts.PathFinding {
                             var index =
                                 observed.FindIndex(arg => arg.Currentnode.Position == neighbour.Currentnode.Position);
                             if (observed[index].Currentnode.Visited == NodeState.Discovered)
-                                observed[index].Currentnode.Distance = neighbour.Currentnode.Distance;
+                                observed[index].Currentnode.DistanceToFinish = neighbour.Currentnode.DistanceToFinish;
                             /*//Debug
                             Debug.Log("neighbour = " + neighbour.Currentnode.Position + " already existed");*/
                         }
                     }
                 }
                 observed = observed.OrderBy(arg => arg.Currentnode.Visited).
-                    ThenBy(arg => arg.Currentnode.Distance).ThenBy(arg => arg.DistanceFromParent).ToList();
+                    ThenBy(arg => arg.Currentnode.DistanceToFinish).ThenBy(arg => arg.DistanceFromParent).ToList();
                 path.Add(current);
 
-		        if (tempTargetJP != null && tempTargetJP.Currentnode.Distance > observed[0].Currentnode.Distance) tempTargetJP = null;
+		        if (tempTargetJP != null && tempTargetJP.Currentnode.DistanceToFinish > observed[0].Currentnode.DistanceToFinish) tempTargetJP = null;
 
 		        if (!observed[0].Currentnode.TargetJP && tempTargetJP != null)
 		        {

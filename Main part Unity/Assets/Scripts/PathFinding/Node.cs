@@ -25,7 +25,8 @@ namespace Assets.Scripts.PathFinding {
 
         public readonly Informer InformerNode;
         public NodeState Visited;
-        public float Distance;
+        public float DistanceToFinish;
+        public float DistanceToStart;
         public Destinations DestinationFromPrevious;
         public Destinations DestinationToFinish;
 
@@ -35,7 +36,8 @@ namespace Assets.Scripts.PathFinding {
         public Node(Informer i, NodeState v) {
             InformerNode = i;
             Visited = v;
-            Distance = 0;
+            DistanceToFinish = 0;
+            DistanceToStart = 0;
             Position = i.transform.position;
             DestinationFromPrevious = Destinations.Default;
             DestinationToFinish = Destinations.Default;
@@ -62,7 +64,8 @@ namespace Assets.Scripts.PathFinding {
             {
                 InformerNode = n.InformerNode;
                 Visited = n.Visited;
-                Distance = n.Distance;
+                DistanceToFinish = n.DistanceToFinish;
+                DistanceToStart = n.DistanceToStart;
                 Position = n.Position;
                 DestinationToFinish = n.DestinationToFinish;
                 DestinationFromPrevious = n.DestinationFromPrevious;
