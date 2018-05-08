@@ -47,14 +47,18 @@ namespace Assets.Scripts.PathFinding {
         public List<Informer> AStar(Informer from, Informer to, float radius, bool debugFlag,
             out DebugInformationAlgorithm debugInformation)
         {
-            if (from == null || to == null) {
+            if (from == null || to == null)
+            {
                 Debug.LogError("Can't run A*. Enter proper from and to parameters!");
                 debugInformation = null;
                 return null;
             }
-            //Debug.Log("From: " + from.transform.position);
-            //Debug.Log("To: " + to.transform.position);
-            if (debugFlag) {
+
+            /*Debug.Log("From: " + from.transform.position);
+            Debug.Log("To: " + to.transform.position);*/
+
+            if (debugFlag)
+            {
                 debugInformation = new DebugInformationAlgorithm
                 {
                     From = from,
@@ -64,85 +68,96 @@ namespace Assets.Scripts.PathFinding {
                     LinesFromFinish = new List<Node>(),
                     CrossPoints = new List<Node>()
                 };
-            } else {
+            }
+            else
+            {
                 debugInformation = null;
             }
-            var current = new Node(from, NodeState.Processed);
-            current.Distance = current.InformerNode.MetricsAStar(to);
-            var observed = new List<Node> {current};
-            // ReSharper disable once PossibleNullReferenceException
 
-            var path = new List<Node> { current };
+            var finish = NodesArray[(int)to.transform.position.x / 3, (int)to.transform.position.z / 3];
 
-            while (current.InformerNode != to)
+            var start = new Tree_Node(null, NodesArray[(int)from.transform.position.x / 3, (int)from.transform.position.z / 3]);
+            start.Currentnode.Distance = Extensions.Metrics(start, finish);
+            var current = start;
+
+            var observed = new List<Tree_Node> {current};
+
+            var path = new List<Tree_Node>();
+
+            while (current.Currentnode.Position != finish.Position)
             {
-                var query = Extensions.Neighbours(current, NodesArray);
-                query =
-                    query.Where(
-                        informer => informer.InformerNode.transform.position != current.InformerNode.transform.position
-                        && informer.InformerNode.IsObstacle != true)
-                        .ToList();
-                foreach (var informer in query) {
-                    if (
-                    !observed.Exists(
-                        arg => arg.InformerNode.transform.position == informer.InformerNode.transform.position)) {
-                            informer.Distance = informer.InformerNode.MetricsAStar(to);
-                    informer.Visited = NodeState.Discovered;
-                    observed.Add(informer);
+                if (!observed.Exists(arg => arg.Currentnode.Visited != NodeState.Processed))
+                {
+                    if (debugFlag)
+                    {
+                        debugInformation.Observed = Extensions.ToNodes(
+                            observed.Where(arg => arg.Currentnode.Visited == NodeState.Processed).
+                            OrderBy(arg => arg.Level).ToList());
                     }
-                }
-                observed = observed.OrderBy(arg => arg.Visited).ThenBy(arg => arg.Distance).ToList();
-                if ( observed[0].Visited != NodeState.Processed ) {
-                    current = observed[0];
-                    observed[0].Visited = NodeState.Processed;
-                    path.Add(current);
-                    if (debugInformation != null) {
-                        debugInformation.Observed.Add(observed[0]);
-                    }
-                } else {
+
                     Debug.Log("No path was found");
-                    debugInformation = null;
                     return null;
                 }
-            }
-            var finalPath = new List<Informer>();
 
-            Debug.Log("Path: " + path.Count);
-            foreach (var node in path)
-            {
-                Debug.Log(node.Position);
-            }
+                observed[0].Currentnode.Visited = NodeState.Processed;
+                
+                /*//Debug
+                Debug.Log("current "+current.Currentnode.Position);*/
 
-            finalPath.Add(path[0].InformerNode);
-            for (var i = 1; i < path.Count; ++i)
-            {
-                var maxIndex = i;
-                for (var j = i; j < path.Count; ++j)
+                //Neighbours
+                var neighbours = Extensions.NeighboursAStar(current, NodesArray);
+                
+                if (neighbours.Count != 0)
                 {
-                    if (StraightLine.OnOneLine(path[i], path[j], NodesArray)) maxIndex = j;
-                }
-                if (maxIndex != i)
-                {
-                    var points = StraightLine.FindMiddlePoints(path[i], path[maxIndex]);
-                    foreach (var point in points)
+                    foreach (var neighbour in neighbours)
                     {
-                        finalPath.Add(NodesArray[point.X,point.Y].InformerNode);
+                        if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
+                        {
+                            neighbour.Currentnode.Distance =
+                            neighbour.Currentnode.InformerNode.MetricsAStar(finish.InformerNode);
+
+                            observed.Add(neighbour);
+
+                            /*//Debug
+                            Debug.Log("neighbour = "+neighbour.Currentnode.Position
+                            +" metrics = "+neighbour.Currentnode.Distance +" added");*/
+                        }
                     }
-                    i = maxIndex;
                 }
+                observed = observed.OrderBy(arg => arg.Currentnode.Visited).
+                    ThenBy(arg => arg.Currentnode.Distance).ToList();
+
+                path.Add(current);
+            
+                current = observed[0];
             }
 
-            Debug.Log("Final path: " +finalPath.Count);
-            
-            if (debugInformation != null) {
-                debugInformation.FinalPath = finalPath;
-                Debug.Log("Processed " + debugInformation.Observed.Count);
+            //Debug.Log("Path: "+path.Count);
+            if (path.Count > 1)
+            {
+                var finalPath = new List<Node>();
+                while (current != start)
+                {
+                    finalPath.Add(current.Currentnode);
+
+                    current = path.Find(arg => arg.Currentnode.Position == current.Parent.Position &&
+                                               arg.Level == current.Level - 1);
+                }
+                finalPath.Reverse();
+
+                if (debugFlag)
+                {
+                    debugInformation.Observed = Extensions.ToNodes(
+                        observed.Where(arg => arg.Currentnode.Visited == NodeState.Processed).
+                            OrderBy(arg => arg.Level).ToList());
+                    debugInformation.FinalPath = Extensions.ToInformers(finalPath);
+                    //Debug.Log("Processed " + debugInformation.Observed.Count);
+                }
+
+                //Debug.Log("Final path: " + finalPath.Count);
+                return Extensions.ToInformers(finalPath);
             }
-                /*Debug.Log("Final Path:");
-                foreach (var informer in finalPath) {
-                    Debug.Log(informer.transform.name + " " + informer.transform.position);
-                }*/
-            return finalPath;
+            else return null;
         }
         
         public void CreateVisibilityGraph()
@@ -764,6 +779,7 @@ namespace Assets.Scripts.PathFinding {
 		        if (current.Currentnode.IsJumpPoint == JPType.Primary) parentJp = current.Currentnode;
 
 		    }
+
             //Debug.Log("Path: "+path.Count);
             if(path.Count>1)
             {

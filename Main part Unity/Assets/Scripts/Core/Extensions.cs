@@ -81,26 +81,108 @@ namespace Assets.Scripts.Core {
             else return Destinations.UpLeft;
         }
 
-        public static List<Node> Neighbours(Node current, Node[,] array)
+        public static List<Tree_Node> NeighboursAStar(Tree_Node current, Node[,] array)
         {
-            var neighbours = new List<Node>();
+            var neighbours = new List<Tree_Node>();
+            
+            var x = current.Currentnode.X();
+            var y = current.Currentnode.Y();
 
-            var x = current.X();
-            var y = current.Y();
-            neighbours.Add(array[x + 1, y]); //right
-            neighbours.Add(array[x - 1, y]); //left
-            neighbours.Add(array[x, y + 1]); //down
-            neighbours.Add(array[x, y - 1]); //up
+            //Right
+            if (!array[x + 1, y].InformerNode.IsObstacle)
+            {
+                var node = new Node(array[x + 1, y])
+                {
+                    DestinationFromPrevious = Destinations.Right,
+                    Visited = NodeState.Discovered
+                };
+                neighbours.Add(new Tree_Node(current, node));
+            }
 
-            //Don't traverce obstacles' edges
-            if (!array[x + 1, y].InformerNode.IsObstacle &&
-                !array[x, y - 1].InformerNode.IsObstacle) neighbours.Add(array[x + 1, y - 1]); //down-right
-            if (!array[x - 1, y].InformerNode.IsObstacle &&
-                !array[x, y + 1].InformerNode.IsObstacle) neighbours.Add(array[x - 1, y + 1]); //up-left
-            if (!array[x - 1, y].InformerNode.IsObstacle &&
-                !array[x, y - 1].InformerNode.IsObstacle) neighbours.Add(array[x - 1, y - 1]); //down-left
-            if (!array[x + 1, y].InformerNode.IsObstacle &&
-                !array[x, y + 1].InformerNode.IsObstacle) neighbours.Add(array[x + 1, y + 1]); //up-right
+            //Left
+            if (!array[x - 1, y].InformerNode.IsObstacle)
+            {
+                var node = new Node(array[x - 1, y])
+                {
+                    DestinationFromPrevious = Destinations.Left,
+                    Visited = NodeState.Discovered
+                };
+                neighbours.Add(new Tree_Node(current, node));
+            }
+
+            //Down
+            if (!array[x, y - 1].InformerNode.IsObstacle)
+            {
+                var node = new Node(array[x, y - 1])
+                {
+                    DestinationFromPrevious = Destinations.Down,
+                    Visited = NodeState.Discovered
+                };
+                neighbours.Add(new Tree_Node(current, node));
+            }
+
+            //Up
+            if (!array[x, y + 1].InformerNode.IsObstacle)
+            {
+                var node = new Node(array[x, y + 1])
+                {
+                    DestinationFromPrevious = Destinations.Up,
+                    Visited = NodeState.Discovered
+                };
+                neighbours.Add(new Tree_Node(current, node));
+            }
+
+            //Down-right
+            if (!array[x + 1, y - 1].InformerNode.IsObstacle &&
+                !array[x + 1, y].InformerNode.IsObstacle &&
+                !array[x, y - 1].InformerNode.IsObstacle)
+            {
+                var node = new Node(array[x + 1, y - 1])
+                {
+                    DestinationFromPrevious = Destinations.DownRight,
+                    Visited = NodeState.Discovered
+                };
+                neighbours.Add(new Tree_Node(current, node));
+            }
+
+            //Up-Left
+            if (!array[x - 1, y + 1].InformerNode.IsObstacle &&
+                !array[x - 1, y].InformerNode.IsObstacle &&
+                !array[x, y + 1].InformerNode.IsObstacle)
+            {
+                var node = new Node(array[x - 1, y + 1])
+                {
+                    DestinationFromPrevious = Destinations.UpLeft,
+                    Visited = NodeState.Discovered
+                };
+                neighbours.Add(new Tree_Node(current, node));
+            }
+
+            //Down-Left
+            if (!array[x - 1, y - 1].InformerNode.IsObstacle &&
+                !array[x - 1, y].InformerNode.IsObstacle &&
+                !array[x, y - 1].InformerNode.IsObstacle)
+            {
+                var node = new Node(array[x - 1, y - 1])
+                {
+                    DestinationFromPrevious = Destinations.DownLeft,
+                    Visited = NodeState.Discovered
+                };
+                neighbours.Add(new Tree_Node(current, node));
+            }
+
+            //Up-Right
+            if (!array[x + 1, y + 1].InformerNode.IsObstacle &&
+                !array[x + 1, y].InformerNode.IsObstacle &&
+                !array[x, y + 1].InformerNode.IsObstacle)
+            {
+                var node = new Node(array[x + 1, y + 1])
+                {
+                    DestinationFromPrevious = Destinations.UpRight,
+                    Visited = NodeState.Discovered
+                };
+                neighbours.Add(new Tree_Node(current, node));
+            }
 
             return neighbours;
         }
