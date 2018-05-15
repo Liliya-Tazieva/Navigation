@@ -87,39 +87,42 @@ namespace Assets.Scripts.PathFinding {
             Tree_Node node;
             do
             {
-                observed = observed.OrderBy(x => x.Currentnode.DistanceToStart + x.Currentnode.DistanceToFinish).ToList();
+                observed = observed.OrderBy(arg => arg.Currentnode.Visited)
+                    .ThenBy(arg => arg.Currentnode.DistanceToStart + arg.Currentnode.DistanceToFinish).ToList();
 
                 node = observed.First();
                 observed.First().Currentnode.Visited = NodeState.Processed;
-
-                Debug.Log("current "+node.Currentnode.Position);
-
+                
                 var neighbours = Extensions.NeighboursAStar(node, NodesArray);
 
                 foreach (var neighbour in neighbours)
                 {
                     if (observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position
                                                && arg.Currentnode.Visited == NodeState.Processed)) continue;
+
                     if (neighbour.Currentnode.DestinationFromPrevious == Destinations.Left
                         || neighbour.Currentnode.DestinationFromPrevious == Destinations.Right
                         || neighbour.Currentnode.DestinationFromPrevious == Destinations.Up
                         || neighbour.Currentnode.DestinationFromPrevious == Destinations.Down)
                         neighbour.DistanceFromParent = distanceStraight;
                     else neighbour.DistanceFromParent = distanceDiagonal;
-                    
+
                     if (neighbour.Currentnode.DistanceToStart < distanceStraight ||
-                        node.Currentnode.DistanceToStart + neighbour.DistanceFromParent < neighbour.Currentnode.DistanceToStart)
+                        node.Currentnode.DistanceToStart + neighbour.DistanceFromParent <
+                        neighbour.Currentnode.DistanceToStart)
                     {
-                        neighbour.Currentnode.DistanceToStart = node.Currentnode.DistanceToStart + neighbour.DistanceFromParent;
+                        neighbour.Currentnode.DistanceToStart =
+                            node.Currentnode.DistanceToStart + neighbour.DistanceFromParent;
                         neighbour.Parent = node.Currentnode;
-                        
+
                         if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
                             observed.Add(neighbour);
                     }
                 }
 
                 if (node.Currentnode.Position == finish.Position) break;
-            } while (observed.Exists(arg => arg.Currentnode.Visited!=NodeState.Processed));
+
+            } while (observed.Exists(arg => arg.Currentnode.Visited != NodeState.Processed));
 
             //Build shortest path
             var finalPath = new List<Node>();
@@ -139,7 +142,7 @@ namespace Assets.Scripts.PathFinding {
                         observed.Where(arg => arg.Currentnode.Visited == NodeState.Processed).
                             OrderBy(arg => arg.Level).ToList());
                     debugInformation.FinalPath = Extensions.ToInformers(finalPath);
-                    //Debug.Log("Processed " + debugInformation.Observed.Count);
+                    Debug.Log("Processed " + debugInformation.Observed.Count);
                 }
             }
 
@@ -785,7 +788,7 @@ namespace Assets.Scripts.PathFinding {
                         observed.Where(arg => arg.Currentnode.Visited==NodeState.Processed).
                         OrderBy(arg => arg.Level).ToList());
                     debugInformation.FinalPath = Extensions.ToInformers(finalPath);
-                    //Debug.Log("Processed " + debugInformation.Observed.Count);
+                    Debug.Log("Processed " + debugInformation.Observed.Count);
                 }
                 //Debug.Log("Final path: " + finalPath.Count);
                 return finalPath;
