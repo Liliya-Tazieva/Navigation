@@ -22,8 +22,13 @@ namespace Assets.Scripts.Core {
 		}
 
         public static float MetricsAStar( this Informer from, Informer to ) {
-            var metric = ( to.transform.position - from.transform.position ).sqrMagnitude;
+            var metric = (to.transform.position - from.transform.position).sqrMagnitude;
             return metric;
+        }
+
+        public static float MetricsSqrt(Node from, Node to)
+        {
+            return (float)Math.Sqrt((to.Position - from.Position).sqrMagnitude);
         }
 
         public static float Metrics(Tree_Node from, Node to)
@@ -187,20 +192,21 @@ namespace Assets.Scripts.Core {
             return neighbours;
         }
 
-        public static List<Tree_Node> Neighbours(Tree_Node node, Node[,] array, Node finish, 
-            StraightLinesFromNode linesFromFinish)
+        public static List<Tree_Node> Neighbours(Tree_Node node, Node[,] array, Node finish)
         {
             var neighbours = NeighboursSelective(node, node.Currentnode.X(), node.Currentnode.Y(), array, 
-                node.Currentnode.DestinationFromPrevious, finish, linesFromFinish);
+                node.Currentnode.DestinationFromPrevious, finish);
             return neighbours;
         }
 
-        public static List<Tree_Node> NeighboursSelective(Tree_Node parent,int x, int y, Node[,] array, Destinations destination, Node finish,
-            StraightLinesFromNode linesFromFinish)
+        public static List<Tree_Node> NeighboursSelective(Tree_Node parent,int x, int y, Node[,] array, 
+            Destinations destination, Node finish)
         {
             var neighbours = new List<Tree_Node>();
             var parentNode = parent.Currentnode;
 
+            const float distanceStraight = 3f;
+             const float distanceDiagonal = 4.2426406871f;
 
             //Left
             if (!array[x - 1, y].InformerNode.IsObstacle)
@@ -211,12 +217,15 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parentNode.NormMatrix[1, 0] ;
                     delta = Math.Abs(delta);
-                    var node = new Node(array[x - delta, y]);
-                    node.DestinationFromPrevious = Destinations.Left;
+                    var node = new Tree_Node(parent, array[x - delta, y])
+                    {
+                        Currentnode = {DestinationFromPrevious = Destinations.Left}
+                    };
                     if (delta != 0)
                     {
-                        node.Visited = NodeState.Discovered;
-                        neighbours.Add(new Tree_Node(parent,node));
+                        node.DistanceFromParent = delta * distanceStraight;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
                     }
                 }
             }
@@ -228,12 +237,15 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parentNode.NormMatrix[0, 0];
                     delta = Math.Abs(delta);
-                    var node = new Node(array[x - delta, y + delta]);
-                    node.DestinationFromPrevious = Destinations.UpLeft;
+                    var node = new Tree_Node(parent, array[x - delta, y + delta])
+                    {
+                        Currentnode = {DestinationFromPrevious = Destinations.UpLeft}
+                    };
                     if (delta != 0)
                     {
-                        node.Visited = NodeState.Discovered;
-                        neighbours.Add(new Tree_Node(parent, node));
+                        node.DistanceFromParent = delta * distanceDiagonal;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
                     }
                 }
             }
@@ -246,12 +258,15 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parentNode.NormMatrix[0, 1];
                     delta = Math.Abs(delta);
-                    var node = new Node(array[x, y + delta]);
-                    node.DestinationFromPrevious = Destinations.Up;
+                    var node = new Tree_Node(parent, array[x, y + delta])
+                    {
+                        Currentnode = {DestinationFromPrevious = Destinations.Up}
+                    };
                     if (delta != 0)
                     {
-                        node.Visited = NodeState.Discovered;
-                        neighbours.Add(new Tree_Node(parent, node));
+                        node.DistanceFromParent = delta * distanceStraight;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
                     }
                 }
             }
@@ -263,12 +278,15 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parentNode.NormMatrix[0, 2];
                     delta = Math.Abs(delta);
-                    var node = new Node(array[x + delta, y + delta]);
-                    node.DestinationFromPrevious = Destinations.UpRight;
+                    var node = new Tree_Node(parent, array[x + delta, y + delta])
+                    {
+                        Currentnode = {DestinationFromPrevious = Destinations.UpRight}
+                    };
                     if (delta != 0)
                     {
-                        node.Visited = NodeState.Discovered;
-                        neighbours.Add(new Tree_Node(parent, node));
+                        node.DistanceFromParent = delta * distanceDiagonal;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
                     }
                 }
             }
@@ -281,12 +299,15 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parentNode.NormMatrix[1, 2];
                     delta = Math.Abs(delta);
-                    var node = new Node(array[x + delta, y]);
-                    node.DestinationFromPrevious = Destinations.Right;
+                    var node = new Tree_Node(parent, array[x + delta, y])
+                    {
+                        Currentnode = {DestinationFromPrevious = Destinations.Right}
+                    };
                     if (delta != 0)
                     {
-                        node.Visited = NodeState.Discovered;
-                        neighbours.Add(new Tree_Node(parent, node));
+                        node.DistanceFromParent = delta * distanceStraight;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
                     }
                 }
             }
@@ -298,12 +319,15 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parentNode.NormMatrix[2, 2];
                     delta = Math.Abs(delta);
-                    var node = new Node(array[x + delta, y - delta]);
-                    node.DestinationFromPrevious = Destinations.DownRight;
+                    var node = new Tree_Node(parent, array[x + delta, y - delta])
+                    {
+                        Currentnode = {DestinationFromPrevious = Destinations.DownRight}
+                    };
                     if (delta != 0)
                     {
-                        node.Visited = NodeState.Discovered;
-                        neighbours.Add(new Tree_Node(parent, node));
+                        node.DistanceFromParent = delta * distanceDiagonal;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
                     }
                 }
             }
@@ -316,12 +340,15 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parentNode.NormMatrix[2, 1];
                     delta = Math.Abs(delta);
-                    var node = new Node(array[x, y - delta]);
-                    node.DestinationFromPrevious = Destinations.Down;
+                    var node = new Tree_Node(parent, array[x, y - delta])
+                    {
+                        Currentnode = {DestinationFromPrevious = Destinations.Down}
+                    };
                     if (delta != 0)
                     {
-                        node.Visited = NodeState.Discovered;
-                        neighbours.Add(new Tree_Node(parent, node));
+                        node.DistanceFromParent = delta * distanceStraight;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
                     }
                 }
             }
@@ -333,19 +360,17 @@ namespace Assets.Scripts.Core {
                 {
                     var delta = parentNode.NormMatrix[2, 0];
                     delta = Math.Abs(delta);
-                    var node = new Node(array[x - delta, y - delta]);
-                    node.DestinationFromPrevious = Destinations.DownLeft;
+                    var node = new Tree_Node(parent, array[x - delta, y - delta])
+                    {
+                        Currentnode = {DestinationFromPrevious = Destinations.DownLeft}
+                    };
                     if (delta != 0)
                     {
-                        node.Visited = NodeState.Discovered;
-                        neighbours.Add(new Tree_Node(parent, node));
+                        node.DistanceFromParent = delta * distanceDiagonal;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
                     }
                 }
-            }
-            foreach (var node in neighbours)
-            {
-                node.Currentnode.DistanceToFinish = Metrics(node, finish);
-                node.Currentnode.Visited = NodeState.Discovered;
             }
 
             return neighbours;
@@ -579,8 +604,7 @@ namespace Assets.Scripts.Core {
             var finishNode = new Node(finish, NodeState.Processed);
             var sraightLinesFromStart = new StraightLinesFromNode(startNode);
             var sraightLinesFromFinish = new StraightLinesFromNode(finishNode);
-            var neighbours = Neighbours(startTreeNode, nodesArray, finishNode, 
-                sraightLinesFromFinish);
+            var neighbours = Neighbours(startTreeNode, nodesArray, finishNode);
 
             var minMetrics = startNode.DistanceToFinish;
             var tempList = new List<Node>();
