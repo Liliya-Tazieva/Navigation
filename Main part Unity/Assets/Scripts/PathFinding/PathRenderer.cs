@@ -83,16 +83,16 @@ namespace Assets.Scripts.PathFinding {
                         yield return AStarDebug(informer.InformerNode, Show.Observed);
                     }
                 }
-                foreach (var informer in DebugInformation.FinalPath) {
-                    if (informer != DebugInformation.From && informer != DebugInformation.To) {
-                        yield return AStarDebug(informer, Show.Path);
+                foreach (var node in DebugInformation.FinalPath) {
+                    if (node.InformerNode != DebugInformation.From && node.InformerNode != DebugInformation.To) {
+                        yield return AStarDebug(node.InformerNode, Show.Path);
                     }
                 }
-                foreach (var informer in DebugInformation.FinalPathJPS)
+                foreach (var node in DebugInformation.FinalPathJPS)
                 {
-                    if (informer != DebugInformation.From && informer != DebugInformation.To)
+                    if (node.InformerNode != DebugInformation.From && node.InformerNode != DebugInformation.To)
                     {
-                        yield return AStarDebug(informer, Show.PathJPS);
+                        yield return AStarDebug(node.InformerNode, Show.PathJPS);
                     }
                 }
             } else yield return null;

@@ -37,13 +37,13 @@ namespace Assets.Scripts.PathFinding {
         }
 
         [UsedImplicitly]
-        public List<Informer> AStar(Informer from, Informer to) {
+        public List<Node> AStar(Informer from, Informer to) {
             DebugInformationAlgorithm debugInformation;
             var finalPath = AStar(from, to, false, out debugInformation);
             return finalPath;
         }
 
-        public List<Informer> AStar(Informer from, Informer to, bool debugFlag,
+        public List<Node> AStar(Informer from, Informer to, bool debugFlag,
             out DebugInformationAlgorithm debugInformation)
         {
             if (from == null || to == null)
@@ -60,7 +60,7 @@ namespace Assets.Scripts.PathFinding {
                     From = from,
                     To = to,
                     Observed = new List<Node>(),
-                    FinalPath = new List<Informer>(),
+                    FinalPath = new List<Node>(),
                     LinesFromFinish = new List<Node>(),
                     CrossPoints = new List<Node>()
                 };
@@ -91,8 +91,15 @@ namespace Assets.Scripts.PathFinding {
 
                 foreach (var neighbour in neighbours)
                 {
-                    if (observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position
-                                               && arg.Currentnode.Visited == NodeState.Processed)) continue;
+                    var indexOfExisting = -1;
+                    if (observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
+                    {
+                        indexOfExisting = observed.FindIndex(arg => arg.Currentnode.Position == neighbour.Currentnode.Position);
+                        if (observed[indexOfExisting].Currentnode.Visited != NodeState.Processed)
+                            neighbour.Currentnode.DistanceToStart =
+                                observed[indexOfExisting].Currentnode.DistanceToStart;
+                        else continue;
+                    }
 
                     if (neighbour.Currentnode.DestinationFromPrevious == Destinations.Left
                         || neighbour.Currentnode.DestinationFromPrevious == Destinations.Right
@@ -111,6 +118,10 @@ namespace Assets.Scripts.PathFinding {
 
                         if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
                             observed.Add(neighbour);
+                        else
+                        {
+                            observed[indexOfExisting] = neighbour;
+                        }
                     }
                 }
 
@@ -135,12 +146,12 @@ namespace Assets.Scripts.PathFinding {
                     debugInformation.Observed = Extensions.ToNodes(
                         observed.Where(arg => arg.Currentnode.Visited == NodeState.Processed).
                             OrderBy(arg => arg.Level).ToList());
-                    debugInformation.FinalPath = Extensions.ToInformers(finalPath);
+                    debugInformation.FinalPath = finalPath;
                     Debug.Log("Processed " + debugInformation.Observed.Count);
                 }
             }
 
-            return Extensions.ToInformers(finalPath);
+            return finalPath;
         }
         
         public void CreateVisibilityGraph()
@@ -564,11 +575,11 @@ namespace Assets.Scripts.PathFinding {
             IsPrecomputed = true;
         }
 
-        public List<Informer> JPS(Informer from, Informer to)
+        public List<Node> JPS(Informer from, Informer to)
         {
             DebugInformationAlgorithm debugInformation;
             var finalPath = JPS(from, to, false, out debugInformation, true);
-            return Extensions.ToInformers(finalPath);
+            return finalPath;
 
         }
 
@@ -610,7 +621,7 @@ namespace Assets.Scripts.PathFinding {
                     From = from,
                     To = to,
                     Observed = new List<Node>(),
-                    FinalPath = new List<Informer>(),
+                    FinalPath = new List<Node>(),
                     LinesFromFinish = new List<Node>(),
                     CrossPoints = new List<Node>()
                 };
@@ -799,7 +810,7 @@ namespace Assets.Scripts.PathFinding {
                     debugInformation.Observed = Extensions.ToNodes(
                         observed.Where(arg => arg.Currentnode.Visited==NodeState.Processed).
                         OrderBy(arg => arg.Level).ToList());
-                    debugInformation.FinalPath = Extensions.ToInformers(finalPath);
+                    debugInformation.FinalPath = finalPath;
                     Debug.Log("Processed " + debugInformation.Observed.Count);
                 }
                 //Debug.Log("Final path: " + finalPath.Count);

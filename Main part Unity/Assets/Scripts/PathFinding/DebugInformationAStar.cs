@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace Assets.Scripts.PathFinding {
     public class DebugInformationAlgorithm
     {
-        public List<Informer> FinalPath = new List<Informer>();
-        public List<Informer> FinalPathJPS = new List<Informer>();
+        public List<Node> FinalPath = new List<Node>();
+        public List<Node> FinalPathJPS = new List<Node>();
         public Informer From;
         public List<Node> Observed = new List<Node>();
         public Informer To;
