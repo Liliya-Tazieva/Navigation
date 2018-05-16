@@ -15,10 +15,7 @@ namespace Assets.Scripts.PathFinding {
 
         [UsedImplicitly]
         public Vector3 To;
-
-        [UsedImplicitly]
-        public float Radius;
-
+        
         public const float distanceStraight = 3f;
         public const float distanceDiagonal = 4.2426406871f;
         public const int mapHeight = 34;
@@ -40,13 +37,13 @@ namespace Assets.Scripts.PathFinding {
         }
 
         [UsedImplicitly]
-        public List<Informer> AStar(Informer from, Informer to, float radius) {
+        public List<Informer> AStar(Informer from, Informer to) {
             DebugInformationAlgorithm debugInformation;
-            var finalPath = AStar(from, to, radius, false, out debugInformation);
+            var finalPath = AStar(from, to, false, out debugInformation);
             return finalPath;
         }
 
-        public List<Informer> AStar(Informer from, Informer to, float radius, bool debugFlag,
+        public List<Informer> AStar(Informer from, Informer to, bool debugFlag,
             out DebugInformationAlgorithm debugInformation)
         {
             if (from == null || to == null)

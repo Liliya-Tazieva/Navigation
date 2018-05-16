@@ -48,7 +48,7 @@ public class OnA_StarGUI : MonoBehaviour {
         var controller = GetComponentInChildren<Controller>();
 
         DebugInformationAlgorithm debugInformation;
-        controller.AStar(StartInformer, FinishInformer, controller.Radius, true, out debugInformation);
+        controller.AStar(StartInformer, FinishInformer, true, out debugInformation);
         controller.InitializeDebugInfo();
         controller.DebugManagerAStar.AddPath(debugInformation);
 
@@ -147,7 +147,7 @@ public class OnA_StarGUI : MonoBehaviour {
         ChooseNodesRandomly();
 
         DebugInformationAlgorithm debugInformation;
-        controller.AStar(StartInformer, FinishInformer, controller.Radius, true, out debugInformation);
+        controller.AStar(StartInformer, FinishInformer, true, out debugInformation);
         controller.InitializeDebugInfo();
         controller.DebugManagerAStar.AddPath(debugInformation);
 
@@ -216,7 +216,7 @@ public class OnA_StarGUI : MonoBehaviour {
         if (StartInformer != null && FinishInformer != null)
         {
             var controller = GetComponentInChildren<Controller>();
-            var path = controller.AStar(StartInformer, FinishInformer, controller.Radius);
+            var path = controller.AStar(StartInformer, FinishInformer);
             var debugInfo = new DebugInformationAlgorithm
             {
                 From = StartInformer,
