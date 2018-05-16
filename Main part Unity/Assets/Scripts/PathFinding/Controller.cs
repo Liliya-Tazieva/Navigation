@@ -243,26 +243,34 @@ namespace Assets.Scripts.PathFinding {
             {
                 if (Boxes[i].BoundJP.Count > 3) continue;
 
-                Debug.Log("i = " + i + " Boxes.Count = " + Boxes.Count + " current_box " + Boxes[i].BoxID);
+                var nothingToBeDone = false;
+                foreach (var jp in Boxes[i].BoundJP)
+                {
+                    var closestJp = BoundingBoxes.FindClosestBound(JumpPoints, jp, NodesArray, true);
 
-                var needsRevision = false;
+                    if (closestJp == null)
+                    {
+                        nothingToBeDone = true;
+                        Debug.Log("Bound " + Boxes[i].BoxID + " stays even though it shouldn't");
+
+                        break;
+                    }
+                }
+
+                if(nothingToBeDone) continue;
+
                 for (var j = Boxes[i].BoundJP.Count - 1; j >= 0; --j)
                 {
                     var closestJp = BoundingBoxes.FindClosestBound(JumpPoints, Boxes[i].BoundJP[j], NodesArray, true);
-                    if (closestJp == null) needsRevision = true;
-
-                    /*//Debug
-                    Debug.Log("current_jp " + Boxes[i].BoundJP[j].Position + " current_bound " + Boxes[i].BoundJP[j].BoundingBox 
-                        + " Closest_jp " + closestJp.Position + " Closest_bound " + closestJp.BoundingBox);*/
-
+                    
                     Boxes[i].BoundJP[j].BoundingBox = closestJp.BoundingBox;
                     Boxes.Find(arg => arg.BoxID == closestJp.BoundingBox).BoundJP.Add(Boxes[i].BoundJP[j]);
                     NodesArray[closestJp.X(), closestJp.Y()].BoundingBox = closestJp.BoundingBox;
                     JumpPoints.Find(arg => arg.Position == closestJp.Position).BoundingBox = closestJp.BoundingBox;
                     Boxes[i].BoundJP.RemoveAt(j);
                 }
-                if (!needsRevision) Boxes.RemoveAt(i);
-                else ++i;
+
+                Boxes.RemoveAt(i);
             }
         }
 
@@ -555,8 +563,7 @@ namespace Assets.Scripts.PathFinding {
 
                     if (path != null)
                         foreach (var node in path)
-                            if (node.IsJumpPoint == JPType.Primary && !boundsList.Contains(node.BoundingBox))
-                                boundsList.Add(node.BoundingBox);
+                            if (!boundsList.Contains(node.BoundingBox)) boundsList.Add(node.BoundingBox);
                     
                     Boxes[i].RoutesToOtherBB.Add(Boxes[j].BoxID, boundsList);
                     Boxes[j].RoutesToOtherBB.Add(Boxes[i].BoxID, boundsList);
@@ -598,11 +605,11 @@ namespace Assets.Scripts.PathFinding {
             //Prepare for Goal bounding
             CreateBounds();
 
-            //Save routes between bounds
-            PrecomputeRoutesBetweenBb();
-
             //Initialize map nodes with closest BB
             InitializeNodesWithBB(left, right, top, bottom);
+
+            //Save routes between bounds
+            PrecomputeRoutesBetweenBb();
 
             IsPrecomputed = true;
         }
@@ -798,18 +805,31 @@ namespace Assets.Scripts.PathFinding {
                             continue;
                         }
 
+                        var indexOfExisting = -1;
+                        if (observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position))
+                        {
+                            indexOfExisting = observed.FindIndex(arg => arg.Currentnode.Position == neighbour.Currentnode.Position);
+                            if (observed[indexOfExisting].Currentnode.Visited != NodeState.Processed)
+                                neighbour.Currentnode.DistanceToStart =
+                                    observed[indexOfExisting].Currentnode.DistanceToStart;
+                            else continue;
+                        }
+                        
                         if (neighbour.Currentnode.DistanceToStart < distanceStraight ||
                             current.Currentnode.DistanceToStart + neighbour.DistanceFromParent <
                             neighbour.Currentnode.DistanceToStart)
                         {
-                            neighbour.Currentnode.DistanceToStart =
+                           neighbour.Currentnode.DistanceToStart =
                                 current.Currentnode.DistanceToStart + neighbour.DistanceFromParent;
                             neighbour.Currentnode.DistanceToFinish = Extensions.MetricsSqrt(neighbour.Currentnode, finish);
                             neighbour.Parent = current.Currentnode;
 
-                            if (!observed.Exists(arg => arg.Currentnode.Position == neighbour.Currentnode.Position)
-                                && Extensions.SelectJPFromNeighbours(current, neighbour))
+                            if (indexOfExisting == -1 && Extensions.SelectJPFromNeighbours(current, neighbour))
                                 observed.Add(neighbour);
+                            else if(indexOfExisting != -1)
+                            {
+                                observed[indexOfExisting] = neighbour;
+                            }
                         }
                     }
                 }

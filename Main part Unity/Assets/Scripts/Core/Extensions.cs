@@ -450,8 +450,6 @@ namespace Assets.Scripts.Core {
                 var point = new Point(node.X(), node.Y());
                 if (point.Belongs(line))
                 {
-                    /*Debug.Log("Point "+point.X+" "+point.Y);
-                    Debug.Log("line "+line.Start.X+" "+line.Start.Y+" "+line.Finish.X+" "+line.Finish.Y);*/
                     isTargetJP.TargetJP = true;
                     isTargetJP.DestinationToFinish = DestinationInverse(line.Destination);
                     break;
