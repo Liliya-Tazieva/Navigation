@@ -4,6 +4,7 @@ using Assets.Scripts.Core;
 using JetBrains.Annotations;
 using UnityEngine;
 using System;
+using System.Text;
 
 namespace Assets.Scripts.PathFinding {
     public class Controller : MonoBehaviour {
@@ -178,7 +179,9 @@ namespace Assets.Scripts.PathFinding {
             var currentBB = 0;
             while(JumpPoints.Exists(arg => arg.BoundingBox == -1))
             {
-                var currJp = JumpPoints.Find(arg => arg.BoundingBox == -1);
+                JumpPoints = JumpPoints.OrderBy(arg => arg.BoundingBox).ThenBy(arg => arg.Position.x).ToList();
+
+                var currJp = JumpPoints.First();
                 currJp.BoundingBox = currentBB;
                 
                 var currentBbObject = new BoundingBoxes(currJp, currentBB);
@@ -215,6 +218,7 @@ namespace Assets.Scripts.PathFinding {
                     if (point.Y() < top) top = point.Y();
                     if (point.Y() > bottom) bottom = point.Y();
                 }
+
                 //Mark all points inside convex hull of the bound
                 for(var i = left; i<=right; ++i)
                     for(var j = top; j<=bottom; ++j)
@@ -232,6 +236,33 @@ namespace Assets.Scripts.PathFinding {
 
                 Boxes.Add(currentBbObject);
                 ++currentBB;
+            }
+
+            //Combine bounds
+            for (var i = Boxes.Count - 1; i >= 0; --i)
+            {
+                if (Boxes[i].BoundJP.Count > 3) continue;
+
+                Debug.Log("i = " + i + " Boxes.Count = " + Boxes.Count + " current_box " + Boxes[i].BoxID);
+
+                var needsRevision = false;
+                for (var j = Boxes[i].BoundJP.Count - 1; j >= 0; --j)
+                {
+                    var closestJp = BoundingBoxes.FindClosestBound(JumpPoints, Boxes[i].BoundJP[j], NodesArray, true);
+                    if (closestJp == null) needsRevision = true;
+
+                    /*//Debug
+                    Debug.Log("current_jp " + Boxes[i].BoundJP[j].Position + " current_bound " + Boxes[i].BoundJP[j].BoundingBox 
+                        + " Closest_jp " + closestJp.Position + " Closest_bound " + closestJp.BoundingBox);*/
+
+                    Boxes[i].BoundJP[j].BoundingBox = closestJp.BoundingBox;
+                    Boxes.Find(arg => arg.BoxID == closestJp.BoundingBox).BoundJP.Add(Boxes[i].BoundJP[j]);
+                    NodesArray[closestJp.X(), closestJp.Y()].BoundingBox = closestJp.BoundingBox;
+                    JumpPoints.Find(arg => arg.Position == closestJp.Position).BoundingBox = closestJp.BoundingBox;
+                    Boxes[i].BoundJP.RemoveAt(j);
+                }
+                if (!needsRevision) Boxes.RemoveAt(i);
+                else ++i;
             }
         }
 
@@ -541,7 +572,8 @@ namespace Assets.Scripts.PathFinding {
                 {
                     if (NodesArray[i, j].BoundingBox != -1) continue;
 
-                    NodesArray[i,j].BoundingBox = BoundingBoxes.FindClosestBound(JumpPoints, NodesArray[i, j], NodesArray, false).BoundingBox;
+                    var closestJp =  BoundingBoxes.FindClosestBound(JumpPoints, NodesArray[i, j], NodesArray, false);
+                    NodesArray[i, j].BoundingBox = (closestJp != null) ? closestJp.BoundingBox : -1;
                 }
             }
         }
@@ -599,17 +631,16 @@ namespace Assets.Scripts.PathFinding {
 		    start.Currentnode.DistanceToFinish = Extensions.MetricsSqrt(start.Currentnode,finish);
 		    var current = start;
             var parentJp = start.Currentnode;
-            
+
             //Find closest bound to finish
             var finishBound = -1;
-
-            if (IsPrecomputed)
+            if (IsPrecomputed && Boxes.Count > 0)
             {
                 parentJp = BoundingBoxes.FindClosestBound(JumpPoints,start.Currentnode,NodesArray, false);
                 Debug.Log("startBound = " + parentJp.BoundingBox);
-                finishBound = BoundingBoxes.FindClosestBound(JumpPoints, finish, NodesArray, false).BoundingBox;
+                finishBound = finish.BoundingBox;
                 Debug.Log("finishBound = " + finishBound);
-            }
+            }   
             
 		    var path = new List<Tree_Node>();
 		    var observed = new List<Tree_Node> {current};
@@ -631,7 +662,14 @@ namespace Assets.Scripts.PathFinding {
                 debugInformation = null;
             }
 
-		    while (current.Currentnode != finish)
+            if ((finishBound == -1 || start.Currentnode.BoundingBox == -1) && Boxes.Count > 0 && useGB)
+            {
+                Debug.Log("No path exists");
+
+                return null;
+            }
+
+            while (current.Currentnode != finish)
 		    {
                 if (!observed.Exists(arg => arg.Currentnode.Visited != NodeState.Processed))
 		        {
@@ -679,27 +717,22 @@ namespace Assets.Scripts.PathFinding {
                         {
                             var coordinates = StraightLine.Crossing(line, lineFromFinish);
 
-                            if (coordinates != null && 
-                                Extensions.Reachable(NodesArray[coordinates.X, coordinates.Y], finish, NodesArray) && 
-                                Extensions.Reachable(current.Currentnode, NodesArray[coordinates.X,coordinates.Y], NodesArray))
+                            if (coordinates != null && !NodesArray[coordinates.X, coordinates.Y].InformerNode.IsObstacle
+                                && Extensions.Reachable(NodesArray[coordinates.X, coordinates.Y], finish, NodesArray)
+                                && Extensions.Reachable(current.Currentnode, NodesArray[coordinates.X, coordinates.Y], NodesArray))
                             {
                                 var tempNode = new Tree_Node(current, NodesArray[coordinates.X, coordinates.Y]);
-                                tempNode.Currentnode.DistanceToFinish = Extensions.MetricsSqrt(tempNode.Currentnode, finish);
-                                tempNode.DistanceFromParent = Extensions.MetricsSqrt(tempNode.Currentnode, current.Currentnode);
-                                tempNode.Currentnode.DistanceToStart =
-                                    current.Currentnode.DistanceToStart + tempNode.DistanceFromParent;
+                                tempNode.Currentnode.DistanceToFinish = Extensions.Metrics(tempNode, finish);
                                 tempNode.Currentnode.TargetJP = true;
                                 tempNode.Currentnode.DestinationToFinish = Extensions.DestinationInverse(lineFromFinish.Destination);
                                 tempNode.Currentnode.Visited = NodeState.Discovered;
-
-                                if (tempNode.Currentnode.DistanceToFinish + tempNode.Currentnode.DistanceToStart < minMetrics)
+                                if (tempNode.Currentnode.DistanceToFinish < minMetrics)
                                 {
-                                    minMetrics = tempNode.Currentnode.DistanceToFinish + tempNode.Currentnode.DistanceToStart;
+                                    minMetrics = tempNode.Currentnode.DistanceToFinish;
                                     tempList.Clear();
                                     tempList.Add(tempNode);
                                 }
-                                else if (Math.Abs(tempNode.Currentnode.DistanceToFinish +
-                                                  tempNode.Currentnode.DistanceToStart - minMetrics) < 0.00000000001)
+                                else if (Math.Abs(tempNode.Currentnode.DistanceToFinish - minMetrics) < 0.00000000001)
                                 {
                                     tempList.Add(tempNode);
                                 }
@@ -724,7 +757,12 @@ namespace Assets.Scripts.PathFinding {
                             }
                         }
                     }
-                    
+
+                    tempTargetJP.Currentnode.DistanceToFinish = Extensions.MetricsSqrt(tempTargetJP.Currentnode, finish);
+                    tempTargetJP.DistanceFromParent = Extensions.MetricsSqrt(tempTargetJP.Currentnode, current.Currentnode);
+                    tempTargetJP.Currentnode.DistanceToStart =
+                        current.Currentnode.DistanceToStart + tempTargetJP.DistanceFromParent;
+
                     if (!observed.Exists(arg => arg.Currentnode.Position == tempTargetJP.Currentnode.Position))
                         observed.Add(tempTargetJP);
                     else

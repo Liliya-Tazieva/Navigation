@@ -203,7 +203,11 @@ namespace Assets.Scripts.PathFinding
             var crossPoint = new Point();
             foreach (var pointInLine1 in line1.Points)
             {
-                if (pointInLine1.Belongs(line2))
+                if(pointInLine1.X == line1.Start.X && pointInLine1.Y == line1.Start.Y) continue;
+
+                var idx = line2.Points.FindIndex(arg => arg.X == pointInLine1.X && arg.Y == pointInLine1.Y);
+
+                if (idx != -1 && (line2.Points[idx].X != line2.Start.X || line2.Points[idx].Y != line2.Start.Y))
                 {
                     isCrossing = true;
                     crossPoint = pointInLine1;
@@ -213,37 +217,7 @@ namespace Assets.Scripts.PathFinding
 
             return isCrossing ? crossPoint : null;
         }
-
-        public static Point Crossing(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
-        {
-            var isCrossing = false;
-            var line1 = new StraightLine(new Point(x1,y1), new Point(x2,y2));
-            var line2 = new StraightLine(new Point(x3, y3), new Point(x4, y4));
-
-            var crossPoint = new Point();
-            
-            var a1 = y1 - y2;
-            var b1 = x2 - x1;
-            var c1 = x1*y2 - x2*y1;
-            var a2 = y3 - y4;
-            var b2 = x4 - x3;
-            var c2 = x3 * y4 - x4 * y3;
-            if (a1*b2 - a2*b1 != 0)
-            {
-                crossPoint.X = -(c1*b2 - c2*b1)/(a1*b2 - a2*b1);
-                crossPoint.Y = -(a1*c2 - a2*c1)/(a1*b2 - a2*b1);
-
-                if (crossPoint.Belongs(line1) && crossPoint.Belongs(line2))
-                    isCrossing = true;
-            }
-            else
-            {
-                return line1.Belongs(line2) || line2.Belongs(line1) ? new Point(-100, -100) : null;
-            }
-
-            return isCrossing ? crossPoint : null;
-        }
-
+       
         public void ReduceLine(Node[,] nodesArray)
         {
             foreach (var point in Points)

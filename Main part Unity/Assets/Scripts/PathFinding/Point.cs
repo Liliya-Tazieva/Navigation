@@ -19,7 +19,8 @@
 
         public bool Belongs(StraightLine line)
         {
-            return line.Points.Exists(arg => arg.X == X && arg.Y == Y);
+            var idx = line.Points.FindIndex(arg => arg.X == X && arg.Y == Y);
+            return idx != -1 && line.Points[idx].X != line.Start.X && line.Points[idx].Y != line.Start.Y;
         }
     }
 }

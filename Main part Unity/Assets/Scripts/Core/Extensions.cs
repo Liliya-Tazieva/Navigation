@@ -502,18 +502,22 @@ namespace Assets.Scripts.Core {
             if (from.InformerNode.IsObstacle) return false;
             var pointsBetween = StraightLine.FindMiddlePoints(from, to);
             var destination = StraightLine.FindDestination(from, to);
-            pointsBetween.Remove(new Point(from.X(), from.Y()));
-            pointsBetween.Remove(new Point(to.X(), to.Y()));
+            pointsBetween.RemoveAt(0);
+            pointsBetween.RemoveAt(pointsBetween.Count-1);
             foreach (var point in pointsBetween)
             {
                 if (destination == Destinations.UpRight
                     && nodesArray[point.X, point.Y].NormMatrix[0,2] == 0) return false;
+
                 if (destination == Destinations.UpLeft
                     && nodesArray[point.X, point.Y].NormMatrix[0, 0] == 0) return false;
+
                 if (destination == Destinations.DownRight
                     && nodesArray[point.X, point.Y].NormMatrix[2, 2] == 0) return false;
+
                 if (destination == Destinations.DownLeft
                     && nodesArray[point.X, point.Y].NormMatrix[2, 0] == 0) return false;
+
                 if (nodesArray[point.X, point.Y].InformerNode.IsObstacle) return false;
             }
             return true;
@@ -614,7 +618,9 @@ namespace Assets.Scripts.Core {
                     foreach (var line in sraightLinesFromStart.Lines)
                     {
                         var coordinates = StraightLine.Crossing(line, lineFromFinish);
-                        if (coordinates != null && Reachable(nodesArray[coordinates.X, coordinates.Y], finishNode, nodesArray)
+
+                        if (coordinates != null && !nodesArray[coordinates.X, coordinates.Y].InformerNode.IsObstacle
+                            && Reachable(nodesArray[coordinates.X, coordinates.Y], finishNode, nodesArray)
                             && Reachable(startNode, nodesArray[coordinates.X, coordinates.Y], nodesArray))
                         {
                             var tempNode = new Node(nodesArray[coordinates.X, coordinates.Y]);

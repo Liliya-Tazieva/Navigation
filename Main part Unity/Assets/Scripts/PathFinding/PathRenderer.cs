@@ -71,16 +71,16 @@ namespace Assets.Scripts.PathFinding {
                         yield return AStarDebug(informer.InformerNode, Show.Line);
                     }
                 }
+                foreach (var informer in DebugInformation.Observed) {
+                    if (informer.InformerNode != DebugInformation.From && informer.InformerNode != DebugInformation.To) {
+                        yield return AStarDebug(informer.InformerNode, Show.Observed);
+                    }
+                }
                 foreach (var informer in DebugInformation.CrossPoints)
                 {
                     if (informer.InformerNode != DebugInformation.From && informer.InformerNode != DebugInformation.To)
                     {
                         yield return AStarDebug(informer.InformerNode, Show.CrossPoint);
-                    }
-                }
-                foreach (var informer in DebugInformation.Observed) {
-                    if (informer.InformerNode != DebugInformation.From && informer.InformerNode != DebugInformation.To) {
-                        yield return AStarDebug(informer.InformerNode, Show.Observed);
                     }
                 }
                 foreach (var node in DebugInformation.FinalPath) {

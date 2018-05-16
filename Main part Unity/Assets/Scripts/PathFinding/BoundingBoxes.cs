@@ -39,17 +39,20 @@ namespace Assets.Scripts.PathFinding
                 
                 if (dist < minDist)
                 {
+                    if(forPrimaryJP && jp.BoundingBox == node.BoundingBox) continue;
+                    
                     var line = Extensions.BresenhamLineAlgorithm(node, jp);
-
-                    if(!node.InformerNode.IsObstacle && !Extensions.Reachable(line, nodesArray, node.BoundingBox, false)
-                    || forPrimaryJP && jp.BoundingBox == node.BoundingBox) continue;
+                    
+                    if (!node.InformerNode.IsObstacle &&
+                        !Extensions.Reachable(line, nodesArray, node.BoundingBox, false))
+                        continue;
 
                     closestJp = jp;
                     minDist = dist;
                 }
             }
 
-            return closestJp;
+            return closestJp == node ? null : closestJp;
         }
 
         private static double Cross(Node O, Node A, Node B)
