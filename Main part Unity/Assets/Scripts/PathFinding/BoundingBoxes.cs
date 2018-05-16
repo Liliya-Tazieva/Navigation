@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts.Core;
 using UnityEngine;
@@ -42,7 +41,7 @@ namespace Assets.Scripts.PathFinding
                 {
                     var line = Extensions.BresenhamLineAlgorithm(node, jp);
 
-                    if(!Extensions.Reachable(line, nodesArray, node.BoundingBox, false)
+                    if(!node.InformerNode.IsObstacle && !Extensions.Reachable(line, nodesArray, node.BoundingBox, false)
                     || forPrimaryJP && jp.BoundingBox == node.BoundingBox) continue;
 
                     closestJp = jp;

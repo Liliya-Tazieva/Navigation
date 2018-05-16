@@ -21,9 +21,9 @@ namespace Assets.Scripts.PathFinding {
 
         public const float distanceStraight = 3f;
         public const float distanceDiagonal = 4.2426406871f;
-        public const int height = 34;
-        public const int width = 35;
-        public Node[,] NodesArray = new Node [height,width];
+        public const int mapHeight = 34;
+        public const int mapWidth = 35;
+        public Node[,] NodesArray = new Node [mapHeight,mapWidth];
 		public bool IsPrecomputed;
         public List<Node> JumpPoints = new List<Node>();
         public List<BoundingBoxes> Boxes = new List<BoundingBoxes>();
@@ -199,7 +199,7 @@ namespace Assets.Scripts.PathFinding {
                 currentBbObject.FilterPointsInBound(NodesArray);
                 currentBbObject.FindConvexHull();
                 //Find rectangle, that contains current bound
-                int left = width, right = 0, top = height, bottom = 0;
+                int left = mapWidth, right = 0, top = mapHeight, bottom = 0;
                 foreach (var point in currentBbObject.ConvexHull)
                 {
                     if (point.X() < left) left = point.X();
@@ -227,18 +227,18 @@ namespace Assets.Scripts.PathFinding {
             }
         }
 
-        public void PrecomputeJP()
+        public void PrecomputeJP(int left, int right, int top, int bottom)
 		{
             JumpPoints.Clear();
-		    JumpPoints = Extensions.FindPrimaryJPWithObstacles(NodesArray, height, width);
+		    JumpPoints = Extensions.FindPrimaryJPWithObstacles(NodesArray, right, bottom);
             
             //computing distances to jump points and obstacles
-            for (var i = 0; i < height; ++i) {
-				for (var j = 0; j < width; ++j) {
+            for (var i = left; i < right; ++i) {
+				for (var j = top; j < bottom; ++j) {
                     if (NodesArray[i, j].InformerNode.IsObstacle) continue;
 				    //Checking up
 				    var k = 1;
-				    while (j + k < width)
+				    while (j + k < bottom)
 				    {
                         if (NodesArray[i, j + k].IsJumpPoint == JPType.Primary || NodesArray[i, j + k].InformerNode.IsObstacle)
 				        {
@@ -254,7 +254,7 @@ namespace Assets.Scripts.PathFinding {
 				            }
 				            break;
 				        }
-				        if (j + k == width - 1)
+				        if (j + k == bottom - 1)
 				        {
 				            NodesArray[i, j].NormMatrix[0, 1] = -k;
 				        }
@@ -262,7 +262,7 @@ namespace Assets.Scripts.PathFinding {
 				    }
 				    //Checking down
 				    k = 1;
-				    while (j - k >= 0)
+				    while (j - k >= top)
 				    {
                         if (NodesArray[i, j - k].IsJumpPoint == JPType.Primary || NodesArray[i, j - k].InformerNode.IsObstacle)
 				        {
@@ -278,7 +278,7 @@ namespace Assets.Scripts.PathFinding {
 				            }
 				            break;
 				        }
-				        if (j - k == 0)
+				        if (j - k == top)
 				        {
 				            NodesArray[i, j].NormMatrix[2, 1] = -k;
 				        }
@@ -286,7 +286,7 @@ namespace Assets.Scripts.PathFinding {
 				    }
 				    //Checking right
 				    k = 1;
-				    while (i + k < height)
+				    while (i + k < right)
 				    {
                         if (NodesArray[i + k, j].IsJumpPoint == JPType.Primary || NodesArray[i + k, j].InformerNode.IsObstacle)
 				        {
@@ -302,7 +302,7 @@ namespace Assets.Scripts.PathFinding {
 				            }
 				            break;
 				        }
-				        if (i + k == height - 1)
+				        if (i + k == right - 1)
 				        {
 				            NodesArray[i, j].NormMatrix[1, 2] = -k;
 				        }
@@ -310,7 +310,7 @@ namespace Assets.Scripts.PathFinding {
 				    }
 				    //Checking left
 				    k = 1;
-				    while (i - k >= 0)
+				    while (i - k >= left)
 				    {
                         if (NodesArray[i - k, j].IsJumpPoint == JPType.Primary || NodesArray[i - k, j].InformerNode.IsObstacle)
 				        {
@@ -326,7 +326,7 @@ namespace Assets.Scripts.PathFinding {
 				            }
 				            break;
 				        }
-				        if (i - k == 0)
+				        if (i - k == left)
 				        {
 				            NodesArray[i, j].NormMatrix[1, 0] = -k;
 				        }
@@ -336,16 +336,16 @@ namespace Assets.Scripts.PathFinding {
 			}
 
             //Finding diagonal JP
-		    for (var i = 0; i < height; ++i)
+		    for (var i = left; i < right; ++i)
 		    {
-		        for (var j = 0; j < width; ++j)
+		        for (var j = top; j < bottom; ++j)
 		        {
                     if (NodesArray[i, j].InformerNode.IsObstacle) continue;
 		            //Checking up-right
 		            var k = 1;
 		            if (!NodesArray[i + 1, j].InformerNode.IsObstacle && !NodesArray[i, j + 1].InformerNode.IsObstacle)
 		            {
-		                while (i + k < height && j + k < width)
+		                while (i + k < right && j + k < bottom)
 		                {
 		                    if (NodesArray[i + k, j + k].IsJumpPoint == JPType.Primary ||
 		                        NodesArray[i + k, j + k].InformerNode.IsObstacle
@@ -371,7 +371,7 @@ namespace Assets.Scripts.PathFinding {
 		                        }
 		                        break;
 		                    }
-		                    if (i + k == height - 1 || j + k == width -1 )
+		                    if (i + k == right - 1 || j + k == bottom - 1 )
 		                    {
 		                        NodesArray[i, j].NormMatrix[0, 2] = -k;
 		                    }
@@ -382,7 +382,7 @@ namespace Assets.Scripts.PathFinding {
 		            k = 1;
                     if (!NodesArray[i + 1, j].InformerNode.IsObstacle && !NodesArray[i, j - 1].InformerNode.IsObstacle)
                     {
-                        while (i + k < height && j - k >= 0)
+                        while (i + k < right && j - k >= top)
                         {
                             if (NodesArray[i + k, j - k].IsJumpPoint == JPType.Primary ||
                                 NodesArray[i + k, j - k].InformerNode.IsObstacle
@@ -408,7 +408,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
                                 break;
                             }
-                            if (i + k == width - 1 || j - k == 0)
+                            if (i + k == bottom - 1 || j - k == top)
                             {
                                 NodesArray[i, j].NormMatrix[2, 2] = -k;
                             }
@@ -419,7 +419,7 @@ namespace Assets.Scripts.PathFinding {
 		            k = 1;
                     if (!NodesArray[i - 1, j].InformerNode.IsObstacle && !NodesArray[i, j + 1].InformerNode.IsObstacle)
                     {
-                        while (i - k >= 0 && j + k < width)
+                        while (i - k >= left && j + k < bottom)
                         {
                             if (NodesArray[i - k, j + k].IsJumpPoint == JPType.Primary ||
                                 NodesArray[i - k, j + k].InformerNode.IsObstacle
@@ -445,7 +445,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
                                 break;
                             }
-                            if (i - k == 0 || j + k == width - 1)
+                            if (i - k == left || j + k == bottom - 1)
                             {
                                 NodesArray[i, j].NormMatrix[0, 0] = -k;
                             }
@@ -456,7 +456,7 @@ namespace Assets.Scripts.PathFinding {
 		            k = 1;
                     if (!NodesArray[i - 1, j].InformerNode.IsObstacle && !NodesArray[i, j - 1].InformerNode.IsObstacle)
                     {
-                        while (i - k >= 0 && j - k >= 0)
+                        while (i - k >= left && j - k >= top)
                         {
                             if (NodesArray[i - k, j - k].IsJumpPoint == JPType.Primary ||
                                 NodesArray[i - k, j - k].InformerNode.IsObstacle
@@ -482,7 +482,7 @@ namespace Assets.Scripts.PathFinding {
                                 }
                                 break;
                             }
-                            if (i - k == 0 || j - k == 0)
+                            if (i - k == left || j - k == top)
                             {
                                 NodesArray[i, j].NormMatrix[2, 0] = -k;
                             }
@@ -525,14 +525,32 @@ namespace Assets.Scripts.PathFinding {
             }
         }
 
+        public void InitializeNodesWithBB(int left, int right, int top, int bottom)
+        {
+            for (var i = left; i < right; ++i)
+            {
+                for (var j = top; j < bottom; ++j)
+                {
+                    if (NodesArray[i, j].BoundingBox != -1) continue;
+
+                    NodesArray[i,j].BoundingBox = BoundingBoxes.FindClosestBound(JumpPoints, NodesArray[i, j], NodesArray, false).BoundingBox;
+                }
+            }
+        }
+
         public void PrecomputeMap()
         {
+            PrecomputeMap(0, mapHeight, 0, mapWidth);
+        }
+
+        public void PrecomputeMap(int left, int right, int top, int bottom)
+        {
             //CleanUp
-            for (var i = 0; i < height; ++i)
-                for (var j = 0; j < width; ++j)
+            for (var i = left; i < right; ++i)
+                for (var j = top; j < bottom; ++j)
                     NodesArray[i, j].RestartNode();
 
-            PrecomputeJP();
+            PrecomputeJP(left, right, top, bottom);
             
             //Create visibility graph
             CreateVisibilityGraph();
@@ -542,6 +560,9 @@ namespace Assets.Scripts.PathFinding {
 
             //Save routes between bounds
             PrecomputeRoutesBetweenBb();
+
+            //Initialize map nodes with closest BB
+            InitializeNodesWithBB(left, right, top, bottom);
 
             IsPrecomputed = true;
         }
@@ -562,12 +583,7 @@ namespace Assets.Scripts.PathFinding {
                 debugInformation = null;
                 return null;
             }
-
-			if (!IsPrecomputed && useGB) {
-				Debug.Log ("Precomputing...");
-				PrecomputeMap ();
-                Debug.Log("Done!");
-			}
+            
 		    var finish = NodesArray[(int)to.transform.position.x/3, (int)to.transform.position.z/3];
             var linesFromFinish = new StraightLinesFromNode(finish);
 
@@ -578,7 +594,8 @@ namespace Assets.Scripts.PathFinding {
             
             //Find closest bound to finish
             var finishBound = -1;
-            if (useGB)
+
+            if (IsPrecomputed)
             {
                 parentJp = BoundingBoxes.FindClosestBound(JumpPoints,start.Currentnode,NodesArray, false);
                 Debug.Log("startBound = " + parentJp.BoundingBox);
@@ -597,7 +614,8 @@ namespace Assets.Scripts.PathFinding {
                     To = to,
                     Observed = new List<Node>(),
                     FinalPath = new List<Informer>(),
-                    LinesFromFinish = StraightLinesFromNode.ToList(linesFromFinish,NodesArray)
+                    LinesFromFinish = new List<Node>(),
+                    CrossPoints = new List<Node>()
                 };
             }
             else
@@ -609,7 +627,7 @@ namespace Assets.Scripts.PathFinding {
 		    {
                 if (!observed.Exists(arg => arg.Currentnode.Visited != NodeState.Processed))
 		        {
-		            if (!useGB)
+		            if (IsPrecomputed)
 		            {
 		                Debug.Log("No path was found between bb "+start.Currentnode.BoundingBox+" "+finish.BoundingBox);
 		            }
@@ -698,12 +716,7 @@ namespace Assets.Scripts.PathFinding {
                             }
                         }
                     }
-
-                    if (debugFlag)
-                    {
-                        debugInformation.CrossPoints.Add(tempTargetJP.Currentnode);
-                    }
-
+                    
                     if (!observed.Exists(arg => arg.Currentnode.Position == tempTargetJP.Currentnode.Position))
                         observed.Add(tempTargetJP);
                     else
@@ -716,12 +729,12 @@ namespace Assets.Scripts.PathFinding {
                     }
                 }
 
-                /*//Debug
-		        if (useGB)
+                //Debug
+		        if (IsPrecomputed)
 		            Debug.Log("current = " + current.Currentnode.Position +
 		                      " neighbours = " + neighbours.Count + " parentJP_Bound = " + parentJp.BoundingBox +
 		                      " DistanceToStart = " + current.Currentnode.DistanceToStart +
-		                      " DistanceToFinish = " + current.Currentnode.DistanceToFinish);*/
+		                      " DistanceToFinish = " + current.Currentnode.DistanceToFinish);
 
                 if (neighbours.Count != 0)
                 {

@@ -1,10 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using Accord.MachineLearning.DecisionTrees.Pruning;
-using Assets.Scripts.Core;
-using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Assets.Scripts.PathFinding
 {

@@ -1,11 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Assets.Scripts.Core;
 using Assets.Scripts.Map;
 using Assets.Scripts.PathFinding;
-using UnityEngine.UI;
 using Random = System.Random;
 
 public class OnA_StarGUI : MonoBehaviour {
@@ -22,11 +19,17 @@ public class OnA_StarGUI : MonoBehaviour {
     private bool _selectNodeForBB;
     private bool _changeMapDown;
     private bool _useGB;
+    private int _changedRectLeft;
+    private int _changedRectRight;
+    private int _changedRectTop;
+    private int _changedRectBottom;
 
     public void RunJPS()
     {
         //Navigation
         var controller = GetComponentInChildren<Controller>();
+
+        if(!controller.IsPrecomputed) PrecomputeMap();
 
         DebugInformationAlgorithm debugInformation;
         controller.JPS(StartInformer, FinishInformer, true, out debugInformation, _useGB);
@@ -123,6 +126,8 @@ public class OnA_StarGUI : MonoBehaviour {
     {
         var controller = GetComponentInChildren<Controller>();
         
+        if(!controller.IsPrecomputed) PrecomputeMap();
+
         ChooseNodesRandomly();
 
         DebugInformationAlgorithm debugInformation;
@@ -239,6 +244,9 @@ public class OnA_StarGUI : MonoBehaviour {
                 Destroy = false
             };
             controller.InitializeDebugInfo();
+
+            if(!controller.IsPrecomputed) PrecomputeMap();
+
             controller.DebugManagerAStar.AddPath(debugInfo);
         }
         else Debug.LogError("Enter proper arguments");
@@ -300,6 +308,11 @@ public class OnA_StarGUI : MonoBehaviour {
             var x = (int) selectedNode.transform.position.x / 3;
             var y = (int) selectedNode.transform.position.z / 3;
 
+            if (x < _changedRectLeft) _changedRectLeft = x;
+            if (x > _changedRectRight) _changedRectRight = y;
+            if (y < _changedRectTop) _changedRectTop = y;
+            if (y < _changedRectBottom) _changedRectBottom = y;
+
             //Changing borders not allowed
             if (x == 0 || y == 0 || x == mapManager.Map.height - 1 || y == mapManager.Map.width - 1)
             {
@@ -335,9 +348,16 @@ public class OnA_StarGUI : MonoBehaviour {
 
     public void ChangeMapWrapper(bool toggleVal)
     {
-        _changeMapDown = !_changeMapDown;
+        _changedRectLeft = 100000;
+        _changedRectRight = 0;
+        _changedRectTop = 100000;
+        _changedRectBottom = 0;
 
-        PrecomputeMap();
+        var controller = GetComponentInChildren<Controller>();
+
+        if(toggleVal)controller.PrecomputeMap(_changedRectLeft, _changedRectRight, _changedRectTop, _changedRectBottom);
+
+        _changeMapDown = !_changeMapDown;
     }
 
     public void UseGBwithJPS(bool toggleVal)

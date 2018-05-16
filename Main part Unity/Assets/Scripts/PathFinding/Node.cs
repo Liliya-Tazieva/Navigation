@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using AForge.Math;
 using Vector3 = UnityEngine.Vector3;
 
 namespace Assets.Scripts.PathFinding {

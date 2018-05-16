@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace Assets.Scripts.PathFinding
+﻿namespace Assets.Scripts.PathFinding
 {
     public class Point
     {
