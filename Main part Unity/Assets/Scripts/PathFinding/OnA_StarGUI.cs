@@ -271,22 +271,19 @@ public class OnA_StarGUI : MonoBehaviour {
         }
     }
 
-    public void ShowRectangles()
+    public void ShowAllBounds()
     {
         var controller = GetComponentInChildren<Controller>();
         if (!controller.IsPrecomputed) controller.PrecomputeMap();
 
-        foreach (var box in controller.Boxes)
-        {
-            foreach (var jp in box.BoundJP)
-            {
-                var renderer = jp.InformerNode.GetComponent<Renderer>();
-                if(jp != box.StartJP) renderer.material.SetColor("_Color", Color.white);
+        var mapManager = GetComponentInChildren<MapManager>();
 
-                var tileText = jp.InformerNode.GetComponentInChildren<TextMesh>();
-                var text = "\n\t" + box.BoxID;
-                tileText.text = text;
-            }
+        for (var i = 0; i < mapManager.Map.height; ++i)
+        for (var j = 0; j < mapManager.Map.width; ++j)
+        {
+            var tileText = controller.NodesArray[i, j].InformerNode.GetComponentInChildren<TextMesh>();
+            var text = "\n\t" + controller.NodesArray[i, j].BoundingBox;
+            tileText.text = text;
         }
     }
 
