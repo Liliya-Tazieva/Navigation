@@ -21,6 +21,7 @@ public class OnA_StarGUI : MonoBehaviour {
     private bool _startChanged;
     private bool _selectNodeForBB;
     private bool _changeMapDown;
+    private bool _useGB;
 
     public void RunJPS()
     {
@@ -28,7 +29,7 @@ public class OnA_StarGUI : MonoBehaviour {
         var controller = GetComponentInChildren<Controller>();
 
         DebugInformationAlgorithm debugInformation;
-        controller.JPS(StartInformer, FinishInformer, true, out debugInformation, true);
+        controller.JPS(StartInformer, FinishInformer, true, out debugInformation, _useGB);
         controller.InitializeDebugInfo();
         controller.DebugManagerAStar.AddPath(debugInformation);
 
@@ -339,6 +340,11 @@ public class OnA_StarGUI : MonoBehaviour {
         PrecomputeMap();
     }
 
+    public void UseGBwithJPS(bool toggleVal)
+    {
+        _useGB = !_useGB;
+    }
+
     public void ShowBound()
     {
         var controller = GetComponentInChildren<Controller>();
@@ -390,6 +396,7 @@ public class OnA_StarGUI : MonoBehaviour {
 	    _startChanged = false;
         _selectNodeForBB = false;
         _changeMapDown = false;
+        _useGB = false;
     }
 
     void Update()
