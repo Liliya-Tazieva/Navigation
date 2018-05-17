@@ -500,7 +500,6 @@ namespace Assets.Scripts.Core {
             if (from.InformerNode.IsObstacle) return false;
             var pointsBetween = StraightLine.FindMiddlePoints(from, to);
             var destination = StraightLine.FindDestination(from, to);
-            pointsBetween.RemoveAt(0);
             pointsBetween.RemoveAt(pointsBetween.Count-1);
             foreach (var point in pointsBetween)
             {

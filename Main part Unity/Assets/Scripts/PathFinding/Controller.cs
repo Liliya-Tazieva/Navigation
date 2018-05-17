@@ -251,7 +251,7 @@ namespace Assets.Scripts.PathFinding {
                     if (closestJp == null)
                     {
                         nothingToBeDone = true;
-                        Debug.Log("Bound " + Boxes[i].BoxID + " stays even though it shouldn't");
+                        //Debug.Log("Bound " + Boxes[i].BoxID + " stays even though it shouldn't");
 
                         break;
                     }
@@ -536,7 +536,7 @@ namespace Assets.Scripts.PathFinding {
                             k++;
                         }
                     }
-                    var tileText = NodesArray[i, j].InformerNode.GetComponentInChildren<TextMesh>();
+                    /*var tileText = NodesArray[i, j].InformerNode.GetComponentInChildren<TextMesh>();
                     string text = "";
                     for (int m = 0; m < 3; ++m)
                     {
@@ -545,7 +545,7 @@ namespace Assets.Scripts.PathFinding {
                         text = text + "\n";
                     }
 
-                    tileText.text = text;
+                    tileText.text = text;*/
 		        }
 		    }
 		}
@@ -782,12 +782,12 @@ namespace Assets.Scripts.PathFinding {
                     }
                 }
 
-                //Debug
+                /*//Debug
 		        if (IsPrecomputed)
 		            Debug.Log("current = " + current.Currentnode.Position +
 		                      " neighbours = " + neighbours.Count + " parentJP_Bound = " + parentJp.BoundingBox +
 		                      " DistanceToStart = " + current.Currentnode.DistanceToStart +
-		                      " DistanceToFinish = " + current.Currentnode.DistanceToFinish);
+		                      " DistanceToFinish = " + current.Currentnode.DistanceToFinish);*/
 
                 if (neighbours.Count != 0)
                 {
