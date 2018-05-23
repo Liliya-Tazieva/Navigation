@@ -193,8 +193,203 @@ namespace Assets.Scripts.Core {
 
         public static List<Tree_Node> Neighbours(Tree_Node node, Node[,] array, Node finish)
         {
-            var neighbours = NeighboursSelective(node, node.Currentnode.X(), node.Currentnode.Y(), array, 
+            var neighbours = NeighboursSelectiveExperimental(node, node.Currentnode.X(), node.Currentnode.Y(), array, 
                 node.Currentnode.DestinationFromPrevious, finish);
+            return neighbours;
+        }
+
+        public static List<Tree_Node> NeighboursSelectiveExperimental(Tree_Node parent, int x, int y, Node[,] array,
+            Destinations destination, Node finish)
+        {
+            var neighbours = new List<Tree_Node>();
+            var parentNode = parent.Currentnode;
+
+            const float distanceStraight = 3f;
+            const float distanceDiagonal = 4.2426406871f;
+
+            //Left
+            if (!array[x - 1, y].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default || destination == Destinations.Left 
+                    || destination == Destinations.Up && array[x - 1, y - 1].InformerNode.IsObstacle 
+                    || destination == Destinations.Down && array[x - 1, y + 1].InformerNode.IsObstacle 
+                    || destination == Destinations.UpLeft || destination == Destinations.DownLeft)
+                {
+                    var delta = parentNode.NormMatrix[1, 0];
+                    delta = Math.Abs(delta);
+                    var node = new Tree_Node(parent, array[x - delta, y])
+                    {
+                        Currentnode = { DestinationFromPrevious = Destinations.Left }
+                    };
+                    if (delta != 0)
+                    {
+                        node.DistanceFromParent = delta * distanceStraight;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
+                    }
+                }
+            }
+            //Up-left
+            if (!array[x - 1, y + 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default 
+                    || destination == Destinations.Left && array[x + 1, y + 1].InformerNode.IsObstacle
+                    || destination == Destinations.Up && array[x - 1, y - 1].InformerNode.IsObstacle
+                    || destination == Destinations.UpLeft)
+                {
+                    var delta = parentNode.NormMatrix[0, 0];
+                    delta = Math.Abs(delta);
+                    var node = new Tree_Node(parent, array[x - delta, y + delta])
+                    {
+                        Currentnode = { DestinationFromPrevious = Destinations.UpLeft }
+                    };
+                    if (delta != 0)
+                    {
+                        node.DistanceFromParent = delta * distanceDiagonal;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
+                    }
+                }
+            }
+            //Up
+            if (!array[x, y + 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default 
+                    || destination == Destinations.Left && array[x + 1, y + 1].InformerNode.IsObstacle
+                    || destination == Destinations.Up 
+                    || destination == Destinations.Right && array[x - 1, y + 1].InformerNode.IsObstacle
+                    || destination == Destinations.UpLeft 
+                    || destination == Destinations.UpRight)
+                {
+                    var delta = parentNode.NormMatrix[0, 1];
+                    delta = Math.Abs(delta);
+                    var node = new Tree_Node(parent, array[x, y + delta])
+                    {
+                        Currentnode = { DestinationFromPrevious = Destinations.Up }
+                    };
+                    if (delta != 0)
+                    {
+                        node.DistanceFromParent = delta * distanceStraight;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
+                    }
+                }
+            }
+            //Up-right
+            if (!array[x + 1, y + 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default 
+                    || destination == Destinations.Right && array[x - 1, y + 1].InformerNode.IsObstacle
+                    || destination == Destinations.Up && array[x + 1, y - 1].InformerNode.IsObstacle
+                    || destination == Destinations.UpRight)
+                {
+                    var delta = parentNode.NormMatrix[0, 2];
+                    delta = Math.Abs(delta);
+                    var node = new Tree_Node(parent, array[x + delta, y + delta])
+                    {
+                        Currentnode = { DestinationFromPrevious = Destinations.UpRight }
+                    };
+                    if (delta != 0)
+                    {
+                        node.DistanceFromParent = delta * distanceDiagonal;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
+                    }
+                }
+            }
+            //Right
+            if (!array[x + 1, y].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default 
+                    || destination == Destinations.Right 
+                    || destination == Destinations.Up && array[x + 1, y - 1].InformerNode.IsObstacle
+                    || destination == Destinations.Down && array[x + 1, y + 1].InformerNode.IsObstacle
+                    || destination == Destinations.UpRight 
+                    || destination == Destinations.DownRight)
+                {
+                    var delta = parentNode.NormMatrix[1, 2];
+                    delta = Math.Abs(delta);
+                    var node = new Tree_Node(parent, array[x + delta, y])
+                    {
+                        Currentnode = { DestinationFromPrevious = Destinations.Right }
+                    };
+                    if (delta != 0)
+                    {
+                        node.DistanceFromParent = delta * distanceStraight;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
+                    }
+                }
+            }
+            //Down-right
+            if (!array[x + 1, y - 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default 
+                    || destination == Destinations.Right && array[x - 1, y - 1].InformerNode.IsObstacle
+                    || destination == Destinations.Down && array[x + 1, y + 1].InformerNode.IsObstacle
+                    || destination == Destinations.DownRight)
+                {
+                    var delta = parentNode.NormMatrix[2, 2];
+                    delta = Math.Abs(delta);
+                    var node = new Tree_Node(parent, array[x + delta, y - delta])
+                    {
+                        Currentnode = { DestinationFromPrevious = Destinations.DownRight }
+                    };
+                    if (delta != 0)
+                    {
+                        node.DistanceFromParent = delta * distanceDiagonal;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
+                    }
+                }
+            }
+            //Down
+            if (!array[x, y - 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default 
+                    || destination == Destinations.Left && array[x + 1, y - 1].InformerNode.IsObstacle
+                    || destination == Destinations.Right && array[x - 1, y - 1].InformerNode.IsObstacle
+                    || destination == Destinations.Down 
+                    || destination == Destinations.DownLeft 
+                    || destination == Destinations.DownRight)
+                {
+                    var delta = parentNode.NormMatrix[2, 1];
+                    delta = Math.Abs(delta);
+                    var node = new Tree_Node(parent, array[x, y - delta])
+                    {
+                        Currentnode = { DestinationFromPrevious = Destinations.Down }
+                    };
+                    if (delta != 0)
+                    {
+                        node.DistanceFromParent = delta * distanceStraight;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
+                    }
+                }
+            }
+            //Down-left
+            if (!array[x - 1, y - 1].InformerNode.IsObstacle)
+            {
+                if (destination == Destinations.Default 
+                    || destination == Destinations.Left && array[x + 1, y - 1].InformerNode.IsObstacle
+                    || destination == Destinations.Down && array[x - 1, y + 1].InformerNode.IsObstacle
+                    || destination == Destinations.DownLeft)
+                {
+                    var delta = parentNode.NormMatrix[2, 0];
+                    delta = Math.Abs(delta);
+                    var node = new Tree_Node(parent, array[x - delta, y - delta])
+                    {
+                        Currentnode = { DestinationFromPrevious = Destinations.DownLeft }
+                    };
+                    if (delta != 0)
+                    {
+                        node.DistanceFromParent = delta * distanceDiagonal;
+                        node.Currentnode.Visited = NodeState.Discovered;
+                        neighbours.Add(node);
+                    }
+                }
+            }
+
             return neighbours;
         }
 
